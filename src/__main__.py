@@ -2,10 +2,11 @@
 import json
 import sys
 import mazegenerator
+from .pacmap import PacMap
+from .visualizer import Visualizer
 
 class ConfigError(Exception):
 	pass
-
 
 
 DEFAULT_CONFIG = {
@@ -13,7 +14,7 @@ DEFAULT_CONFIG = {
 	"seed": 0,
 	"width": 10,
 	"height": 10,
-	}
+}
 
 def load_config(path:str):
 	config = DEFAULT_CONFIG
@@ -29,25 +30,17 @@ def load_config(path:str):
 	return config
 
 
-
-
-
-
 def main():
 	if sys.argv:
 		config = load_config(sys.argv[1])
 	else:
 		print("need path of config as arg")
 		return
-	maze =mazegenerator.MazeGenerator(size=(config["width"], config["height"]), seed=config["seed"])
-	maze.generate()
-	hexa = "\n".join(
-            " ".join(hex(maze.maze[y][x])[2:] for
-                    x in range(config["width"]))
-            for y in range(config["height"])
-        )
-	print(hexa)
-	print(config)
+	maze = mazegenerator.MazeGenerator(size=(config["width"], config["height"]), seed=config["seed"])
+	map = PacMap(maze)
+
+	print("\n\n\n\n\n\n"+str(map))
+	vis =Visualizer(map, (1500, 1500))
 
 if __name__ == "__main__":
 	main()
