@@ -1,15 +1,15 @@
 from __future__ import annotations
 import pygame
+
+from src.charachters.abstract_chars import MovingEntities
 from .pacmap import PacMap
-from .cells import Cell, sprites
 from typing import Optional
 from .enums import Direction
-from .vector import Pos2D
+from .config import Config
 
 
 
 
-cell_size = 16
 
 class Visualizer:
     Counter=0
@@ -27,7 +27,8 @@ class Visualizer:
         self.pacmap = pacmap
         self.base_font_size = 13
         self.font_cache: dict[int, pygame.font.Font] = {}
-        self.screen = pygame.display.set_mode(size)
+        self.screen = pygame.display.set_mode(size, pygame.RESIZABLE)
+        self.code_sequence = []
         self.launch_loop()
 
     def launch_loop(self) -> None:
@@ -65,6 +66,8 @@ class Visualizer:
                 if self.event_handler(event) == pygame.QUIT:
                     pygame.quit()
                     return
+            
+            Config.cell_size = min(pygame.display.get_window_size()) // (min(len(self.pacmap.cells), len(self.pacmap.cells[0])) + 50)
             self.movement_scan()
             
             self.time += dt
@@ -77,18 +80,24 @@ class Visualizer:
         self.screen.fill(pygame.Color(0, 0, 0))
         self.draw_cells()
         self.draw_charachters()
-        self.draw_text_multiline(f"Score: {self.pacmap.score}", 1000, 100, font=self.get_font(25))
+        text =f"""
+Score: {self.pacmap.score}
+lives : {self.pacmap.pacman.lives}
+cell_size : {Config.cell_size}
+"""
+        if self.pacmap.pacman.cheat_mode:
+            text += "\ncheat mode: on"
+        self.draw_text_multiline(text, 1000, 100, font=self.get_font(25))
         pygame.display.update()
 
     def draw_charachters(self):
-        pac = self.pacmap.pacman
-        pac_dir = pac.direction
-        frame = pac.anim_frames[pac.anim_step]
-        self.Counter += 1
-        if self.Counter % 5 == 0:
-            pac.anim_step = (pac.anim_step + 1) % (len(pac.anim_frames))
-        pos = (pac.visual_pos) * cell_size
-        self.screen.blit(pygame.transform.scale(pac_dir.rotate(frame), (cell_size*1.5, cell_size* 1.5)), pos)
+        charachters: list[MovingEntities] = [self.pacmap.pacman, self.pacmap.blinky]
+        for charachter in charachters:
+            self.Counter += 1
+            if self.Counter %5 == 0:
+                charachter.incr_anim()
+            pos = (charachter.visual_pos) * Config.cell_size
+            self.screen.blit(charachter.image, pos)
 
 
         
@@ -98,14 +107,14 @@ class Visualizer:
                 for x2 in range(3):
                     for y2 in range(3):
                         if (x + y + x2 +y2) & 1:
-                            rect = (((x*3 + x2) * cell_size),
-                                    ((y*3 + y2) * cell_size),
-                                    cell_size,
-                                    cell_size)
+                            rect = (((x*3 + x2) * Config.cell_size),
+                                    ((y*3 + y2) * Config.cell_size),
+                                    Config.cell_size,
+                                    Config.cell_size)
                             self.screen.fill(pygame.Color(20,20,80), rect)
-                        self.screen.blit(cell.image[x2][y2], ((x*3 +x2) *cell_size , (y*3+y2)*cell_size))
+                        self.screen.blit(cell.image[x2][y2], ((x*3 +x2) *Config.cell_size , (y*3+y2)*Config.cell_size))
                         if cell.fruit:
-                            self.screen.blit(cell.fruit.image, ((x*3 +1) *cell_size , (y*3+1)*cell_size))
+                            self.screen.blit(cell.fruit.image, ((x*3 +1) *Config.cell_size , (y*3+1)*Config.cell_size))
 
                         
     def draw_text_multiline(
@@ -160,6 +169,17 @@ class Visualizer:
                     return pygame.QUIT
                 case pygame.K_r:
                     self.pacmap.regenerate()
+                case pygame.K_SPACE:
+                    self.pacmap.pacman.eat_wall()
+            konami_code = [pygame.K_UP, pygame.K_UP, pygame.K_DOWN, pygame.K_DOWN, pygame.K_LEFT, pygame.K_RIGHT, pygame.K_LEFT, pygame.K_RIGHT, pygame.K_b, pygame.K_a]
+            if event.key in [pygame.K_UP, pygame.K_RIGHT, pygame.K_DOWN, pygame.K_LEFT, pygame.K_b, pygame.K_a]:
+                self.code_sequence.append(event.key) 
+                if self.code_sequence !=konami_code[:len(self.code_sequence)]:
+                    self.code_sequence.clear()
+                elif self.code_sequence == konami_code:
+                    self.pacmap.pacman.cheat_mode = not self.pacmap.pacman.cheat_mode
+                    self.code_sequence.clear()
+                
         return event
     
     def movement_scan(self) -> None:

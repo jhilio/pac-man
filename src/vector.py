@@ -1,3 +1,4 @@
+from math import sqrt
 from typing import Any, Iterator, cast, Iterable, Self
 
 
@@ -24,7 +25,26 @@ class Vector:
                 f"cant initialise {self.__class__.__name__} with {args}"
             )
 
+
+    def __pow__(self, other):
+        """
+        give an exponent to each axis of a vector
+        """
+        if isinstance(other, (float, int)):
+            return self.__class__(
+                tuple(
+                    map(
+                        lambda a: a ** other,
+                        [a for a in self],
+                    )
+                )
+            )
+        raise TypeError(f"cant pow {self} to {other}")
+
     def __mod__(self, other):
+        """
+        Modulo of two vectors or a vector and a compatible iterable.
+        """
         if self.__iscompatible(other):
             return self.__class__(
                 tuple(
@@ -223,20 +243,19 @@ class Vector:
             return all([(a == b) for a, b in zip(self, value)])
         raise TypeError(f"cant compare {self} to {value}")
 
-    def abs_diff(self, other: Any) -> int | float:
+    def abs_diff(self, other: Any) -> Self:
         """
         calculate the sum of absolute differences between this vector
         and another compatible vector or iterable.
         """
         if self.__iscompatible(other):
-            return cast(
-                int | float,
-                sum(
+            return self.__class__(
+                tuple(
                     map(
-                        lambda a_b: max(a_b) - min(a_b),
+                        lambda a_b: abs(a_b[0] - a_b[1]),
                         [(a, b) for a, b in zip(self, other)],
                     )
-                ),
+                )
             )
         raise TypeError(f"cant floordiv {self} to {other}")
 
@@ -266,6 +285,14 @@ class Vector:
             value = self._dim_pos[self.DIM_ORDER.find(name)]
             return value
         return None
+
+    def pythagore(self, other: any):
+        if self.__iscompatible(other):
+            return sqrt(sum(self.abs_diff(other) ** 2))
+        else:
+            raise ValueError(
+                f"cant use pythagore for {self.__class__.__name__} with {other}"
+                )
 
     def lerp(self, next: Any, delta: float):
         if self.__iscompatible(next):

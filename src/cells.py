@@ -2,6 +2,7 @@ from re import S
 from typing import Optional
 import pygame
 from pathlib import Path
+from .config import Config
 
 NORTH = 1
 EAST = 2
@@ -32,9 +33,7 @@ assets_names = [
 ]
 
 sprites = {
-    name: pygame.transform.scale(
-        pygame.image.load(str(Path("assets") / "double" / name)), (16, 16)
-    )
+    name: pygame.image.load(str(Path("assets") / "double" / name))
     for name in assets_names
 }
 
@@ -50,7 +49,7 @@ class Fruit:
 
     @property
     def image(self):
-        return self.cls_images[self.val]
+        return pygame.transform.scale(self.cls_images[self.val], (Config.cell_size, Config.cell_size))
 
 
     def eated(self):

@@ -1,6 +1,16 @@
 from enum import Enum
 import pygame
 
+
+
+
+class GhostState(Enum):
+    CHASE = 0b1
+    SCATER = 0b10
+    FRIGHTENED = 0b100
+    
+
+
 class Direction(Enum):
     NORTH = 0b1
     EAST = 0b10
@@ -34,3 +44,20 @@ class Direction(Enum):
         }
         return pygame.transform.rotate(sprite, angles[self])
         
+    def pac_order(self):
+        order ={
+            Direction.NORTH: 1,
+            Direction.EAST:  4,
+            Direction.SOUTH: 3,
+            Direction.WEST:  2,
+        }
+        return order[self]
+    
+    def to_text(self) -> str:
+        """get the char representation of directions"""
+        return {
+            Direction.NORTH: 'n',
+            Direction.SOUTH: 's',
+            Direction.EAST:  'e',
+            Direction.WEST:  'w',
+        }[self]

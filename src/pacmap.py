@@ -1,26 +1,36 @@
-from itertools import count
 from random import choices
-
-from .charachters import Pacman
+from .charachters.pacman import Pacman
+from .charachters.blinky import Blinky
 from .enums import Direction
-
 from .cells import Cell, Fruit
+from .vector import Pos2D
+from .config import Config
 import mazegenerator
 
 
 
 class PacMap:
     def __init__(self, maze: mazegenerator.MazeGenerator):
+        self.config = Config.config_from_file
         self.maze = maze
         self.offset = 0
         self.score = 0
         self.init_cells()
-        self.pacman = Pacman(self, Direction.NORTH, x=len(self.maze.maze)//2, y=len(self.maze.maze[1])//2)
+        self.init_charachters()
 
     def regenerate(self):
         self.maze._seed += 1
         self.maze.generate()
         self.init_cells()
+        for ghost in self.ghosts:
+            ghost.reset_pos()
+        self.pacman.reset_pos()
+
+    def init_charachters(self):
+        self.pacman = Pacman(self, Direction.NORTH, x=len(self.maze.maze)//2, y=len(self.maze.maze[1])//2, lives=self.config["lives"])
+        self.blinky = Blinky(self, Direction.EAST)
+        self.ghosts = [self.blinky]
+
 
     def init_cells(self):
         self.cells: list[list[Cell]] = []
@@ -52,12 +62,22 @@ class PacMap:
     def update(self, dt:float):
         self.offset += dt
         self.pacman.update(dt)
+        self.blinky.update(dt)
         if self.offset > 1:
             dt-=1
             self.step()
+        positions = set()
+        for elem in self.ghosts:
+            if elem.pos == self.pacman.pos:
+                for ghost in self.ghosts:
+                    ghost.reset_pos()
+                self.pacman.reset_pos()
+                self.pacman.lives -= 1
+                break
         
 
     def step(self):
         a = sum(cell.fruit.val for row in self.cells for cell in row)
         if not a:
             self.regenerate()
+        

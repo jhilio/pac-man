@@ -2,26 +2,26 @@ from PIL import Image
 from pathlib import Path
 
 # Input image
-input_file = "Arcade - Pac-Man - Miscellaneous - Maze Parts.png"
+input_file = "sprites.png"
 
 # Sprite sheet location in the original image
-SHEET_X = 225
+SHEET_X = 456
 SHEET_Y = 0
 
-SPRITE_SIZE = 8
+SPRITE_SIZE = 16
 COLS = 16
 ROWS = 9
 
 # Output directory
-output_dir = Path("assets")
+output_dir = Path("assets/ghost")
 output_dir.mkdir(exist_ok=True)
 
 image = Image.open(input_file).convert("RGBA")
 
-for row in [3, 4, 5]:
+for row in [4, 5, 6, 7]:
     for col in range(COLS):
-        left = SHEET_X + col * (SPRITE_SIZE +1) 
-        top = SHEET_Y + row * (SPRITE_SIZE +1)
+        left = SHEET_X + col * (SPRITE_SIZE) 
+        top = SHEET_Y + row * (SPRITE_SIZE)
 
         box = (
             left,
