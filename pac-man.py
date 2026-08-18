@@ -63,9 +63,14 @@ def preload_assets():
     pacman_anim_frames = [f"assets/pacman/pacman_frame_{num}.png" for num in range(4)]
     blinky_anim_frames = [f"assets/ghost/blinky/blinky_{direc.to_text()}{num}.png" for num in [1, 2] for direc in Direction]
 
-    total = maze_assets + pacman_anim_frames + blinky_anim_frames
-    for full_path in total:
+    for full_path in maze_assets:
         Config.assets.load(Path(full_path).name, full_path, pygame.Color(0, 0, 0))
+        print(f"loaded {Path(full_path).name}")
+    for full_path in pacman_anim_frames:
+        Config.assets.load(Path(full_path).name, full_path)
+        print(f"loaded {Path(full_path).name}")
+    for full_path in blinky_anim_frames:
+        Config.assets.load(Path(full_path).name, full_path)
         print(f"loaded {Path(full_path).name}")
 
 def main():
