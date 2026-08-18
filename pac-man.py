@@ -64,7 +64,7 @@ def preload_assets():
     blinky_anim_frames = [f"assets/ghost/blinky/blinky_{direc.to_text()}{num}.png" for num in [1, 2] for direc in Direction]
 
     for full_path in maze_assets:
-        Config.assets.load(Path(full_path).name, full_path, pygame.Color(0, 0, 0))
+        Config.assets.load(Path(full_path).name, full_path, (0,0,0))
         print(f"loaded {Path(full_path).name}")
     for full_path in pacman_anim_frames:
         Config.assets.load(Path(full_path).name, full_path)
@@ -86,7 +86,7 @@ def main():
     map = PacMap(maze)
 
     print("\n\n\n\n\n\n"+str(map))
-    vis =Visualizer(map, (1500, 1500))
+    vis =Visualizer(map, (1400, 1100))
 
 if __name__ == "__main__":
     main()

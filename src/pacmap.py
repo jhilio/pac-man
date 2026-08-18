@@ -60,7 +60,6 @@ class PacMap:
         )
 
     def update(self, dt:float):
-        print(dt)
         self.offset += dt
         self.pacman.update(dt)
         self.blinky.update(dt)
@@ -78,6 +77,7 @@ class PacMap:
                     self.pacman.reset_pos()
                     self.pacman.lives -= 1
                 break
+
     def step(self):
         a = sum(cell.fruit.val for row in self.cells for cell in row)
         if not a:

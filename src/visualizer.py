@@ -1,4 +1,6 @@
 from __future__ import annotations
+import re
+from tkinter import NO
 import pygame
 
 from src.charachters.abstract_chars import MovingEntities
@@ -75,10 +77,10 @@ class Visualizer:
             self.time += dt
             if not self.paused:
                 self.pacmap.update(dt)
-            self.draw_all()
+            self.draw_all(dt)
 
 
-    def draw_all(self):
+    def draw_all(self, dt:float):
         self.screen.fill(pygame.Color(0, 0, 0))
         self.draw_cells()
         self.draw_charachters()
@@ -86,6 +88,7 @@ class Visualizer:
 Score: {self.pacmap.score}
 lives : {self.pacmap.pacman.lives}
 cell_size : {Config.cell_size}
+fps : {1/ (dt/self.tick_rate):.1f}
 """
         if self.pacmap.pacman.cheat_mode:
             text += "\ncheat mode: on"
@@ -109,14 +112,15 @@ cell_size : {Config.cell_size}
                 for x2 in range(3):
                     for y2 in range(3):
                         if (x + y + x2 +y2) & 1:
-                            rect = (((x*3 + x2) * Config.cell_size),
+                            rect = pygame.Rect(((x*3 + x2) * Config.cell_size),
                                     ((y*3 + y2) * Config.cell_size),
                                     Config.cell_size,
                                     Config.cell_size)
                             self.screen.fill(pygame.Color(20,20,80), rect)
                         self.screen.blit(cell.image[x2][y2], ((x*3 +x2) *Config.cell_size , (y*3+y2)*Config.cell_size))
                         if cell.fruit:
-                            self.screen.blit(cell.fruit.image, ((x*3 +1) *Config.cell_size , (y*3+1)*Config.cell_size))
+                            image = cell.fruit.image
+                            self.screen.blit(image, ((x*3 +1) *Config.cell_size , (y*3+1)*Config.cell_size))
 
                         
     def draw_text_multiline(
