@@ -8,10 +8,6 @@ from ..vector import Pos2D
 
 
 class MovingEntities(ABC):
-    anim_step = 0
-    anim_frames: list|dict = []
-
-
     def __init__(self, context: 'PacMap', direction: Direction, x: int=0, y: int=0):
         self.pos = Pos2D(x * 3, y *3) + (1, 1)
         self.original_pos = self.pos

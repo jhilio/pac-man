@@ -1,7 +1,6 @@
 from re import S
 from typing import Optional
 import pygame
-from pathlib import Path
 from .config import Config
 
 NORTH = 1
@@ -9,47 +8,20 @@ EAST = 2
 SOUTH = 4
 WEST = 8
 
-assets_names = [
-    "very_small_corner_ne.png",
-    "very_small_corner_se.png",
-    "very_small_corner_sw.png",
-    "very_small_corner_nw.png",
-    "small_corner_ne.png",
-    "small_corner_se.png",
-    "small_corner_sw.png",
-    "small_corner_nw.png",
-    "corner_ne.png",
-    "corner_se.png",
-    "corner_sw.png",
-    "corner_nw.png",
-    "double_top.png",
-    "double_right.png",
-    "double_left.png",
-    "double_bottom.png",
-    "no_dot.png",
-    "small_dot.png",
-    "middle_dot.png",
-    "big_dot.png",
-]
 
-sprites = {
-    name: pygame.image.load(str(Path("assets") / "double" / name))
-    for name in assets_names
-}
 
-for im in sprites.values():
-    im.set_colorkey((0, 0, 0))
+
+
 
 
 class Fruit:
-    cls_images = (sprites["no_dot.png"], sprites["small_dot.png"], sprites["big_dot.png"])
-
     def __init__(self, val:int = 0):
         self.val = val
 
     @property
     def image(self):
-        return pygame.transform.scale(self.cls_images[self.val], (Config.cell_size, Config.cell_size))
+        names = ("no_dot.png","small_dot.png", "big_dot.png")
+        return Config.assets.get_asset(names[self.val])
 
 
     def eated(self):
@@ -96,24 +68,24 @@ class Cell:
     def init_image(self):
         def get_corner(walls: int, dir1, dir2, neighbor: tuple[int, int, int, int]):
             if dir1 & walls and dir2 & walls:
-                return sprites[f"corner_{'n' if dir1 == NORTH else 's'}{'e' if dir2 == EAST else 'w'}.png"]
+                return Config.assets.get_asset(f"corner_{'n' if dir1 == NORTH else 's'}{'e' if dir2 == EAST else 'w'}.png")
             elif dir1 & walls:
-                return sprites[f"double_{'top' if dir1 == NORTH else 'bottom'}.png"]
+                return Config.assets.get_asset(f"double_{'top' if dir1 == NORTH else 'bottom'}.png")
             elif dir2 & walls:
-                return sprites[f"double_{'right' if dir2 == EAST else 'left'}.png"]
+                return Config.assets.get_asset(f"double_{'right' if dir2 == EAST else 'left'}.png")
             else:
-                return sprites[f"very_small_corner_{'n' if dir1 != NORTH else 's'}{'e' if dir2 != EAST else 'w'}.png"]
+                return Config.assets.get_asset(f"very_small_corner_{'n' if dir1 != NORTH else 's'}{'e' if dir2 != EAST else 'w'}.png")
         def get_direction(walls: int, direction: int):
             if direction == NORTH and walls & direction:
-                return sprites[f"double_top.png"]
+                return Config.assets.get_asset(f"double_top.png")
             elif direction == EAST and walls & direction:
-                return sprites[f"double_right.png"]
+                return Config.assets.get_asset(f"double_right.png")
             elif direction == SOUTH and walls & direction:
-                return sprites[f"double_bottom.png"]
+                return Config.assets.get_asset(f"double_bottom.png")
             elif direction == WEST and walls & direction:
-                return sprites[f"double_left.png"]
+                return Config.assets.get_asset(f"double_left.png")
             else:
-                return sprites[f"no_dot.png"]
+                return Config.assets.get_asset(f"no_dot.png")
         if self.walls == 15:
             pass # create 3*3 full block for 42 patern
 
@@ -127,7 +99,7 @@ class Cell:
             ),  # right part
             (
                 get_direction(self.walls, NORTH),
-                sprites["no_dot.png"],
+                Config.assets.get_asset("no_dot.png"),
                 get_direction(self.walls, SOUTH),
             ),  # midle
             (

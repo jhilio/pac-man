@@ -60,22 +60,24 @@ class PacMap:
         )
 
     def update(self, dt:float):
+        print(dt)
         self.offset += dt
         self.pacman.update(dt)
         self.blinky.update(dt)
         if self.offset > 1:
             dt-=1
             self.step()
-        positions = set()
+        self.check_colision()
+
+    def check_colision(self):
         for elem in self.ghosts:
             if elem.pos == self.pacman.pos:
                 for ghost in self.ghosts:
                     ghost.reset_pos()
-                self.pacman.reset_pos()
-                self.pacman.lives -= 1
+                if not self.pacman.cheat_mode:
+                    self.pacman.reset_pos()
+                    self.pacman.lives -= 1
                 break
-        
-
     def step(self):
         a = sum(cell.fruit.val for row in self.cells for cell in row)
         if not a:

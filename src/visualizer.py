@@ -13,6 +13,8 @@ from .config import Config
 
 class Visualizer:
     Counter=0
+    MIN_WIDTH = 400
+    MIN_HEIGHT = 300
 
     def __init__(
             self,
@@ -21,7 +23,7 @@ class Visualizer:
         ):
         pygame.init()
         self.size = size
-        self.tick_rate = 7.5
+        self.tick_rate = 10
         self.fps = 60
         self.paused = True
         self.pacmap = pacmap
@@ -179,7 +181,12 @@ cell_size : {Config.cell_size}
                 elif self.code_sequence == konami_code:
                     self.pacmap.pacman.cheat_mode = not self.pacmap.pacman.cheat_mode
                     self.code_sequence.clear()
-                
+        elif event.type == pygame.VIDEORESIZE:
+            # 1. Enforce Minimum Size
+            new_w = max(self.MIN_WIDTH, event.w)
+            new_h = max(self.MIN_HEIGHT, event.h)
+            if (new_w, new_h) != event.size:
+                self.screen = pygame.display.set_mode((new_w, new_h), pygame.RESIZABLE)
         return event
     
     def movement_scan(self) -> None:

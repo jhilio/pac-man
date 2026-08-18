@@ -11,17 +11,16 @@ import pygame
 
 
 class Blinky(Ghost):
-    anim_frames = {direc : tuple(pygame.image.load(f"assets/ghost/blinky/blinky_{direc.to_text()}{num}.png") for num in [1, 2]) for direc in Direction}
 
     def __init__(self, context, direction, x=0, y=0):
         super().__init__(context, direction, x, y)
-        print(self.anim_frames)
 
     @property
     def image(self):
-        frame = self.anim_frames[self.direction][self.anim_step]
-        scaled = pygame.transform.scale(frame, (Config.cell_size * 1.5, Config.cell_size * 1.5))
-        return scaled
+        frame = Config.assets.get_asset(
+            f"blinky_{self.direction.to_text()}{self.anim_step+1}.png",
+            size_multiplier=1.5)
+        return frame
 
     def incr_anim(self):
         self.anim_step == 0 if self.anim_step else 1

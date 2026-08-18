@@ -9,9 +9,6 @@ import pygame
 
 
 class Pacman(MovingEntities):
-	anim_frames = [pygame.image.load(f"assets/pacman/frame_{num}.png") for num in range(4)]
-
-
 	def __init__(self, context: "PacMap", direction: Direction, x: int=0, y: int=0, lives:int=3):
 		super().__init__(context, direction, x, y)
 		self.lives = lives
@@ -19,13 +16,12 @@ class Pacman(MovingEntities):
 
 	@property
 	def image(self):
-		frame = self.anim_frames[self.anim_step]
+		frame = Config.assets.get_asset(f"pacman_frame_{self.anim_step}.png", size_multiplier=1.5)
 		rotated = self.direction.rotate(frame)
-		scaled = pygame.transform.scale(rotated, (Config.cell_size*1.5, Config.cell_size* 1.5))
-		return scaled
+		return rotated
 
 	def incr_anim(self):
-		self.anim_step = (self.anim_step + 1) % len(self.anim_frames)
+		self.anim_step = (self.anim_step + 1) % 4 # 4 is pacman anim frame lenght
 
 	def update(self, dt:float):
 		self.offset += dt
