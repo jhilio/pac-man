@@ -3,7 +3,6 @@ from typing import Optional
 import pygame
 from pathlib import Path
 
-
 NORTH = 1
 EAST = 2
 SOUTH = 4
@@ -34,7 +33,7 @@ assets_names = [
 
 sprites = {
     name: pygame.transform.scale(
-        pygame.image.load(str(Path("assets") / "double" / name)), (32, 32)
+        pygame.image.load(str(Path("assets") / "double" / name)), (16, 16)
     )
     for name in assets_names
 }

@@ -9,9 +9,11 @@ from .vector import Pos2D
 
 
 
-cell_size = 32
+cell_size = 16
 
 class Visualizer:
+    Counter=0
+
     def __init__(
             self,
             pacmap: PacMap,
@@ -21,7 +23,7 @@ class Visualizer:
         self.size = size
         self.tick_rate = 7.5
         self.fps = 60
-        self.paused = False
+        self.paused = True
         self.pacmap = pacmap
         self.base_font_size = 13
         self.font_cache: dict[int, pygame.font.Font] = {}
@@ -59,13 +61,15 @@ class Visualizer:
         clock = pygame.time.Clock()
         while True:
             dt = clock.tick(self.fps) / 1000.0 * self.tick_rate  # seconds since last frame
-            self.time += dt
             for event in pygame.event.get():
                 if self.event_handler(event) == pygame.QUIT:
                     pygame.quit()
                     return
             self.movement_scan()
-            self.pacmap.update(dt)
+            
+            self.time += dt
+            if not self.paused:
+                self.pacmap.update(dt)
             self.draw_all()
 
 
@@ -79,8 +83,10 @@ class Visualizer:
     def draw_charachters(self):
         pac = self.pacmap.pacman
         pac_dir = pac.direction
-        frame = pac.anim_frames[int(self.time *100 % len(pac.anim_frames))]
-        #pac.anim_step = (pac.anim_step + 1) % (len(pac.anim_frames))
+        frame = pac.anim_frames[pac.anim_step]
+        self.Counter += 1
+        if self.Counter % 5 == 0:
+            pac.anim_step = (pac.anim_step + 1) % (len(pac.anim_frames))
         pos = (pac.visual_pos) * cell_size
         self.screen.blit(pygame.transform.scale(pac_dir.rotate(frame), (cell_size*1.5, cell_size* 1.5)), pos)
 
@@ -148,9 +154,12 @@ class Visualizer:
         """
         if event.type == pygame.KEYDOWN:
             self.display_keybind = False
+            self.paused = False
             match event.key:
                 case pygame.K_ESCAPE:
                     return pygame.QUIT
+                case pygame.K_r:
+                    self.pacmap.regenerate()
         return event
     
     def movement_scan(self) -> None:

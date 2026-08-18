@@ -24,8 +24,6 @@ class Direction(Enum):
             Direction.EAST:  (1, 0),
             Direction.WEST:  (-1, 0),
         }[self]
-
-
     
     def rotate(self, sprite:pygame.Surface):
         angles = {

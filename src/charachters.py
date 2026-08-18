@@ -61,11 +61,13 @@ class Pacman(MovingEntities):
 					self.next_direction = self.direction
 			else:
 				self.direction = self.next_direction #empty buffer
+
 		if (not cell_walls & self.direction.value #wall open
 				or (((new_pos) % (3, 3))[0] != 1 and self.direction.delta()[0]) #or continue x
 				or (((new_pos) % (3, 3))[1] != 1 and self.direction.delta()[1]) #or continue y 
 			):
 			new_pos += self.direction.delta()
+
 		if (
 			self.next_direction != self.direction
 			and not cell_walls & self.next_direction.value

@@ -11,11 +11,11 @@ import mazegenerator
 
 class PacMap:
     def __init__(self, maze: mazegenerator.MazeGenerator):
-        self.pacman = Pacman(self, Direction.NORTH)
         self.maze = maze
         self.offset = 0
         self.score = 0
         self.init_cells()
+        self.pacman = Pacman(self, Direction.NORTH, x=len(self.maze.maze)//2, y=len(self.maze.maze[1])//2)
 
     def regenerate(self):
         self.maze._seed += 1
@@ -33,11 +33,15 @@ class PacMap:
                     Cell(self.maze.maze[y][x], x, y, self.cells,
                         fruit=Fruit(
                             choices(
-                                population=[0, 1, 2],
-                                weights=[0.2, 0.705, 0.05])[0]
+                                population=[0, 1],
+                                weights=[0.2, 0.8])[0]
                         )
                     )
                 )
+        self.cells[0][0].fruit = Fruit(2)
+        self.cells[0][-1].fruit = Fruit(2)
+        self.cells[-1][0].fruit = Fruit(2)
+        self.cells[-1][-1].fruit = Fruit(2)
 
     def __str__(self):
         return "\n".join(
