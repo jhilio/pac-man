@@ -1,40 +1,37 @@
 from src.enums import Direction
 from src.vector import Pos2D
 
-from .abstract_chars import MovingEntities
-from ..config import Config
-import pygame
+from .moving_entity import MovingEntities
+from ..config import MainData
 
 
 
 
 class Pacman(MovingEntities):
-	def __init__(self, context: "PacMap", direction: Direction, x: int=0, y: int=0, lives:int=3):
-		super().__init__(context, direction, x, y)
+	def __init__(self, direction: Direction, x: int=0, y: int=0, lives:int=3):
+		super().__init__(direction, x, y)
 		self.lives = lives
+		self.speed = MainData.pacmap.level["pacman_speed"] / 100
+		self.fright_speed = MainData.pacmap.level["pacman_fright_speed"] / 100
 		self.cheat_mode = False
+		self.map = MainData.pacmap
+	
 
 	@property
 	def image(self):
-		frame = Config.assets.get_asset(f"pacman_frame_{self.anim_step}.png", size_multiplier=1.5)
+		frame = MainData.assets.get_asset(f"pacman_frame_{self.anim_step}.png", size_multiplier=1.3)
 		rotated = self.direction.rotate(frame)
 		return rotated
 
 	def incr_anim(self):
+		print(self.anim_step)
 		self.anim_step = (self.anim_step + 1) % 4 # 4 is pacman anim frame lenght
-
-	def update(self, dt:float):
-		self.offset += dt
-
-		if self.offset >= 1:
-			self.offset -= 1
-			self.step()
 
 	def step(self):
 		self.move(self.turn_and_pathfind())
 		cell_x, cell_y = self.cell_pos
 		if self.map.cells[cell_x][cell_y].fruit is not None:
-			self.map.score += self.map.cells[cell_x][cell_y].fruit.eated()
+			self.map.cells[cell_x][cell_y].fruit.eated()
 
 	def turn_and_pathfind(self):
 		new_pos = self.next_pos
@@ -78,4 +75,6 @@ class Pacman(MovingEntities):
 				if 0<= neig_x < len(self.map.cells) and  0<= neig_y < len(self.map.cells[0]):
 					cell = self.map.cells[neig_x][neig_y]
 					cell.init_image()
-			
+
+	def eated_super(self):
+		MainData.pacmap.fright_time_left = 10

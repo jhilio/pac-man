@@ -1,35 +1,51 @@
 from random import choices
+
+from .charachters.clyde import Clyde
+
+from .charachters.ghost import Ghost
+from .charachters.moving_entity import MovingEntities
+from .charachters.inky import Inky
 from .charachters.pacman import Pacman
 from .charachters.blinky import Blinky
+from .charachters.pinky import Pinky
 from .enums import Direction
 from .cells import Cell, Fruit
-from .vector import Pos2D
-from .config import Config
+from .config import MainData
 import mazegenerator
 
 
 
 class PacMap:
     def __init__(self, maze: mazegenerator.MazeGenerator):
-        self.config = Config.config_from_file
+        MainData.pacmap = self
+        self.level_num = 1
+        self.level = MainData.config_from_file["levels"][str(self.level_num)]
         self.maze = maze
         self.offset = 0
         self.score = 0
+        self.fright_time_left = 0
+        self.total_elapsed_time = 0
         self.init_cells()
         self.init_charachters()
 
     def regenerate(self):
         self.maze._seed += 1
+        self.fright_time_left = 0
+        self.total_elapsed_time = 0
         self.maze.generate()
         self.init_cells()
         for ghost in self.ghosts:
             ghost.reset_pos()
         self.pacman.reset_pos()
 
+
     def init_charachters(self):
-        self.pacman = Pacman(self, Direction.NORTH, x=len(self.maze.maze)//2, y=len(self.maze.maze[1])//2, lives=self.config["lives"])
-        self.blinky = Blinky(self, Direction.EAST)
-        self.ghosts = [self.blinky]
+        self.pacman = Pacman(Direction.NORTH, x=len(self.maze.maze)//2, y=len(self.maze.maze[1])//2, lives=MainData.config_from_file["lives"])
+        self.blinky = Blinky(Direction.EAST)
+        self.pinky = Pinky(Direction.SOUTH, len(self.cells)-1, 0)
+        self.clyde = Clyde(Direction.WEST, len(self.cells)-1, len(self.cells[0])-1)
+        self.inky = Inky(Direction.NORTH, 0, len(self.cells[0])-1)
+        self.ghosts: list[Ghost]= [self.blinky, self.pinky, self.inky, self.clyde]
 
 
     def init_cells(self):
@@ -60,9 +76,17 @@ class PacMap:
         )
 
     def update(self, dt:float):
+        self.total_elapsed_time += dt
+
+        if self.fright_time_left >0:
+            self.fright_time_left -= dt
+            if self.fright_time_left < 0:
+                self.fright_time_left = 0
+        dt *= MainData.tick_rate
         self.offset += dt
         self.pacman.update(dt)
-        self.blinky.update(dt)
+        for ghost in self.ghosts:
+            ghost.update(dt)
         if self.offset > 1:
             dt-=1
             self.step()

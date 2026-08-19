@@ -3,11 +3,11 @@ import re
 from tkinter import NO
 import pygame
 
-from src.charachters.abstract_chars import MovingEntities
+from src.charachters.moving_entity import MovingEntities
 from .pacmap import PacMap
 from typing import Optional
 from .enums import Direction
-from .config import Config
+from .config import MainData
 
 
 
@@ -25,7 +25,6 @@ class Visualizer:
         ):
         pygame.init()
         self.size = size
-        self.tick_rate = 10
         self.fps = 60
         self.paused = True
         self.pacmap = pacmap
@@ -65,13 +64,13 @@ class Visualizer:
         """Main loop of the visualizer."""
         clock = pygame.time.Clock()
         while True:
-            dt = clock.tick(self.fps) / 1000.0 * self.tick_rate  # seconds since last frame
+            dt = clock.tick(self.fps) / 1000.0  # seconds since last frame
             for event in pygame.event.get():
                 if self.event_handler(event) == pygame.QUIT:
                     pygame.quit()
                     return
             
-            Config.cell_size = min(pygame.display.get_window_size()) // (min(len(self.pacmap.cells), len(self.pacmap.cells[0])) + 50)
+            MainData.cell_size = min(pygame.display.get_window_size()) // (min(len(self.pacmap.cells), len(self.pacmap.cells[0])) + 50)
             self.movement_scan()
             
             self.time += dt
@@ -83,25 +82,38 @@ class Visualizer:
     def draw_all(self, dt:float):
         self.screen.fill(pygame.Color(0, 0, 0))
         self.draw_cells()
+        if self.pacmap.pacman.cheat_mode:
+            self.draw_targets()
         self.draw_charachters()
+
         text =f"""
+{("fright left : " + format(self.pacmap.fright_time_left, ".1f") + "s") if self.pacmap.fright_time_left else ""}
+Time left : {self.pacmap.level["duration"] - self.pacmap.total_elapsed_time:.0f}S
 Score: {self.pacmap.score}
 lives : {self.pacmap.pacman.lives}
-cell_size : {Config.cell_size}
-fps : {1/ (dt/self.tick_rate):.1f}
+cell_size : {MainData.cell_size}
+fps : {1/dt:.1f}
 """
         if self.pacmap.pacman.cheat_mode:
             text += "\ncheat mode: on"
         self.draw_text_multiline(text, 1000, 100, font=self.get_font(25))
         pygame.display.update()
 
+    def draw_targets(self):
+        for ghost in self.pacmap.ghosts:
+            if ghost.target_cell:
+                start = ghost.target_cell * (MainData.cell_size)
+                rect =  (start.x, start.y, MainData.cell_size, MainData.cell_size)
+                self.screen.fill(ghost.ghost_color, rect)
+
+
     def draw_charachters(self):
-        charachters: list[MovingEntities] = [self.pacmap.pacman, self.pacmap.blinky]
+        charachters: list[MovingEntities] = [self.pacmap.pacman] + self.pacmap.ghosts
+        self.Counter += 1
         for charachter in charachters:
-            self.Counter += 1
-            if self.Counter %5 == 0:
+            if self.Counter % 5 == 0:
                 charachter.incr_anim()
-            pos = (charachter.visual_pos) * Config.cell_size
+            pos = (charachter.visual_pos) * MainData.cell_size
             self.screen.blit(charachter.image, pos)
 
 
@@ -112,15 +124,15 @@ fps : {1/ (dt/self.tick_rate):.1f}
                 for x2 in range(3):
                     for y2 in range(3):
                         if (x + y + x2 +y2) & 1:
-                            rect = pygame.Rect(((x*3 + x2) * Config.cell_size),
-                                    ((y*3 + y2) * Config.cell_size),
-                                    Config.cell_size,
-                                    Config.cell_size)
+                            rect = pygame.Rect(((x*3 + x2) * MainData.cell_size),
+                                    ((y*3 + y2) * MainData.cell_size),
+                                    MainData.cell_size,
+                                    MainData.cell_size)
                             self.screen.fill(pygame.Color(20,20,80), rect)
-                        self.screen.blit(cell.image[x2][y2], ((x*3 +x2) *Config.cell_size , (y*3+y2)*Config.cell_size))
+                        self.screen.blit(cell.image[x2][y2], ((x*3 +x2) *MainData.cell_size , (y*3+y2)*MainData.cell_size))
                         if cell.fruit:
                             image = cell.fruit.image
-                            self.screen.blit(image, ((x*3 +1) *Config.cell_size , (y*3+1)*Config.cell_size))
+                            self.screen.blit(image, ((x*3 +1) *MainData.cell_size , (y*3+1)*MainData.cell_size))
 
                         
     def draw_text_multiline(

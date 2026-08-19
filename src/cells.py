@@ -1,7 +1,7 @@
 from re import S
 from typing import Optional
 import pygame
-from .config import Config
+from .config import MainData
 
 NORTH = 1
 EAST = 2
@@ -21,13 +21,16 @@ class Fruit:
     @property
     def image(self):
         names = ("no_dot.png","small_dot.png", "big_dot.png")
-        return Config.assets.get_asset(names[self.val])
+        return MainData.assets.get_asset(names[self.val])
 
 
     def eated(self):
-        score = self.val *100
+        if self.val == 1:
+            MainData.pacmap.score += MainData.config_from_file["pac_gum_point"]
+        elif self.val == 2:
+            MainData.pacmap.score += MainData.config_from_file["superpac_gum_point"]
+            MainData.pacmap.pacman.eated_super()
         self.val = 0
-        return score
 
 
 class Cell:
@@ -68,24 +71,24 @@ class Cell:
     def init_image(self):
         def get_corner(walls: int, dir1, dir2, neighbor: tuple[int, int, int, int]):
             if dir1 & walls and dir2 & walls:
-                return Config.assets.get_asset(f"corner_{'n' if dir1 == NORTH else 's'}{'e' if dir2 == EAST else 'w'}.png")
+                return MainData.assets.get_asset(f"corner_{'n' if dir1 == NORTH else 's'}{'e' if dir2 == EAST else 'w'}.png")
             elif dir1 & walls:
-                return Config.assets.get_asset(f"double_{'top' if dir1 == NORTH else 'bottom'}.png")
+                return MainData.assets.get_asset(f"double_{'top' if dir1 == NORTH else 'bottom'}.png")
             elif dir2 & walls:
-                return Config.assets.get_asset(f"double_{'right' if dir2 == EAST else 'left'}.png")
+                return MainData.assets.get_asset(f"double_{'right' if dir2 == EAST else 'left'}.png")
             else:
-                return Config.assets.get_asset(f"very_small_corner_{'n' if dir1 != NORTH else 's'}{'e' if dir2 != EAST else 'w'}.png")
+                return MainData.assets.get_asset(f"very_small_corner_{'n' if dir1 != NORTH else 's'}{'e' if dir2 != EAST else 'w'}.png")
         def get_direction(walls: int, direction: int):
             if direction == NORTH and walls & direction:
-                return Config.assets.get_asset(f"double_top.png")
+                return MainData.assets.get_asset(f"double_top.png")
             elif direction == EAST and walls & direction:
-                return Config.assets.get_asset(f"double_right.png")
+                return MainData.assets.get_asset(f"double_right.png")
             elif direction == SOUTH and walls & direction:
-                return Config.assets.get_asset(f"double_bottom.png")
+                return MainData.assets.get_asset(f"double_bottom.png")
             elif direction == WEST and walls & direction:
-                return Config.assets.get_asset(f"double_left.png")
+                return MainData.assets.get_asset(f"double_left.png")
             else:
-                return Config.assets.get_asset(f"no_dot.png")
+                return MainData.assets.get_asset(f"no_dot.png")
         if self.walls == 15:
             pass # create 3*3 full block for 42 patern
 
@@ -99,7 +102,7 @@ class Cell:
             ),  # right part
             (
                 get_direction(self.walls, NORTH),
-                Config.assets.get_asset("no_dot.png"),
+                MainData.assets.get_asset("no_dot.png"),
                 get_direction(self.walls, SOUTH),
             ),  # midle
             (

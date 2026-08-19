@@ -1,8 +1,10 @@
 from __future__ import annotations
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .pacmap import PacMap
 from typing import Optional
 import pygame
-
-
 
 
 
@@ -20,8 +22,8 @@ class AssetsManager:
         return self.get_asset(name)
 
 
-    def get_asset(self, name:str, size_multiplier:int = 1):
-        size=Config.cell_size * size_multiplier
+    def get_asset(self, name:str, size_multiplier:float = 1):
+        size=MainData.cell_size * size_multiplier
         if self.scaled.get(size) is None:
             self.scaled[size] = {}
         cache = self.scaled[size]
@@ -30,14 +32,15 @@ class AssetsManager:
         unscaled = self._originals.get(name)
         if unscaled is None:
             raise ValueError(f"asset {name} wansnt loaded")
-        print("miss")
         scaled = pygame.transform.scale(unscaled, (size*size_multiplier, size*size_multiplier))
         if unscaled.get_colorkey() is not None:
             scaled.set_colorkey(unscaled.get_colorkey()[:3])
         cache[name] = scaled
         return scaled
 
-class Config:
+class MainData:
+    tick_rate = 10
     cell_size = 16
-    config_from_file = {}
     assets = AssetsManager()
+    config_from_file = {}
+    pacmap: Optional[PacMap] = None
