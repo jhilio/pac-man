@@ -39,6 +39,10 @@ class MovingEntities(ABC):
         pass
 
     @abstractmethod
+    def update_level_data(self):
+        pass
+
+    @abstractmethod
     def incr_anim(self):
         pass
 

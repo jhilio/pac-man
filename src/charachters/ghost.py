@@ -1,6 +1,6 @@
 
 
-from os import RTLD_DEEPBIND
+from random import choice
 
 from .moving_entity import MovingEntities,Direction, MainData, Pos2D, abstractmethod
 from ..enums import GhostState
@@ -60,20 +60,28 @@ class Ghost(MovingEntities):
 
     @property
     def image(self):
-        if (MainData.pacmap.fright_time_left > 20
-            or MainData.pacmap.fright_time_left % 4 > 1):
-            frame = MainData.assets.get_asset(
-                f"eyes_{self.direction.to_text()}.png",
-                size_multiplier=1.3)
+        path_name = ""
+        if not self.is_alive:
+            path_name = f"eyes_{self.direction.to_text()}.png"
+        elif (MainData.pacmap.fright_time_left > 2
+                or (
+                    MainData.pacmap.fright_time_left
+                    and MainData.pacmap.fright_time_left % 0.5 < 0.2
+                    )
+                ):
+            path_name = f"frightened_{self.anim_step+1}.png"
         else:
-            frame = MainData.assets.get_asset(
-                f"{self.ghost_name}_{self.direction.to_text()}{self.anim_step+1}.png",
-                size_multiplier=1.3)
+            path_name = f"{self.ghost_name}_{self.direction.to_text()}{self.anim_step+1}.png"
+        frame = MainData.assets.get_asset(path_name, size_multiplier=1.3)
         return frame
 
     def update(self, dt:float):
         pacmap = MainData.pacmap
-        if pacmap.fright_time_left:
+        if self.pos == self.original_pos:
+            self.is_alive = True
+        if not self.is_alive:
+            self.mode = GhostState.DEAD
+        elif pacmap.fright_time_left:
             if self.mode != GhostState.FRIGHTENED: 
                 self.mode = GhostState.FRIGHTENED
                 self.direction = self.direction.oppo()
@@ -85,12 +93,18 @@ class Ghost(MovingEntities):
     def incr_anim(self):
         self.anim_step = 0 if self.anim_step else 1
 
+    def update_level_data(self):
+        self.speed = MainData.pacmap.level["ghost_speed"] / 100
+        self.fright_speed = MainData.pacmap.level["ghost_fright_speed"] / 100
+
     def choose_target_cell(self):
         match self.mode:
+            case GhostState.DEAD:
+                self.target_cell = self.original_pos
             case GhostState.SCATER:
                 self.target_cell = self.original_pos
             case GhostState.FRIGHTENED:
-                self.target_cell = self.original_pos
+                self.target_cell = self.pos + choice([d.delta() for d in Direction])
             case GhostState.CHASE:
                 self.target_cell = self.specific_chase_cell()
         if self.target_cell == self.pos:
@@ -100,6 +114,7 @@ class Ghost(MovingEntities):
         self.choose_target_cell()
         self.direction = self.rank_neighbor()[0]
         self.move(self.next_pos + self.direction.delta())
+
 
     @abstractmethod
     def specific_chase_cell(self) -> Pos2D:

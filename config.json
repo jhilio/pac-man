@@ -7,6 +7,10 @@
 	"random_bulshit": "fasfaef",
 	"levels": {
 		"1": {
+			"pacman_fright_speed": 2000
+		},
+		"2": {
+			"pacman_speed": 2000
 		}
 	}
 }

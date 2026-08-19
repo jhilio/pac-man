@@ -24,8 +24,11 @@ class Pacman(MovingEntities):
 		return rotated
 
 	def incr_anim(self):
-		print(self.anim_step)
 		self.anim_step = (self.anim_step + 1) % 4 # 4 is pacman anim frame lenght
+
+	def update_level_data(self):
+		self.speed = MainData.pacmap.level["pacman_speed"] / 100
+		self.fright_speed = MainData.pacmap.level["pacman_fright_speed"] / 100
 
 	def step(self):
 		self.move(self.turn_and_pathfind())

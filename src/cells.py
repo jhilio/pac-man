@@ -26,9 +26,9 @@ class Fruit:
 
     def eated(self):
         if self.val == 1:
-            MainData.pacmap.score += MainData.config_from_file["pac_gum_point"]
+            MainData.pacmap.score += MainData.config_from_file["points_per_pacgum"]
         elif self.val == 2:
-            MainData.pacmap.score += MainData.config_from_file["superpac_gum_point"]
+            MainData.pacmap.score += MainData.config_from_file["points_per_super_pacgum"]
             MainData.pacmap.pacman.eated_super()
         self.val = 0
 

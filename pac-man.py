@@ -49,8 +49,9 @@ DEFAULT_CONFIG = {
     "seed": 0,
     "width": 10,
     "height": 10,
-    "pac_gum_point": 10,
-    "superpac_gum_point": 50,
+    "points_per_pacgum": 10,
+    "points_per_super_pacgum": 50,
+    "points_per_ghost": 50,
     "levels": levels_dict,
 }
 
@@ -111,6 +112,10 @@ def preload_assets():
         "assets/ghost/eyes/eyes_s.png",
         "assets/ghost/eyes/eyes_w.png"
     ]
+    frightened_assets = [
+        "assets/ghost/frightened/frightened_1.png",
+        "assets/ghost/frightened/frightened_2.png"
+    ]
     pacman_anim_frames = [f"assets/pacman/pacman_frame_{num}.png" for num in range(4)]
     ghosts_anim_frames = [
         f"assets/ghost/{name}/{name}_{direc.to_text()}{num}.png"
@@ -120,7 +125,13 @@ def preload_assets():
     ]
 
 
-    total = (maze_assets + pacman_anim_frames + ghosts_anim_frames + eyes_assets)
+    total = (
+        maze_assets +
+        pacman_anim_frames +
+        ghosts_anim_frames +
+        eyes_assets +
+        frightened_assets)
+    
     for full_path in total:
         MainData.assets.load(Path(full_path).name, full_path, (0, 0, 0))
         print(f"loaded {Path(full_path).name}")

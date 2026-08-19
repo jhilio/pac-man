@@ -1,6 +1,4 @@
 from __future__ import annotations
-import re
-from tkinter import NO
 import pygame
 
 from src.charachters.moving_entity import MovingEntities
@@ -69,12 +67,10 @@ class Visualizer:
                 if self.event_handler(event) == pygame.QUIT:
                     pygame.quit()
                     return
-            
             MainData.cell_size = min(pygame.display.get_window_size()) // (min(len(self.pacmap.cells), len(self.pacmap.cells[0])) + 50)
             self.movement_scan()
-            
             self.time += dt
-            if not self.paused:
+            if not self.paused and self.pacmap.pacman.lives:
                 self.pacmap.update(dt)
             self.draw_all(dt)
 
@@ -90,6 +86,7 @@ class Visualizer:
 {("fright left : " + format(self.pacmap.fright_time_left, ".1f") + "s") if self.pacmap.fright_time_left else ""}
 Time left : {self.pacmap.level["duration"] - self.pacmap.total_elapsed_time:.0f}S
 Score: {self.pacmap.score}
+Current Level: {self.pacmap.level_num}
 lives : {self.pacmap.pacman.lives}
 cell_size : {MainData.cell_size}
 fps : {1/dt:.1f}

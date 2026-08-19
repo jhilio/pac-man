@@ -1,3 +1,4 @@
+from encodings.punycode import T
 from random import choices
 
 from .charachters.clyde import Clyde
@@ -60,7 +61,7 @@ class PacMap:
                         fruit=Fruit(
                             choices(
                                 population=[0, 1],
-                                weights=[0.2, 0.8])[0]
+                                weights=[200.2, 0.8])[0]
                         )
                     )
                 )
@@ -93,17 +94,31 @@ class PacMap:
         self.check_colision()
 
     def check_colision(self):
-        for elem in self.ghosts:
-            if elem.pos == self.pacman.pos:
-                for ghost in self.ghosts:
-                    ghost.reset_pos()
-                if not self.pacman.cheat_mode:
-                    self.pacman.reset_pos()
-                    self.pacman.lives -= 1
-                break
+        for ghost in self.ghosts:
+            if ghost.pos == self.pacman.pos and ghost.is_alive:
+                self.colision_effect(ghost)
 
     def step(self):
         a = sum(cell.fruit.val for row in self.cells for cell in row)
         if not a:
-            self.regenerate()
-        
+            self.go_next_level()
+         
+    def go_next_level(self):
+        self.level_num +=1
+        self.level = MainData.config_from_file["levels"][str(self.level_num)]
+        for ghost in self.ghosts:
+            ghost.update_level_data()
+        self.pacman.update_level_data()
+        self.regenerate()
+
+    def colision_effect(self, ghost: Ghost):
+        if self.fright_time_left and ghost.is_alive:
+            ghost.is_alive = False
+            self.score += MainData.config_from_file["points_per_ghost"]
+        else:
+            for ghost in self.ghosts:
+                ghost.reset_pos()
+                ghost.is_alive = True
+            if not self.pacman.cheat_mode:
+                self.pacman.reset_pos()
+                self.pacman.lives -= 1
