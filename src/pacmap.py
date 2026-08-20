@@ -1,3 +1,5 @@
+from re import M
+
 import mazegenerator
 from random import choices
 from .charachters.clyde import Clyde
@@ -23,7 +25,8 @@ class PacMap:
         self.fright_time_left = 0
         self.total_elapsed_time = 0
         self.phase_timer = 0
-        self.player_name = input("name_of player :")
+        self.player_name = ""
+        #self.player_name = input("name_of player :")
         self.init_cells()
         self.init_charachters()
 

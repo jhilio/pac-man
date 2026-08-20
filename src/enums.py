@@ -3,6 +3,13 @@ from enum import Enum
 
 
 
+class VisualState(Enum):
+    MAIN_MENU = "MAIN_MENU"
+    HIGH_SCORE_MENU = "HIGH_SCORE_MENU"
+    IN_GAME = "IN_GAME"
+    IN_GAME_PAUSED = "IN_GAME_PAUSED"
+    PROMPTING_FOR_NAME = "PROMPTING_FOR_NAME"
+
 
 class GhostState(Enum):
     CHASE = "CHASE"
