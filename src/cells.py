@@ -29,7 +29,7 @@ class Fruit:
             MainData.pacmap.score += MainData.config_from_file["points_per_pacgum"]
         elif self.val == 2:
             MainData.pacmap.score += MainData.config_from_file["points_per_super_pacgum"]
-            MainData.pacmap.pacman.eated_super()
+            MainData.pacmap.fright_time_left = MainData.pacmap.level["frightened_duration"]
         self.val = 0
 
 

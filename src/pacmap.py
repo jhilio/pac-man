@@ -1,4 +1,5 @@
 from encodings.punycode import T
+import json
 from random import choices
 
 from .charachters.clyde import Clyde
@@ -26,6 +27,8 @@ class PacMap:
         self.score = 0
         self.fright_time_left = 0
         self.total_elapsed_time = 0
+        self.phase_timer = 0
+        self.player_name = input("name_of player :")
         self.init_cells()
         self.init_charachters()
 
@@ -33,6 +36,7 @@ class PacMap:
         self.maze._seed += 1
         self.fright_time_left = 0
         self.total_elapsed_time = 0
+        self.phase_timer = 0
         self.maze.generate()
         self.init_cells()
         for ghost in self.ghosts:
@@ -42,10 +46,10 @@ class PacMap:
 
     def init_charachters(self):
         self.pacman = Pacman(Direction.NORTH, x=len(self.maze.maze)//2, y=len(self.maze.maze[1])//2, lives=MainData.config_from_file["lives"])
-        self.blinky = Blinky(Direction.EAST)
-        self.pinky = Pinky(Direction.SOUTH, len(self.cells)-1, 0)
-        self.clyde = Clyde(Direction.WEST, len(self.cells)-1, len(self.cells[0])-1)
-        self.inky = Inky(Direction.NORTH, 0, len(self.cells[0])-1)
+        self.blinky = Blinky(Direction.SOUTH, len(self.cells)-1, 0)
+        self.pinky = Pinky(Direction.EAST)
+        self.inky = Inky(Direction.WEST, len(self.cells)-1, len(self.cells[0])-1)
+        self.clyde = Clyde(Direction.NORTH, 0, len(self.cells[0])-1)
         self.ghosts: list[Ghost]= [self.blinky, self.pinky, self.inky, self.clyde]
 
 
@@ -78,7 +82,7 @@ class PacMap:
 
     def update(self, dt:float):
         self.total_elapsed_time += dt
-
+        self.phase_timer += (dt - self.fright_time_left if dt - self.fright_time_left > 0 else 0)
         if self.fright_time_left >0:
             self.fright_time_left -= dt
             if self.fright_time_left < 0:
@@ -102,6 +106,8 @@ class PacMap:
         a = sum(cell.fruit.val for row in self.cells for cell in row)
         if not a:
             self.go_next_level()
+        if self.total_elapsed_time > self.level["duration"]:
+            self.pacman_died()
          
     def go_next_level(self):
         self.level_num +=1
@@ -116,9 +122,24 @@ class PacMap:
             ghost.is_alive = False
             self.score += MainData.config_from_file["points_per_ghost"]
         else:
-            for ghost in self.ghosts:
-                ghost.reset_pos()
-                ghost.is_alive = True
-            if not self.pacman.cheat_mode:
-                self.pacman.reset_pos()
-                self.pacman.lives -= 1
+            self.pacman_died()
+
+    def pacman_died(self):
+        for ghost in self.ghosts:
+            ghost.reset_pos()
+            ghost.is_alive = True
+        if not self.pacman.cheat_mode:
+            self.pacman.reset_pos()
+            self.pacman.lives -= 1
+
+
+    def save_high_score(self):
+        if not self.player_name:
+            return
+        k = 10
+        MainData.high_scores[self.player_name] = max(self.score, MainData.high_scores.get(self.player_name, 0))
+
+        scores =  MainData.high_scores
+        sorted_scores ={k: scores[k] for k in sorted(scores, key=lambda _, it=iter(scores): next(it))}
+        top_k = {k:v  for i, (k, v) in zip(range(k),sorted_scores.items())}
+        MainData.high_scores = top_k

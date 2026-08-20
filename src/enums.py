@@ -5,10 +5,10 @@ import pygame
 
 
 class GhostState(Enum):
-    CHASE = 0b1
-    SCATER = 0b10
-    FRIGHTENED = 0b100
-    DEAD = 0b1000
+    CHASE = "CHASE"
+    SCATTER = "SCATTER"
+    FRIGHTENED = "FRIGHTENED"
+    DEAD = "DEAD"
     
 
 

@@ -41,6 +41,7 @@ class AssetsManager:
 class MainData:
     tick_rate = 10
     cell_size = 16
+    high_scores = {}
     assets = AssetsManager()
     config_from_file = {}
     pacmap: Optional[PacMap] = None

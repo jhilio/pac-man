@@ -78,6 +78,3 @@ class Pacman(MovingEntities):
 				if 0<= neig_x < len(self.map.cells) and  0<= neig_y < len(self.map.cells[0]):
 					cell = self.map.cells[neig_x][neig_y]
 					cell.init_image()
-
-	def eated_super(self):
-		MainData.pacmap.fright_time_left = 10

@@ -1,14 +1,14 @@
 from __future__ import annotations
+from ast import main
+import json
 import pygame
 
-from src.charachters.moving_entity import MovingEntities
+from .charachters.ghost import get_ghost_state
+from .charachters.moving_entity import MovingEntities
 from .pacmap import PacMap
-from typing import Optional
+from typing import Optional, Callable, Any, Tuple
 from .enums import Direction
 from .config import MainData
-
-
-
 
 
 class Visualizer:
@@ -58,6 +58,13 @@ class Visualizer:
 
         return self.font_cache[size]
 
+ 
+
+    def update_high_score(self):
+        with open("high_scores.json", "w") as file:
+            json.dump(MainData.high_scores,file, indent=2)
+
+
     def loop(self) -> None:
         """Main loop of the visualizer."""
         clock = pygame.time.Clock()
@@ -65,6 +72,8 @@ class Visualizer:
             dt = clock.tick(self.fps) / 1000.0  # seconds since last frame
             for event in pygame.event.get():
                 if self.event_handler(event) == pygame.QUIT:
+                    self.pacmap.update_high_score()
+                    self.save_high_score()
                     pygame.quit()
                     return
             #MainData.cell_size = min(pygame.display.get_window_size()) // (min(len(self.pacmap.cells), len(self.pacmap.cells[0])) + 50)
@@ -85,6 +94,7 @@ class Visualizer:
         text =f"""
 {("fright left : " + format(self.pacmap.fright_time_left, ".1f") + "s") if self.pacmap.fright_time_left else ""}
 Time left : {self.pacmap.level["duration"] - self.pacmap.total_elapsed_time:.0f}S
+Phase state : {get_ghost_state().name} {self.pacmap.phase_timer}S
 Score: {self.pacmap.score}
 Current Level: {self.pacmap.level_num}
 lives : {self.pacmap.pacman.lives}
@@ -186,10 +196,15 @@ fps : {1/dt:.1f}
                     self.pacmap.regenerate()
                 case pygame.K_SPACE:
                     self.pacmap.pacman.eat_wall()
+                case pygame.K_t:
+                    self.pacmap.fright_time_left = self.pacmap.level["frightened_duration"]
+
             konami_code = [pygame.K_UP, pygame.K_UP, pygame.K_DOWN, pygame.K_DOWN, pygame.K_LEFT, pygame.K_RIGHT, pygame.K_LEFT, pygame.K_RIGHT, pygame.K_b, pygame.K_a]
             if event.key in [pygame.K_UP, pygame.K_RIGHT, pygame.K_DOWN, pygame.K_LEFT, pygame.K_b, pygame.K_a]:
-                self.code_sequence.append(event.key) 
-                if self.code_sequence !=konami_code[:len(self.code_sequence)]:
+                self.code_sequence.append(event.key)
+                if self.code_sequence == [pygame.K_UP, pygame.K_UP, pygame.K_UP]:
+                    self.code_sequence.pop()
+                elif self.code_sequence !=konami_code[:len(self.code_sequence)]:
                     self.code_sequence.clear()
                 elif self.code_sequence == konami_code:
                     self.pacmap.pacman.cheat_mode = not self.pacmap.pacman.cheat_mode
