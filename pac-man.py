@@ -57,8 +57,8 @@ levels_dict = {str(i): level for i, level in enumerate(levels, 1)}
 DEFAULT_CONFIG = {
     "lives": 3,
     "seed": 0,
-    "width": 10,
-    "height": 10,
+    "width": 15,
+    "height": 15,
     "points_per_pacgum": 10,
     "points_per_super_pacgum": 50,
     "points_per_ghost": 50,
