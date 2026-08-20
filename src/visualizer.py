@@ -67,7 +67,7 @@ class Visualizer:
                 if self.event_handler(event) == pygame.QUIT:
                     pygame.quit()
                     return
-            MainData.cell_size = min(pygame.display.get_window_size()) // (min(len(self.pacmap.cells), len(self.pacmap.cells[0])) + 50)
+            #MainData.cell_size = min(pygame.display.get_window_size()) // (min(len(self.pacmap.cells), len(self.pacmap.cells[0])) + 50)
             self.movement_scan()
             self.time += dt
             if not self.paused and self.pacmap.pacman.lives:

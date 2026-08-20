@@ -7,6 +7,16 @@ from src.enums import Direction
 from src.pacmap import PacMap
 from src.visualizer import Visualizer
 from copy import deepcopy
+from typing import Optional
+
+
+
+def resource_path(relative_path: str) -> Path:
+    if getattr(sys, "frozen", False):
+        return Path(sys._MEIPASS) / relative_path
+    return Path(__file__).resolve().parent / relative_path
+
+
 
 class ConfigError(Exception):
     pass
@@ -69,14 +79,16 @@ def merge_config(default, override):
             default[key] = value
     return default
 
-def load_config(path: str):
-    with open(path, "r") as config_file:
-        text = config_file.read()
-        text = "\n".join(line for line in text.splitlines() if not line.startswith("#"))
-        loaded = json.loads(text)
-    if not isinstance(loaded, dict):
-        raise ConfigError("config is not a dict")
-
+def load_config(path: Optional[str]=None):
+    if path is not None:
+        with open(path, "r") as config_file:
+            text = config_file.read()
+            text = "\n".join(line for line in text.splitlines() if not line.startswith("#"))
+            loaded = json.loads(text)
+        if not isinstance(loaded, dict):
+            raise ConfigError("config is not a dict")
+    else:
+        loaded = {}
     config = merge_config(deepcopy(DEFAULT_CONFIG), loaded)
     for k, v in config.items():
         MainData.config_from_file[k] = v
@@ -133,17 +145,17 @@ def preload_assets():
         frightened_assets)
     
     for full_path in total:
-        MainData.assets.load(Path(full_path).name, full_path, (0, 0, 0))
+        MainData.assets.load(resource_path(full_path).name, str(resource_path(full_path)), (0, 0, 0))
         print(f"loaded {Path(full_path).name}")
 
 
 def main():
-    if sys.argv:
+    if len(sys.argv) > 1:
         load_config(sys.argv[1])
-        print(json.dumps(MainData.config_from_file, indent=2))
     else:
-        print("need path of MainData as arg")
-        return
+        load_config()
+        print("no config provided, using default values")
+    print(json.dumps(MainData.config_from_file, indent=2))
     preload_assets()
     print("\n\n")
     size = (MainData.config_from_file["width"], MainData.config_from_file["height"])
