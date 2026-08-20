@@ -12,17 +12,14 @@ from src.visualizer import Visualizer
 from copy import deepcopy
 from typing import Optional
 
-
+class ConfigError(Exception):
+    pass
 
 def resource_path(relative_path: str) -> Path:
     if getattr(sys, "frozen", False):
         return Path(sys._MEIPASS) / relative_path
     return Path(__file__).resolve().parent / relative_path
 
-
-
-class ConfigError(Exception):
-    pass
 
 levels = (
     [
@@ -217,7 +214,8 @@ def main():
     size = (MainData.config_from_file["width"], MainData.config_from_file["height"])
     maze = mazegenerator.MazeGenerator(size=size, seed=MainData.config_from_file["seed"])
     PacMap(maze)
-    vis = Visualizer(MainData.pacmap, (1400, 1100))
+    MainData.visualizer = Visualizer(MainData.pacmap, (1400, 1100), verbose=verbose)
+    MainData.visualizer.launch_loop()
 
 
 if __name__ == "__main__":
