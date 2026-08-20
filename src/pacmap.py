@@ -1,11 +1,7 @@
-from encodings.punycode import T
-import json
+import mazegenerator
 from random import choices
-
 from .charachters.clyde import Clyde
-
 from .charachters.ghost import Ghost
-from .charachters.moving_entity import MovingEntities
 from .charachters.inky import Inky
 from .charachters.pacman import Pacman
 from .charachters.blinky import Blinky
@@ -13,7 +9,6 @@ from .charachters.pinky import Pinky
 from .enums import Direction
 from .cells import Cell, Fruit
 from .config import MainData
-import mazegenerator
 
 
 
@@ -133,7 +128,7 @@ class PacMap:
             self.pacman.lives -= 1
 
 
-    def save_high_score(self):
+    def update_high_score(self):
         if not self.player_name:
             return
         k = 10

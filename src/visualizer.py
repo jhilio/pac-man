@@ -1,12 +1,10 @@
 from __future__ import annotations
-from ast import main
 import json
 import pygame
-
+from typing import Optional
 from .charachters.ghost import get_ghost_state
 from .charachters.moving_entity import MovingEntities
 from .pacmap import PacMap
-from typing import Optional, Callable, Any, Tuple
 from .enums import Direction
 from .config import MainData
 
@@ -60,7 +58,7 @@ class Visualizer:
 
  
 
-    def update_high_score(self):
+    def save_high_score(self):
         with open("high_scores.json", "w") as file:
             json.dump(MainData.high_scores,file, indent=2)
 

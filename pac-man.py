@@ -214,7 +214,6 @@ def main():
         print(json.dumps(MainData.config_from_file, indent=2))
     load_high_scores(verbose=verbose)
     preload_assets(verbose=verbose)
-    print("\n\n")
     size = (MainData.config_from_file["width"], MainData.config_from_file["height"])
     maze = mazegenerator.MazeGenerator(size=size, seed=MainData.config_from_file["seed"])
     PacMap(maze)

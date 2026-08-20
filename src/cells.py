@@ -1,17 +1,6 @@
-from re import S
 from typing import Optional
-import pygame
 from .config import MainData
-
-NORTH = 1
-EAST = 2
-SOUTH = 4
-WEST = 8
-
-
-
-
-
+from .enums import Direction
 
 
 class Fruit:
@@ -69,23 +58,23 @@ class Cell:
         return grid
 
     def init_image(self):
-        def get_corner(walls: int, dir1, dir2, neighbor: tuple[int, int, int, int]):
-            if dir1 & walls and dir2 & walls:
-                return MainData.assets.get_asset(f"corner_{'n' if dir1 == NORTH else 's'}{'e' if dir2 == EAST else 'w'}.png")
-            elif dir1 & walls:
-                return MainData.assets.get_asset(f"double_{'top' if dir1 == NORTH else 'bottom'}.png")
-            elif dir2 & walls:
-                return MainData.assets.get_asset(f"double_{'right' if dir2 == EAST else 'left'}.png")
+        def get_corner(walls: int, dir1: Direction, dir2:Direction, neighbor: tuple[int, int, int, int]):
+            if dir1.value & walls and dir2.value & walls:
+                return MainData.assets.get_asset(f"corner_{'n' if dir1 == Direction.NORTH else 's'}{'e' if dir2 == Direction.EAST else 'w'}.png")
+            elif dir1.value & walls:
+                return MainData.assets.get_asset(f"double_{'top' if dir1 == Direction.NORTH else 'bottom'}.png")
+            elif dir2.value & walls:
+                return MainData.assets.get_asset(f"double_{'right' if dir2 == Direction.EAST else 'left'}.png")
             else:
-                return MainData.assets.get_asset(f"very_small_corner_{'n' if dir1 != NORTH else 's'}{'e' if dir2 != EAST else 'w'}.png")
-        def get_direction(walls: int, direction: int):
-            if direction == NORTH and walls & direction:
+                return MainData.assets.get_asset(f"very_small_corner_{'n' if dir1 != Direction.NORTH else 's'}{'e' if dir2 != Direction.EAST else 'w'}.png")
+        def get_direction(walls: int, direction:Direction):
+            if direction == Direction.NORTH and walls & direction.value:
                 return MainData.assets.get_asset(f"double_top.png")
-            elif direction == EAST and walls & direction:
+            elif direction == Direction.EAST and walls & direction.value:
                 return MainData.assets.get_asset(f"double_right.png")
-            elif direction == SOUTH and walls & direction:
+            elif direction == Direction.SOUTH and walls & direction.value:
                 return MainData.assets.get_asset(f"double_bottom.png")
-            elif direction == WEST and walls & direction:
+            elif direction == Direction.WEST and walls & direction.value:
                 return MainData.assets.get_asset(f"double_left.png")
             else:
                 return MainData.assets.get_asset(f"no_dot.png")
@@ -96,19 +85,19 @@ class Cell:
 
         self.__image = (
             (
-                get_corner(self.walls, NORTH, WEST, n),
-                get_direction(self.walls, WEST),
-                get_corner(self.walls, SOUTH, WEST, n),
+                get_corner(self.walls, Direction.NORTH, Direction.WEST, n),
+                get_direction(self.walls, Direction.WEST),
+                get_corner(self.walls, Direction.SOUTH, Direction.WEST, n),
             ),  # right part
             (
-                get_direction(self.walls, NORTH),
+                get_direction(self.walls, Direction.NORTH),
                 MainData.assets.get_asset("no_dot.png"),
-                get_direction(self.walls, SOUTH),
+                get_direction(self.walls, Direction.SOUTH),
             ),  # midle
             (
-                get_corner(self.walls, NORTH, EAST, n),
-                get_direction(self.walls, EAST),
-                get_corner(self.walls, SOUTH, EAST, n),
+                get_corner(self.walls, Direction.NORTH, Direction.EAST, n),
+                get_direction(self.walls, Direction.EAST),
+                get_corner(self.walls, Direction.SOUTH, Direction.EAST, n),
             ),  # left
         )
         return self.__image
