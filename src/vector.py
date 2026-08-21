@@ -1,4 +1,3 @@
-from __future__ import annotations
 from math import sqrt
 from typing import Any, Iterator, cast, Iterable, Self
 
