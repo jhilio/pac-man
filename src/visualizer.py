@@ -1,14 +1,66 @@
 from __future__ import annotations
 import json
+from token import OP
 import pygame
-from typing import Optional
-
+from typing import Callable, Optional
 from .vector import Pos2D
 from .charachters.ghost import get_ghost_state
 from .charachters.moving_entity import MovingEntities
 from .pacmap import PacMap
 from .enums import Direction, VisualState
 from .config import MainData
+
+
+class DelayedCall:
+    def __init__(self, func: Callable, *args, **kwargs):
+        self.call = {
+            "function": func,
+            "args": tuple(args),
+            "kwargs": dict(kwargs) if kwargs else {},
+        }
+
+    def __call__(self):
+        if not callable(self.call.get("function")):
+            raise ValueError(f"DelayedCall with a non callable func")
+        func, args, kwargs = self.call.values()
+
+        func(*args, **kwargs)
+        print("finished")
+
+
+class ClickableButton:
+    def __init__(self, start:Pos2D, end:Pos2D, effect:Optional[DelayedCall]=None, text:str="", font_size:Optional[int]=None):
+        self.start = start
+        self.end = end
+        self.size = end - start
+        self.effect = effect
+        self.text = text
+        self.font_size = font_size
+
+
+    def is_in(self, pos:Pos2D):
+        return (
+            self.start.x <=pos.x <=self.end.x
+            and self.start.y <=pos.y <=self.end.y
+            )
+            
+    
+
+    def on_click(self):
+        if self.effect:
+            self.effect()
+
+    @property
+    def image(self): 
+        surface = pygame.Surface(self.size)
+        surface.fill((80, 80, 80))
+        return surface
+
+    @property
+    def hovered_image(self): 
+        surface = pygame.Surface(self.size)
+        surface.fill((150, 150, 150))
+        return surface
 
 
 class Visualizer:
@@ -31,6 +83,20 @@ class Visualizer:
         self.screen = pygame.display.set_mode(size, pygame.RESIZABLE)
         self.code_sequence = []
         self.verbose = verbose
+        self.buttons_per_menu = {
+            VisualState.MAIN_MENU: [
+                ClickableButton(Pos2D(10, 10), Pos2D(200, 40), DelayedCall(self.change_state, VisualState.IN_GAME))
+            ],
+        }
+            
+
+    @property
+    def active_buttons(self):
+        return self.buttons_per_menu.get(self.visualiser_state, [])
+
+    def change_state(self, new:VisualState):
+        self.visualiser_state = new
+
 
     def launch_loop(self) -> None:
         self.time: float = 0.0
@@ -54,9 +120,9 @@ class Visualizer:
                     pygame.quit()
                     return
             #MainData.cell_size = min(pygame.display.get_window_size()) // (min(len(self.pacmap.cells), len(self.pacmap.cells[0])) + 50)
-            self.movement_scan()
             self.time += dt
             if self.visualiser_state == VisualState.IN_GAME:
+                self.movement_scan()
                 self.pacmap.update(dt)
                 if not self.pacmap.pacman.lives >=1:
                     self.visualiser_state = VisualState.PROMPTING_FOR_NAME
@@ -96,7 +162,10 @@ class Visualizer:
             case VisualState.HIGH_SCORE_MENU:
                 self.draw_text_multiline("\n".join(f'"{k}": {v}' for k, v in MainData.high_scores.items()), 200, 100, font=self.get_font(25))
 
-        
+        mouse_pos = Pos2D(pygame.mouse.get_pos())
+        for button in self.active_buttons:
+            self.screen.blit(button.hovered_image if button.is_in(mouse_pos) else button.image, button.start)
+            self.draw_text_multiline(button.text, button.start.x, button.start.y, font=button.font_size)
         if self.pacmap.pacman.cheat_mode:
             text += "\ncheat mode: on"
         self.draw_text_multiline(text, 1000, 100, font=self.get_font(25))
@@ -115,45 +184,12 @@ class Visualizer:
             Optional[int]: The result of the event handling, if any.
         """
         if event.type == pygame.KEYDOWN:
-            self.display_keybind = False
-            match event.key:
-                case pygame.K_ESCAPE:
-                    return pygame.QUIT
-                case pygame.K_BACKSPACE:
-                    if self.visualiser_state == VisualState.IN_GAME:
-                        self.visualiser_state = VisualState.IN_GAME_PAUSED
-                    elif self.visualiser_state == VisualState.IN_GAME_PAUSED:
-                        self.visualiser_state = VisualState.IN_GAME
-                case pygame.K_s:
-                    if self.visualiser_state == VisualState.MAIN_MENU:
-                        self.visualiser_state = VisualState.HIGH_SCORE_MENU
-                    elif self.visualiser_state == VisualState.HIGH_SCORE_MENU:
-                        self.visualiser_state = VisualState.MAIN_MENU
-                case pygame.K_HOME:
-                    self.visualiser_state = VisualState.MAIN_MENU
-                case pygame.K_RETURN:
-                    self.visualiser_state = VisualState.IN_GAME
-                case pygame.K_r:
-                    self.pacmap.regenerate()
-                case pygame.K_SPACE:
-                    self.pacmap.pacman.eat_wall()
-                case pygame.K_t:
-                    self.pacmap.fright_time_left = self.pacmap.level["frightened_duration"]
-                case _:
-                    if self.verbose:
-                        print(event)
-
-            #konami sequence detection
-            konami_code = [pygame.K_UP, pygame.K_UP, pygame.K_DOWN, pygame.K_DOWN, pygame.K_LEFT, pygame.K_RIGHT, pygame.K_LEFT, pygame.K_RIGHT, pygame.K_b, pygame.K_a]
-            if event.key in [pygame.K_UP, pygame.K_RIGHT, pygame.K_DOWN, pygame.K_LEFT, pygame.K_b, pygame.K_a]:
-                self.code_sequence.append(event.key)
-                if self.code_sequence == [pygame.K_UP, pygame.K_UP, pygame.K_UP]:
-                    self.code_sequence.pop()
-                elif self.code_sequence !=konami_code[:len(self.code_sequence)]:
-                    self.code_sequence.clear()
-                elif self.code_sequence == konami_code:
-                    self.pacmap.pacman.cheat_mode = not self.pacmap.pacman.cheat_mode
-                    self.code_sequence.clear()
+            return self.keyboard_handler(event)
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            event_pos = Pos2D(event.pos)
+            for button in self.active_buttons:
+                if button.is_in(event_pos):
+                    button.on_click()
         elif event.type == pygame.VIDEORESIZE:
             # 1. Enforce Minimum Size
             min_size = Pos2D(MainData.config_from_file["width"],MainData.config_from_file["height"]) * MainData.cell_size  * 3.3
@@ -163,6 +199,7 @@ class Visualizer:
             new_h = max(min_size.y, event.h)
             if (new_w, new_h) != event.size:
                 self.screen = pygame.display.set_mode((new_w, new_h), pygame.RESIZABLE)
+        
         return event
     
     def movement_scan(self) -> None:
@@ -263,3 +300,43 @@ class Visualizer:
             self.screen.blit(
                 text_surface, (x, y + i * (font.get_height() + line_spacing))
             )
+
+
+    def keyboard_handler(self, event:pygame.event):
+        match event.key:
+            case pygame.K_ESCAPE:
+                return pygame.QUIT
+            case pygame.K_BACKSPACE:
+                if self.visualiser_state == VisualState.IN_GAME:
+                    self.visualiser_state = VisualState.IN_GAME_PAUSED
+                elif self.visualiser_state == VisualState.IN_GAME_PAUSED:
+                    self.visualiser_state = VisualState.IN_GAME
+            case pygame.K_s:
+                if self.visualiser_state == VisualState.MAIN_MENU:
+                    self.visualiser_state = VisualState.HIGH_SCORE_MENU
+                elif self.visualiser_state == VisualState.HIGH_SCORE_MENU:
+                    self.visualiser_state = VisualState.MAIN_MENU
+            case pygame.K_HOME:
+                self.visualiser_state = VisualState.MAIN_MENU
+            case pygame.K_RETURN:
+                self.visualiser_state = VisualState.IN_GAME
+            case pygame.K_r:
+                self.pacmap.regenerate()
+            case pygame.K_SPACE:
+                self.pacmap.pacman.eat_wall()
+            case pygame.K_t:
+                self.pacmap.fright_time_left = self.pacmap.level["frightened_duration"]
+            case _:
+                if self.verbose:
+                    print(event)
+        #konami sequence detection
+        konami_code = [pygame.K_UP, pygame.K_UP, pygame.K_DOWN, pygame.K_DOWN, pygame.K_LEFT, pygame.K_RIGHT, pygame.K_LEFT, pygame.K_RIGHT, pygame.K_b, pygame.K_a]
+        if event.key in [pygame.K_UP, pygame.K_RIGHT, pygame.K_DOWN, pygame.K_LEFT, pygame.K_b, pygame.K_a]:
+            self.code_sequence.append(event.key)
+            if self.code_sequence == [pygame.K_UP, pygame.K_UP, pygame.K_UP]:
+                self.code_sequence.pop()
+            elif self.code_sequence !=konami_code[:len(self.code_sequence)]:
+                self.code_sequence.clear()
+            elif self.code_sequence == konami_code:
+                self.pacmap.pacman.cheat_mode = not self.pacmap.pacman.cheat_mode
+                self.code_sequence.clear()
