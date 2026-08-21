@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .pacmap import PacMap
-from typing import Optional
+from typing import Optional, Any
 import pygame
 
 
@@ -14,14 +14,16 @@ class AssetsManager:
 
     def load(
         self, name: str, path: str, color_key: Optional[pygame.Color] = None
-    ):
+    ) -> Any | pygame.Surface:
         image = pygame.image.load(path)
         if color_key is not None:
             image.set_colorkey(color_key)
         self._originals[name] = image
         return self.get_asset(name)
 
-    def get_asset(self, name: str, size_multiplier: float = 1):
+    def get_asset(
+        self, name: str, size_multiplier: float = 1
+    ) -> Any | pygame.Surface:
         size = MainData.cell_size * size_multiplier
         if self.scaled.get(size) is None:
             self.scaled[size] = {}
