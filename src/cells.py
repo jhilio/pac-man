@@ -4,21 +4,26 @@ from .enums import Direction
 
 
 class Fruit:
-    def __init__(self, val:int = 0):
+    def __init__(self, val: int = 0):
         self.val = val
 
     @property
     def image(self):
-        names = ("no_dot.png","small_dot.png", "big_dot.png")
+        names = ("no_dot.png", "small_dot.png", "big_dot.png")
         return MainData.assets.get_asset(names[self.val])
-
 
     def eated(self):
         if self.val == 1:
-            MainData.pacmap.score += MainData.config_from_file["points_per_pacgum"]
+            MainData.pacmap.score += MainData.config_from_file[
+                "points_per_pacgum"
+            ]
         elif self.val == 2:
-            MainData.pacmap.score += MainData.config_from_file["points_per_super_pacgum"]
-            MainData.pacmap.fright_time_left = MainData.pacmap.level["frightened_duration"]
+            MainData.pacmap.score += MainData.config_from_file[
+                "points_per_super_pacgum"
+            ]
+            MainData.pacmap.fright_time_left = MainData.pacmap.level[
+                "frightened_duration"
+            ]
         self.val = 0
 
 
@@ -52,34 +57,56 @@ class Cell:
                 x = self.x + dx
                 y = self.y + dy
 
-                if 0 <= x < len(self.neighbors) and 0 <= y < len(self.neighbors[x]):
+                if 0 <= x < len(self.neighbors) and 0 <= y < len(
+                    self.neighbors[x]
+                ):
                     grid[dy + 1][dx + 1] = self.neighbors[x][y].walls
 
         return grid
 
     def init_image(self):
-        def get_corner(walls: int, dir1: Direction, dir2:Direction, neighbor: tuple[int, int, int, int]):
+        def get_corner(
+            walls: int,
+            dir1: Direction,
+            dir2: Direction,
+            neighbor: tuple[int, int, int, int],
+        ):
             if dir1.value & walls and dir2.value & walls:
-                return MainData.assets.get_asset(f"corner_{'n' if dir1 == Direction.NORTH else 's'}{'e' if dir2 == Direction.EAST else 'w'}.png")
+                return MainData.assets.get_asset(
+                    f"corner_{'n' if dir1 == Direction.NORTH else 's'}"
+                    + f"{'e' if dir2 == Direction.EAST else 'w'}.png"
+                )
             elif dir1.value & walls:
-                return MainData.assets.get_asset(f"double_{'top' if dir1 == Direction.NORTH else 'bottom'}.png")
+                return MainData.assets.get_asset(
+                    f"double_{'top' if dir1 == Direction.NORTH else 'bottom'}"
+                    + ".png"
+                )
             elif dir2.value & walls:
-                return MainData.assets.get_asset(f"double_{'right' if dir2 == Direction.EAST else 'left'}.png")
+                return MainData.assets.get_asset(
+                    f"double_{'right' if dir2 == Direction.EAST else 'left'}"
+                    + ".png"
+                )
             else:
-                return MainData.assets.get_asset(f"very_small_corner_{'n' if dir1 != Direction.NORTH else 's'}{'e' if dir2 != Direction.EAST else 'w'}.png")
-        def get_direction(walls: int, direction:Direction):
+                return MainData.assets.get_asset(
+                    "very_small_corner_"
+                    + f"{'n' if dir1 != Direction.NORTH else 's'}"
+                    + f"{'e' if dir2 != Direction.EAST else 'w'}.png"
+                )
+
+        def get_direction(walls: int, direction: Direction):
             if direction == Direction.NORTH and walls & direction.value:
-                return MainData.assets.get_asset(f"double_top.png")
+                return MainData.assets.get_asset("double_top.png")
             elif direction == Direction.EAST and walls & direction.value:
-                return MainData.assets.get_asset(f"double_right.png")
+                return MainData.assets.get_asset("double_right.png")
             elif direction == Direction.SOUTH and walls & direction.value:
-                return MainData.assets.get_asset(f"double_bottom.png")
+                return MainData.assets.get_asset("double_bottom.png")
             elif direction == Direction.WEST and walls & direction.value:
-                return MainData.assets.get_asset(f"double_left.png")
+                return MainData.assets.get_asset("double_left.png")
             else:
-                return MainData.assets.get_asset(f"no_dot.png")
+                return MainData.assets.get_asset("no_dot.png")
+
         if self.walls == 15:
-            pass # create 3*3 full block for 42 patern
+            pass  # create 3*3 full block for 42 patern
 
         n = self.__get_neighbor()
 

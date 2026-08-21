@@ -1,11 +1,14 @@
-
-
-from random import choice, shuffle
+from random import shuffle
 from typing import Optional
 
-from .moving_entity import MovingEntities,Direction, MainData, Pos2D, abstractmethod
+from .moving_entity import (
+    MovingEntities,
+    Direction,
+    MainData,
+    Pos2D,
+    abstractmethod,
+)
 from ..enums import GhostState
-
 
 
 def get_ghost_state():
@@ -17,11 +20,9 @@ def get_ghost_state():
         time_left -= duration
 
 
-
-
 class Ghost(MovingEntities):
 
-    def __init__(self, direction: Direction, x = 0, y = 0):
+    def __init__(self, direction: Direction, x=0, y=0):
         super().__init__(direction, x, y)
         self.mode = GhostState.SCATTER
         self.choose_target_cell()
@@ -32,24 +33,22 @@ class Ghost(MovingEntities):
         super().__init_subclass__(**kwargs)
 
         if "ghost_name" not in cls.__dict__:
-            raise TypeError(
-                f"{cls.__name__} must define 'ghost_name'"
-            )
+            raise TypeError(f"{cls.__name__} must define 'ghost_name'")
         if "ghost_color" not in cls.__dict__:
-            raise TypeError(
-                f"{cls.__name__} must define 'ghost_color'"
-            )
+            raise TypeError(f"{cls.__name__} must define 'ghost_color'")
 
     def rank_neighbor(self):
         new_pos = self.next_pos
         cell_x, cell_y = new_pos // 3
-        if (new_pos % (3, 3) != (1,1)):
+        if new_pos % (3, 3) != (1, 1):
             valide_dirs = [self.direction]
         else:
             valide_dirs = [
-            direc for direc in Direction 
+                direc
+                for direc in Direction
                 if (
-                    not MainData.pacmap.cells[cell_x][cell_y].walls & direc.value
+                    not MainData.pacmap.cells[cell_x][cell_y].walls
+                    & direc.value
                     and self.direction != direc.oppo()
                 )
             ]
@@ -59,8 +58,8 @@ class Ghost(MovingEntities):
             valide_dirs,
             key=lambda direc: (
                 (new_pos + direc.delta()).pythagore(self.target_cell),
-                direc.pac_order()
-            )
+                direc.pac_order(),
+            ),
         )
         if self.mode == GhostState.FRIGHTENED:
             shuffle(ranked)
@@ -72,23 +71,25 @@ class Ghost(MovingEntities):
         fright_time = MainData.pacmap.fright_time_left
         if not self.is_alive:
             path_name = f"eyes_{self.direction.to_text()}.png"
-        elif (fright_time):
+        elif fright_time:
             if fright_time > 1.5 or fright_time % 0.5 > 0.2:
                 path_name = f"frightened_{self.anim_step+1}.png"
             else:
                 path_name = f"frightened_flash_{self.anim_step+1}.png"
         else:
-            path_name = f"{self.ghost_name}_{self.direction.to_text()}{self.anim_step+1}.png"
+            path_name = f"{self.ghost_name}_{self.direction.to_text()}"
+            +f"{self.anim_step+1}.png"
+
         frame = MainData.assets.get_asset(path_name, size_multiplier=1.3)
         return frame
 
-    def update(self, dt:float):
+    def update(self, dt: float):
         if self.pos == self.original_pos:
             self.is_alive = True
         if not self.is_alive:
             self.mode = GhostState.DEAD
         elif MainData.pacmap.fright_time_left:
-            if self.mode != GhostState.FRIGHTENED: 
+            if self.mode != GhostState.FRIGHTENED:
                 self.mode = GhostState.FRIGHTENED
                 self.direction = self.direction.oppo()
         else:
@@ -97,7 +98,6 @@ class Ghost(MovingEntities):
                 self.direction = self.direction.oppo()
             self.mode = new_mode
         super().update(dt)
-    
 
     def incr_anim(self):
         self.anim_step = 0 if self.anim_step else 1
@@ -116,7 +116,6 @@ class Ghost(MovingEntities):
         self.choose_target_cell()
         self.direction = self.rank_neighbor()[0]
         self.move(self.next_pos + self.direction.delta())
-
 
     @abstractmethod
     def specific_chase_cell(self) -> Pos2D:

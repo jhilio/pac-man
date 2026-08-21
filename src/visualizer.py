@@ -64,18 +64,18 @@ class ClickableButton:
 
 
 class Visualizer:
-    Counter=0
+    Counter = 0
 
     def __init__(
-            self,
-            pacmap: PacMap,
-            size: tuple[int, int] = (1000, 700),
-            verbose=False
-        ):
+        self,
+        pacmap: PacMap,
+        size: tuple[int, int] = (1000, 700),
+        verbose=False,
+    ):
         pygame.init()
         self.size = size
         self.fps = 60
-        self.visualiser_state = VisualState.MAIN_MENU 
+        self.visualiser_state = VisualState.MAIN_MENU
         self.paused = False
         self.pacmap = pacmap
         self.base_font_size = 13
@@ -102,11 +102,9 @@ class Visualizer:
         self.time: float = 0.0
         self.loop()
 
-
-    def save_high_score(self):
+    def save_high_score(self) -> None:
         with open("high_scores.json", "w") as file:
-            json.dump(MainData.high_scores,file, indent=2)
-
+            json.dump(MainData.high_scores, file, indent=2)
 
     def loop(self) -> None:
         """Main loop of the visualizer."""
@@ -119,21 +117,25 @@ class Visualizer:
                     self.save_high_score()
                     pygame.quit()
                     return
-            #MainData.cell_size = min(pygame.display.get_window_size()) // (min(len(self.pacmap.cells), len(self.pacmap.cells[0])) + 50)
+            # MainData.cell_size = min(pygame.display.get_window_size()) //
+            # (min(len(self.pacmap.cells), len(self.pacmap.cells[0])) + 50)
+            self.movement_scan()
             self.time += dt
             if self.visualiser_state == VisualState.IN_GAME:
                 self.movement_scan()
                 self.pacmap.update(dt)
-                if not self.pacmap.pacman.lives >=1:
+                if not self.pacmap.pacman.lives >= 1:
                     self.visualiser_state = VisualState.PROMPTING_FOR_NAME
             self.draw_dispatcher(dt)
 
-
-    def draw_dispatcher(self, dt:float):
+    def draw_dispatcher(self, dt: float) -> None:
+        t = self.pacmap.level["duration"] - self.pacmap.total_elapsed_time
         self.screen.fill(pygame.Color(0, 0, 0))
-        text =f"""
-        {("fright left : " + format(self.pacmap.fright_time_left, ".1f") + "s") if self.pacmap.fright_time_left else ""}
-        Time left : {self.pacmap.level["duration"] - self.pacmap.total_elapsed_time:.0f}S
+        text = f"""
+        {("fright left : "
+            + format(self.pacmap.fright_time_left, ".1f")
+            + "s") if self.pacmap.fright_time_left else ""}
+        Time left : {t:.0f}S
         Phase state : {get_ghost_state().name} {self.pacmap.phase_timer}S
         Score: {self.pacmap.score}
         Current Level: {self.pacmap.level_num}
@@ -145,22 +147,39 @@ class Visualizer:
         menu_text = "pless enter to play"
         match self.visualiser_state:
             case VisualState.MAIN_MENU:
-                self.draw_text_multiline(menu_text, 200, 100, font=self.get_font(25))
-            case VisualState.IN_GAME | VisualState.IN_GAME_PAUSED | VisualState.PROMPTING_FOR_NAME:
+                self.draw_text_multiline(
+                    menu_text, 200, 100, font=self.get_font(25)
+                )
+            case (
+                VisualState.IN_GAME
+                | VisualState.IN_GAME_PAUSED
+                | VisualState.PROMPTING_FOR_NAME
+            ):
                 self.draw_cells()
                 if self.pacmap.pacman.cheat_mode:
                     self.draw_targets()
                 self.draw_charachters()
                 if self.visualiser_state is VisualState.IN_GAME_PAUSED:
-                    self.draw_text_multiline("PAUSED", 200, 100, font=self.get_font(25))
-                    pass # display the paused menu
+                    self.draw_text_multiline(
+                        "PAUSED", 200, 100, font=self.get_font(25)
+                    )
+                    pass  # display the paused menu
                 if self.visualiser_state is VisualState.PROMPTING_FOR_NAME:
-                    pass # ask for player name
-                    #self.pacmap.player_name = the_name
-                    self.draw_text_multiline("name ?", 200, 100, font=self.get_font(25))
+                    pass  # ask for player name
+                    # self.pacmap.player_name = the_name
+                    self.draw_text_multiline(
+                        "name ?", 200, 100, font=self.get_font(25)
+                    )
                     self.pacmap.update_high_score()
             case VisualState.HIGH_SCORE_MENU:
-                self.draw_text_multiline("\n".join(f'"{k}": {v}' for k, v in MainData.high_scores.items()), 200, 100, font=self.get_font(25))
+                self.draw_text_multiline(
+                    "\n".join(
+                        f'"{k}": {v}' for k, v in MainData.high_scores.items()
+                    ),
+                    200,
+                    100,
+                    font=self.get_font(25),
+                )
 
         mouse_pos = Pos2D(pygame.mouse.get_pos())
         for button in self.active_buttons:
@@ -171,9 +190,9 @@ class Visualizer:
         self.draw_text_multiline(text, 1000, 100, font=self.get_font(25))
         pygame.display.update()
 
-
-    def event_handler(self,
-                      event: pygame.event.Event) -> pygame.event.Event | int:
+    def event_handler(
+        self, event: pygame.event.Event
+    ) -> pygame.event.Event | int:
         """Handle a pygame event.
         dispatch to the appropriate handler based on event type and key.
 
@@ -192,16 +211,24 @@ class Visualizer:
                     button.on_click()
         elif event.type == pygame.VIDEORESIZE:
             # 1. Enforce Minimum Size
-            min_size = Pos2D(MainData.config_from_file["width"],MainData.config_from_file["height"]) * MainData.cell_size  * 3.3
+            min_size = (
+                Pos2D(
+                    MainData.config_from_file["width"],
+                    MainData.config_from_file["height"],
+                )
+                * MainData.cell_size
+                * 3.3
+            )
             min_size //= 1
 
             new_w = max(min_size.x, event.w)
             new_h = max(min_size.y, event.h)
             if (new_w, new_h) != event.size:
-                self.screen = pygame.display.set_mode((new_w, new_h), pygame.RESIZABLE)
-        
+                self.screen = pygame.display.set_mode(
+                    (new_w, new_h), pygame.RESIZABLE
+                )
         return event
-    
+
     def movement_scan(self) -> None:
         """Scan for key input that can be maintained."""
         keys = pygame.key.get_pressed()
@@ -214,16 +241,22 @@ class Visualizer:
         if keys[pygame.K_LEFT]:
             self.pacmap.pacman.next_direction = Direction.WEST
 
-
-    def draw_targets(self):
+    def draw_targets(self) -> None:
         for ghost in self.pacmap.ghosts:
             if ghost.target_cell:
                 start = ghost.target_cell * (MainData.cell_size)
-                rect =  (start.x, start.y, MainData.cell_size, MainData.cell_size)
+                rect = (
+                    start.x,
+                    start.y,
+                    MainData.cell_size,
+                    MainData.cell_size,
+                )
                 self.screen.fill(ghost.ghost_color, rect)
 
-    def draw_charachters(self):
-        charachters: list[MovingEntities] = [self.pacmap.pacman] + self.pacmap.ghosts
+    def draw_charachters(self) -> None:
+        charachters: list[MovingEntities] = [
+            self.pacmap.pacman
+        ] + self.pacmap.ghosts
         self.Counter += 1
         for charachter in charachters:
             if self.Counter % 5 == 0:
@@ -231,21 +264,35 @@ class Visualizer:
             pos = (charachter.visual_pos) * MainData.cell_size
             self.screen.blit(charachter.image, pos)
 
-    def draw_cells(self):
+    def draw_cells(self) -> None:
         for x, row in enumerate(self.pacmap.cells):
             for y, cell in enumerate(row):
                 for x2 in range(3):
                     for y2 in range(3):
-                        if (x + y + x2 +y2) & 1:
-                            rect = pygame.Rect(((x*3 + x2) * MainData.cell_size),
-                                    ((y*3 + y2) * MainData.cell_size),
-                                    MainData.cell_size,
-                                    MainData.cell_size)
-                            self.screen.fill(pygame.Color(20,20,80), rect)
-                        self.screen.blit(cell.image[x2][y2], ((x*3 +x2) *MainData.cell_size , (y*3+y2)*MainData.cell_size))
+                        if (x + y + x2 + y2) & 1:
+                            rect = pygame.Rect(
+                                ((x * 3 + x2) * MainData.cell_size),
+                                ((y * 3 + y2) * MainData.cell_size),
+                                MainData.cell_size,
+                                MainData.cell_size,
+                            )
+                            self.screen.fill(pygame.Color(20, 20, 80), rect)
+                        self.screen.blit(
+                            cell.image[x2][y2],
+                            (
+                                (x * 3 + x2) * MainData.cell_size,
+                                (y * 3 + y2) * MainData.cell_size,
+                            ),
+                        )
                         if cell.fruit:
                             image = cell.fruit.image
-                            self.screen.blit(image, ((x*3 +1) *MainData.cell_size , (y*3+1)*MainData.cell_size))
+                            self.screen.blit(
+                                image,
+                                (
+                                    (x * 3 + 1) * MainData.cell_size,
+                                    (y * 3 + 1) * MainData.cell_size,
+                                ),
+                            )
 
     def get_font(self, size: Optional[int] = None) -> pygame.font.Font:
         """Get a font for rendering text.
