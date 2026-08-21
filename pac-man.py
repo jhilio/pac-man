@@ -156,7 +156,6 @@ def preload_assets(verbose: bool = False):
         "assets/maze/middle_dot.png",
         "assets/maze/big_dot.png",
     ]
-
     eyes_assets = [
         "assets/ghost/eyes/eyes_n.png",
         "assets/ghost/eyes/eyes_e.png",
@@ -178,12 +177,14 @@ def preload_assets(verbose: bool = False):
         for direc in Direction
         for name in ["pinky", "blinky", "inky", "clyde"]
     ]
+    asset_menu = [f"assets/menu/BGmenu.jpg"]
     total = (
         maze_assets
         + pacman_anim_frames
         + ghosts_anim_frames
         + eyes_assets
         + frightened_assets
+        + asset_menu
     )
 
     for full_path in total:

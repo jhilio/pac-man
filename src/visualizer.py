@@ -25,11 +25,17 @@ class DelayedCall:
         func, args, kwargs = self.call.values()
 
         func(*args, **kwargs)
-        print("finished")
 
 
 class ClickableButton:
-    def __init__(self, start:Pos2D, end:Pos2D, effect:Optional[DelayedCall]=None, text:str="", font_size:Optional[int]=None):
+    def __init__(
+        self,
+        start: Pos2D,
+        end: Pos2D,
+        effect: Optional[DelayedCall] = None,
+        text: str = "",
+        font_size: Optional[int] = None,
+    ):
         self.start = start
         self.end = end
         self.size = end - start
@@ -37,29 +43,26 @@ class ClickableButton:
         self.text = text
         self.font_size = font_size
 
-
-    def is_in(self, pos:Pos2D):
+    def is_in(self, pos: Pos2D):
         return (
-            self.start.x <=pos.x <=self.end.x
-            and self.start.y <=pos.y <=self.end.y
-            )
-            
-    
+            self.start.x <= pos.x <= self.end.x
+            and self.start.y <= pos.y <= self.end.y
+        )
 
     def on_click(self):
         if self.effect:
             self.effect()
 
     @property
-    def image(self): 
+    def image(self):
         surface = pygame.Surface(self.size)
         surface.fill((80, 80, 80))
         return surface
 
     @property
-    def hovered_image(self): 
+    def hovered_image(self):
         surface = pygame.Surface(self.size)
-        surface.fill((150, 150, 150))
+        surface = MainData.assets.get_asset("pinky_n1.png")
         return surface
 
 
@@ -85,18 +88,21 @@ class Visualizer:
         self.verbose = verbose
         self.buttons_per_menu = {
             VisualState.MAIN_MENU: [
-                ClickableButton(Pos2D(10, 10), Pos2D(200, 40), DelayedCall(self.change_state, VisualState.IN_GAME))
+                ClickableButton(
+                    Pos2D(10, 10),
+                    Pos2D(200, 40),
+                    DelayedCall(self.change_state, VisualState.IN_GAME),
+                    text="Hello world wOOF",
+                )
             ],
         }
-            
 
     @property
     def active_buttons(self):
         return self.buttons_per_menu.get(self.visualiser_state, [])
 
-    def change_state(self, new:VisualState):
+    def change_state(self, new: VisualState):
         self.visualiser_state = new
-
 
     def launch_loop(self) -> None:
         self.time: float = 0.0
@@ -130,7 +136,11 @@ class Visualizer:
 
     def draw_dispatcher(self, dt: float) -> None:
         t = self.pacmap.level["duration"] - self.pacmap.total_elapsed_time
-        self.screen.fill(pygame.Color(0, 0, 0))
+        bg = MainData.assets.get_asset("BGmenu.jpg", scaling=False)
+        bg = pygame.transform.scale(
+            bg, (self.screen.get_width(), self.screen.get_height())
+        )
+        self.screen.blit(bg, (0, 0))
         text = f"""
         {("fright left : "
             + format(self.pacmap.fright_time_left, ".1f")
@@ -183,8 +193,20 @@ class Visualizer:
 
         mouse_pos = Pos2D(pygame.mouse.get_pos())
         for button in self.active_buttons:
-            self.screen.blit(button.hovered_image if button.is_in(mouse_pos) else button.image, button.start)
-            self.draw_text_multiline(button.text, button.start.x, button.start.y, font=button.font_size)
+            self.screen.blit(
+                (
+                    button.hovered_image
+                    if button.is_in(mouse_pos)
+                    else button.image
+                ),
+                button.start,
+            )
+            self.draw_text_multiline(
+                button.text,
+                button.start.x,
+                button.start.y,
+                font=button.font_size,
+            )
         if self.pacmap.pacman.cheat_mode:
             text += "\ncheat mode: on"
         self.draw_text_multiline(text, 1000, 100, font=self.get_font(25))
@@ -348,8 +370,7 @@ class Visualizer:
                 text_surface, (x, y + i * (font.get_height() + line_spacing))
             )
 
-
-    def keyboard_handler(self, event:pygame.event):
+    def keyboard_handler(self, event: pygame.event):
         match event.key:
             case pygame.K_ESCAPE:
                 return pygame.QUIT
@@ -372,18 +393,40 @@ class Visualizer:
             case pygame.K_SPACE:
                 self.pacmap.pacman.eat_wall()
             case pygame.K_t:
-                self.pacmap.fright_time_left = self.pacmap.level["frightened_duration"]
+                self.pacmap.fright_time_left = self.pacmap.level[
+                    "frightened_duration"
+                ]
             case _:
                 if self.verbose:
                     print(event)
-        #konami sequence detection
-        konami_code = [pygame.K_UP, pygame.K_UP, pygame.K_DOWN, pygame.K_DOWN, pygame.K_LEFT, pygame.K_RIGHT, pygame.K_LEFT, pygame.K_RIGHT, pygame.K_b, pygame.K_a]
-        if event.key in [pygame.K_UP, pygame.K_RIGHT, pygame.K_DOWN, pygame.K_LEFT, pygame.K_b, pygame.K_a]:
+        # konami sequence detection
+        konami_code = [
+            pygame.K_UP,
+            pygame.K_UP,
+            pygame.K_DOWN,
+            pygame.K_DOWN,
+            pygame.K_LEFT,
+            pygame.K_RIGHT,
+            pygame.K_LEFT,
+            pygame.K_RIGHT,
+            pygame.K_b,
+            pygame.K_a,
+        ]
+        if event.key in [
+            pygame.K_UP,
+            pygame.K_RIGHT,
+            pygame.K_DOWN,
+            pygame.K_LEFT,
+            pygame.K_b,
+            pygame.K_a,
+        ]:
             self.code_sequence.append(event.key)
             if self.code_sequence == [pygame.K_UP, pygame.K_UP, pygame.K_UP]:
                 self.code_sequence.pop()
-            elif self.code_sequence !=konami_code[:len(self.code_sequence)]:
+            elif self.code_sequence != konami_code[: len(self.code_sequence)]:
                 self.code_sequence.clear()
             elif self.code_sequence == konami_code:
-                self.pacmap.pacman.cheat_mode = not self.pacmap.pacman.cheat_mode
+                self.pacmap.pacman.cheat_mode = (
+                    not self.pacmap.pacman.cheat_mode
+                )
                 self.code_sequence.clear()

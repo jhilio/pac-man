@@ -22,17 +22,19 @@ class AssetsManager:
         return self.get_asset(name)
 
     def get_asset(
-        self, name: str, size_multiplier: float = 1
+        self, name: str, size_multiplier: float = 1, scaling: bool = True
     ) -> Any | pygame.Surface:
         size = MainData.cell_size * size_multiplier
         if self.scaled.get(size) is None:
             self.scaled[size] = {}
         cache = self.scaled[size]
-        if name in cache:
+        if name in cache and scaling:
             return cache[name]
         unscaled = self._originals.get(name)
         if unscaled is None:
             raise ValueError(f"asset {name} wansnt loaded")
+        if not scaling:
+            return unscaled
         scaled = pygame.transform.scale(
             unscaled, (size * size_multiplier, size * size_multiplier)
         )
