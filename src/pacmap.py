@@ -1,5 +1,3 @@
-from re import M
-
 import mazegenerator
 from random import choices
 from .charachters.clyde import Clyde
@@ -29,7 +27,7 @@ class PacMap:
         self.init_cells()
         self.init_charachters()
 
-    def regenerate(self):
+    def regenerate(self) -> None:
         self.maze._seed += 1
         self.fright_time_left = 0
         self.total_elapsed_time = 0
@@ -40,7 +38,7 @@ class PacMap:
             ghost.reset_pos()
         self.pacman.reset_pos()
 
-    def init_charachters(self):
+    def init_charachters(self) -> None:
         self.pacman = Pacman(
             Direction.NORTH,
             x=len(self.maze.maze) // 2,
@@ -60,7 +58,7 @@ class PacMap:
             self.clyde,
         ]
 
-    def init_cells(self):
+    def init_cells(self) -> None:
         self.cells: list[list[Cell]] = []
 
         for x in range(len(self.maze.maze)):
@@ -83,13 +81,13 @@ class PacMap:
         self.cells[-1][0].fruit = Fruit(2)
         self.cells[-1][-1].fruit = Fruit(2)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "\n".join(
             " ".join(str(self.cells[x][y]) for x in range(len(self.cells[0])))
             for y in range(len(self.cells))
         )
 
-    def update(self, dt: float):
+    def update(self, dt: float) -> None:
         self.total_elapsed_time += dt
         self.phase_timer += (
             dt - self.fright_time_left if dt - self.fright_time_left > 0 else 0
@@ -108,19 +106,19 @@ class PacMap:
             self.step()
         self.check_colision()
 
-    def check_colision(self):
+    def check_colision(self) -> None:
         for ghost in self.ghosts:
             if ghost.pos == self.pacman.pos and ghost.is_alive:
                 self.colision_effect(ghost)
 
-    def step(self):
+    def step(self) -> None:
         a = sum(cell.fruit.val for row in self.cells for cell in row)
         if not a:
             self.go_next_level()
         if self.total_elapsed_time > self.level["duration"]:
             self.pacman_died()
 
-    def go_next_level(self):
+    def go_next_level(self) -> None:
         self.level_num += 1
         self.level = MainData.config_from_file["levels"][str(self.level_num)]
         for ghost in self.ghosts:
@@ -128,14 +126,14 @@ class PacMap:
         self.pacman.update_level_data()
         self.regenerate()
 
-    def colision_effect(self, ghost: Ghost):
+    def colision_effect(self, ghost: Ghost) -> None:
         if self.fright_time_left and ghost.is_alive:
             ghost.is_alive = False
             self.score += MainData.config_from_file["points_per_ghost"]
         else:
             self.pacman_died()
 
-    def pacman_died(self):
+    def pacman_died(self) -> None:
         for ghost in self.ghosts:
             ghost.reset_pos()
             ghost.is_alive = True
@@ -143,7 +141,7 @@ class PacMap:
             self.pacman.reset_pos()
             self.pacman.lives -= 1
 
-    def update_high_score(self):
+    def update_high_score(self) -> None:
         if not self.player_name:
             return
         k = 10

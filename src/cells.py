@@ -73,32 +73,37 @@ class Cell:
         ):
             if dir1.value & walls and dir2.value & walls:
                 return MainData.assets.get_asset(
-                    f"corner_{'n' if dir1 == Direction.NORTH else 's'}{'e' if dir2 == Direction.EAST else 'w'}.png"
+                    f"corner_{'n' if dir1 == Direction.NORTH else 's'}"
+                    + f"{'e' if dir2 == Direction.EAST else 'w'}.png"
                 )
             elif dir1.value & walls:
                 return MainData.assets.get_asset(
-                    f"double_{'top' if dir1 == Direction.NORTH else 'bottom'}.png"
+                    f"double_{'top' if dir1 == Direction.NORTH else 'bottom'}"
+                    + ".png"
                 )
             elif dir2.value & walls:
                 return MainData.assets.get_asset(
-                    f"double_{'right' if dir2 == Direction.EAST else 'left'}.png"
+                    f"double_{'right' if dir2 == Direction.EAST else 'left'}"
+                    + ".png"
                 )
             else:
                 return MainData.assets.get_asset(
-                    f"very_small_corner_{'n' if dir1 != Direction.NORTH else 's'}{'e' if dir2 != Direction.EAST else 'w'}.png"
+                    "very_small_corner_"
+                    + f"{'n' if dir1 != Direction.NORTH else 's'}"
+                    + f"{'e' if dir2 != Direction.EAST else 'w'}.png"
                 )
 
         def get_direction(walls: int, direction: Direction):
             if direction == Direction.NORTH and walls & direction.value:
-                return MainData.assets.get_asset(f"double_top.png")
+                return MainData.assets.get_asset("double_top.png")
             elif direction == Direction.EAST and walls & direction.value:
-                return MainData.assets.get_asset(f"double_right.png")
+                return MainData.assets.get_asset("double_right.png")
             elif direction == Direction.SOUTH and walls & direction.value:
-                return MainData.assets.get_asset(f"double_bottom.png")
+                return MainData.assets.get_asset("double_bottom.png")
             elif direction == Direction.WEST and walls & direction.value:
-                return MainData.assets.get_asset(f"double_left.png")
+                return MainData.assets.get_asset("double_left.png")
             else:
-                return MainData.assets.get_asset(f"no_dot.png")
+                return MainData.assets.get_asset("no_dot.png")
 
         if self.walls == 15:
             pass  # create 3*3 full block for 42 patern

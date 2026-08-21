@@ -36,7 +36,7 @@ class Visualizer:
         self.time: float = 0.0
         self.loop()
 
-    def save_high_score(self):
+    def save_high_score(self) -> None:
         with open("high_scores.json", "w") as file:
             json.dump(MainData.high_scores, file, indent=2)
 
@@ -61,14 +61,14 @@ class Visualizer:
                     self.visualiser_state = VisualState.PROMPTING_FOR_NAME
             self.draw_dispatcher(dt)
 
-    def draw_dispatcher(self, dt: float):
+    def draw_dispatcher(self, dt: float) -> None:
+        t = self.pacmap.level["duration"] - self.pacmap.total_elapsed_time
         self.screen.fill(pygame.Color(0, 0, 0))
         text = f"""
         {("fright left : "
-        + format(self.pacmap.fright_time_left, ".1f")
-        + "s") if self.pacmap.fright_time_left else ""}
-        Time left : {self.pacmap.level["duration"]
-        - self.pacmap.total_elapsed_time:.0f}S
+            + format(self.pacmap.fright_time_left, ".1f")
+            + "s") if self.pacmap.fright_time_left else ""}
+        Time left : {t:.0f}S
         Phase state : {get_ghost_state().name} {self.pacmap.phase_timer}S
         Score: {self.pacmap.score}
         Current Level: {self.pacmap.level_num}
@@ -232,7 +232,7 @@ class Visualizer:
         if keys[pygame.K_LEFT]:
             self.pacmap.pacman.next_direction = Direction.WEST
 
-    def draw_targets(self):
+    def draw_targets(self) -> None:
         for ghost in self.pacmap.ghosts:
             if ghost.target_cell:
                 start = ghost.target_cell * (MainData.cell_size)
@@ -244,7 +244,7 @@ class Visualizer:
                 )
                 self.screen.fill(ghost.ghost_color, rect)
 
-    def draw_charachters(self):
+    def draw_charachters(self) -> None:
         charachters: list[MovingEntities] = [
             self.pacmap.pacman
         ] + self.pacmap.ghosts
@@ -255,7 +255,7 @@ class Visualizer:
             pos = (charachter.visual_pos) * MainData.cell_size
             self.screen.blit(charachter.image, pos)
 
-    def draw_cells(self):
+    def draw_cells(self) -> None:
         for x, row in enumerate(self.pacmap.cells):
             for y, cell in enumerate(row):
                 for x2 in range(3):

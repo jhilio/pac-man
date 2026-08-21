@@ -1,3 +1,4 @@
+from __future__ import annotations
 from math import sqrt
 from typing import Any, Iterator, cast, Iterable, Self
 
@@ -25,7 +26,7 @@ class Vector:
                 f"cant initialise {self.__class__.__name__} with {args}"
             )
 
-    def __pow__(self, other):
+    def __pow__(self, other) -> Self:
         """
         give an exponent to each axis of a vector
         """
@@ -40,7 +41,7 @@ class Vector:
             )
         raise TypeError(f"cant pow {self} to {other}")
 
-    def __mod__(self, other):
+    def __mod__(self, other) -> Self:
         """
         Modulo of two vectors or a vector and a compatible iterable.
         """
@@ -280,7 +281,7 @@ class Vector:
         """
         Get the value of a specific dimension by name.
         """
-        if name in self.DIM_ORDER[0 : self.CLASS_LEN]:
+        if name in self.DIM_ORDER[0:self.CLASS_LEN]:
             value = self._dim_pos[self.DIM_ORDER.find(name)]
             return value
         return None
@@ -290,7 +291,7 @@ class Vector:
             return sqrt(sum(self.abs_diff(other) ** 2))
         else:
             raise ValueError(
-                f"cant use pythagore for {self.__class__.__name__} with {other}"
+                f"cant use pythagore for {self.__class__.__name__} with{other}"
             )
 
     def lerp(self, next: Any, delta: float):

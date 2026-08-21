@@ -41,7 +41,7 @@ class Direction(Enum):
             Direction.WEST: (-1, 0),
         }[self]
 
-    def rotate(self, sprite: pygame.Surface):
+    def rotate(self, sprite: pygame.Surface) -> pygame.Surface:
         angles = {
             Direction.NORTH: -90.0,
             Direction.EAST: 180.0,
@@ -50,7 +50,7 @@ class Direction(Enum):
         }
         return pygame.transform.rotate(sprite, angles[self])
 
-    def pac_order(self):
+    def pac_order(self) -> int:
         order = {
             Direction.NORTH: 1,
             Direction.EAST: 4,

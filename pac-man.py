@@ -1,7 +1,6 @@
 import sys
 import os
 
-os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
 from src.config import MainData
 import json
 from pathlib import Path
@@ -11,6 +10,8 @@ from src.pacmap import PacMap
 from src.visualizer import Visualizer
 from copy import deepcopy
 from typing import Optional
+
+os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
 
 
 class ConfigError(Exception):
