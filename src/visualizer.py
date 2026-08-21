@@ -1,8 +1,7 @@
 from __future__ import annotations
 import json
-from token import OP
 import pygame
-from typing import Callable, Optional
+from typing import Optional
 from .vector import Pos2D
 from .charachters.ghost import get_ghost_state
 from .charachters.moving_entity import MovingEntities
@@ -10,65 +9,12 @@ from .pacmap import PacMap
 from .enums import Direction, VisualState
 from .config import MainData
 
-
-class DelayedCall:
-    def __init__(self, func: Callable, *args, **kwargs):
-        self.call = {
-            "function": func,
-            "args": tuple(args),
-            "kwargs": dict(kwargs) if kwargs else {},
-        }
-
-    def __call__(self):
-        if not callable(self.call.get("function")):
-            raise ValueError(f"DelayedCall with a non callable func")
-        func, args, kwargs = self.call.values()
-
-        func(*args, **kwargs)
-
-
-class ClickableButton:
-    def __init__(
-        self,
-        start: Pos2D,
-        end: Pos2D,
-        effect: Optional[DelayedCall] = None,
-        text: str = "",
-        font_size: Optional[int] = None,
-    ):
-        self.start = start
-        self.end = end
-        self.size = end - start
-        self.effect = effect
-        self.text = text
-        self.font_size = font_size
-
-    def is_in(self, pos: Pos2D):
-        return (
-            self.start.x <= pos.x <= self.end.x
-            and self.start.y <= pos.y <= self.end.y
-        )
-
-    def on_click(self):
-        if self.effect:
-            self.effect()
-
-    @property
-    def image(self):
-        surface = pygame.Surface(self.size)
-        surface.fill((80, 80, 80))
-        return surface
-
-    @property
-    def hovered_image(self):
-        surface = pygame.Surface(self.size)
-        surface = MainData.assets.get_asset("pinky_n1.png")
-        return surface
+from .button import ClickableButton, DelayedCall
 
 
 class Visualizer:
     Counter = 0
-
+    CELL_MARGIN = 5
     def __init__(
         self,
         pacmap: PacMap,
@@ -80,26 +26,87 @@ class Visualizer:
         self.fps = 60
         self.visualiser_state = VisualState.MAIN_MENU
         self.paused = False
+        game_size = (
+            (Pos2D(
+                MainData.config_from_file["width"],
+                MainData.config_from_file["height"],
+            )
+            * MainData.cell_size
+            * 3) // 1)
+        self.game_space = pygame.Surface(game_size)
         self.pacmap = pacmap
         self.base_font_size = 13
         self.font_cache: dict[int, pygame.font.Font] = {}
         self.screen = pygame.display.set_mode(size, pygame.RESIZABLE)
         self.code_sequence = []
         self.verbose = verbose
+        back_button = ClickableButton(
+            0.9, 0,
+            0.1, 0.1,
+            self.screen,
+            effect=DelayedCall(self.change_state, VisualState.MAIN_MENU),
+            image=MainData.assets.get_asset("back.png", scaling=False),
+        )
         self.buttons_per_menu = {
-            VisualState.MAIN_MENU: [
+            VisualState.IN_GAME: [
+                back_button,
                 ClickableButton(
-                    Pos2D(10, 10),
-                    Pos2D(200, 40),
-                    DelayedCall(self.change_state, VisualState.IN_GAME),
-                    text="Hello world wOOF",
+                    0.78, 0,
+                    0.1, 0.1,
+                    self.screen,
+                    effect=DelayedCall(self.change_state, VisualState.IN_GAME_PAUSED),
+                    image=MainData.assets.get_asset("unpaused.png", scaling=False),
                 )
             ],
+            VisualState.IN_GAME_PAUSED: [
+                back_button,
+                ClickableButton(
+                    0.78, 0,
+                    0.1, 0.1,
+                    self.screen,
+                    effect=DelayedCall(self.change_state, VisualState.IN_GAME),
+                    image=MainData.assets.get_asset("paused.png", scaling=False),
+                )
+            ],
+            VisualState.HIGH_SCORE_MENU: [
+                back_button
+            ],
+            VisualState.MAIN_MENU: [
+                ClickableButton(
+                    0.4, 0.4,
+                    0.2, 0.03,
+                    self.screen,
+                    DelayedCall(self.change_state, VisualState.IN_GAME),
+                    text="Start game",
+                ),
+                 ClickableButton(
+                    0.4, 0.45,
+                    0.2, 0.03,
+                    self.screen,
+                    DelayedCall(self.change_state, VisualState.HIGH_SCORE_MENU),
+                    text="High scores",
+                )
+            ],
+        }
+        bg = MainData.assets.get_asset("BGmenu.jpg", scaling=False)
+        
+        self.background_per_menu = {
+            VisualState.HIGH_SCORE_MENU: bg,
+            VisualState.MAIN_MENU: bg
         }
 
     @property
     def active_buttons(self):
         return self.buttons_per_menu.get(self.visualiser_state, [])
+
+    @property
+    def active_background(self):
+        bg = self.background_per_menu.get(self.visualiser_state, None)
+        if bg is not None:
+            bg = pygame.transform.scale(
+                        bg, (self.screen.get_width(), self.screen.get_height())
+                    )
+        return bg
 
     def change_state(self, new: VisualState):
         self.visualiser_state = new
@@ -131,16 +138,16 @@ class Visualizer:
                 self.movement_scan()
                 self.pacmap.update(dt)
                 if not self.pacmap.pacman.lives >= 1:
+                    self.pacmap.is_finished = True
                     self.visualiser_state = VisualState.PROMPTING_FOR_NAME
             self.draw_dispatcher(dt)
 
     def draw_dispatcher(self, dt: float) -> None:
+        if self.active_background is not None:
+            self.screen.blit(self.active_background, (0, 0))
+        else:
+            self.screen.fill((0,0,0))
         t = self.pacmap.level["duration"] - self.pacmap.total_elapsed_time
-        bg = MainData.assets.get_asset("BGmenu.jpg", scaling=False)
-        bg = pygame.transform.scale(
-            bg, (self.screen.get_width(), self.screen.get_height())
-        )
-        self.screen.blit(bg, (0, 0))
         text = f"""
         {("fright left : "
             + format(self.pacmap.fright_time_left, ".1f")
@@ -153,34 +160,23 @@ class Visualizer:
         cell_size : {MainData.cell_size}
         fps : {1/dt:.1f}
         """
-
-        menu_text = "pless enter to play"
         match self.visualiser_state:
-            case VisualState.MAIN_MENU:
-                self.draw_text_multiline(
-                    menu_text, 200, 100, font=self.get_font(25)
-                )
             case (
                 VisualState.IN_GAME
                 | VisualState.IN_GAME_PAUSED
                 | VisualState.PROMPTING_FOR_NAME
             ):
+                self.game_space.fill((0,0,0))
                 self.draw_cells()
                 if self.pacmap.pacman.cheat_mode:
                     self.draw_targets()
                 self.draw_charachters()
-                if self.visualiser_state is VisualState.IN_GAME_PAUSED:
-                    self.draw_text_multiline(
-                        "PAUSED", 200, 100, font=self.get_font(25)
-                    )
-                    pass  # display the paused menu
+                pos = Pos2D(MainData.cell_size * self.CELL_MARGIN * 3, MainData.cell_size * self.CELL_MARGIN * 3) // 1
+                self.screen.blit(self.game_space, pos)
                 if self.visualiser_state is VisualState.PROMPTING_FOR_NAME:
-                    pass  # ask for player name
-                    # self.pacmap.player_name = the_name
                     self.draw_text_multiline(
                         "name ?", 200, 100, font=self.get_font(25)
                     )
-                    self.pacmap.update_high_score()
             case VisualState.HIGH_SCORE_MENU:
                 self.draw_text_multiline(
                     "\n".join(
@@ -199,12 +195,12 @@ class Visualizer:
                     if button.is_in(mouse_pos)
                     else button.image
                 ),
-                button.start,
+                button.to_screen_rect
             )
             self.draw_text_multiline(
                 button.text,
-                button.start.x,
-                button.start.y,
+                button.to_screen_rect.x,
+                button.to_screen_rect.y,
                 font=button.font_size,
             )
         if self.pacmap.pacman.cheat_mode:
@@ -234,12 +230,12 @@ class Visualizer:
         elif event.type == pygame.VIDEORESIZE:
             # 1. Enforce Minimum Size
             min_size = (
-                Pos2D(
+                (Pos2D(
                     MainData.config_from_file["width"],
                     MainData.config_from_file["height"],
-                )
+                ) + (Pos2D(self.CELL_MARGIN, self.CELL_MARGIN) *2))
                 * MainData.cell_size
-                * 3.3
+                * 3
             )
             min_size //= 1
 
@@ -273,7 +269,7 @@ class Visualizer:
                     MainData.cell_size,
                     MainData.cell_size,
                 )
-                self.screen.fill(ghost.ghost_color, rect)
+                self.game_space.fill(ghost.ghost_color, rect)
 
     def draw_charachters(self) -> None:
         charachters: list[MovingEntities] = [
@@ -284,7 +280,7 @@ class Visualizer:
             if self.Counter % 5 == 0:
                 charachter.incr_anim()
             pos = (charachter.visual_pos) * MainData.cell_size
-            self.screen.blit(charachter.image, pos)
+            self.game_space.blit(charachter.image, pos)
 
     def draw_cells(self) -> None:
         for x, row in enumerate(self.pacmap.cells):
@@ -298,8 +294,8 @@ class Visualizer:
                                 MainData.cell_size,
                                 MainData.cell_size,
                             )
-                            self.screen.fill(pygame.Color(20, 20, 80), rect)
-                        self.screen.blit(
+                            self.game_space.fill(pygame.Color(20, 20, 80), rect)
+                        self.game_space.blit(
                             cell.image[x2][y2],
                             (
                                 (x * 3 + x2) * MainData.cell_size,
@@ -308,7 +304,7 @@ class Visualizer:
                         )
                         if cell.fruit:
                             image = cell.fruit.image
-                            self.screen.blit(
+                            self.game_space.blit(
                                 image,
                                 (
                                     (x * 3 + 1) * MainData.cell_size,
@@ -374,16 +370,6 @@ class Visualizer:
         match event.key:
             case pygame.K_ESCAPE:
                 return pygame.QUIT
-            case pygame.K_BACKSPACE:
-                if self.visualiser_state == VisualState.IN_GAME:
-                    self.visualiser_state = VisualState.IN_GAME_PAUSED
-                elif self.visualiser_state == VisualState.IN_GAME_PAUSED:
-                    self.visualiser_state = VisualState.IN_GAME
-            case pygame.K_s:
-                if self.visualiser_state == VisualState.MAIN_MENU:
-                    self.visualiser_state = VisualState.HIGH_SCORE_MENU
-                elif self.visualiser_state == VisualState.HIGH_SCORE_MENU:
-                    self.visualiser_state = VisualState.MAIN_MENU
             case pygame.K_HOME:
                 self.visualiser_state = VisualState.MAIN_MENU
             case pygame.K_RETURN:

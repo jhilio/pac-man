@@ -72,7 +72,7 @@ class Ghost(MovingEntities):
         if not self.is_alive:
             path_name = f"eyes_{self.direction.to_text()}.png"
         elif fright_time:
-            if fright_time > 1.5 or fright_time % 0.5 > 0.2:
+            if fright_time > 2 or fright_time % 0.5 > 0.3:
                 path_name = f"frightened_{self.anim_step+1}.png"
             else:
                 path_name = f"frightened_flash_{self.anim_step+1}.png"

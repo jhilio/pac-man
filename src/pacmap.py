@@ -14,6 +14,7 @@ from .config import MainData
 class PacMap:
     def __init__(self, maze: mazegenerator.MazeGenerator):
         MainData.pacmap = self
+        self.is_finished = False
         self.level_num = 1
         self.level = MainData.config_from_file["levels"][str(self.level_num)]
         self.maze = maze

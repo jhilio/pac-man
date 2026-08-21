@@ -177,7 +177,12 @@ def preload_assets(verbose: bool = False):
         for direc in Direction
         for name in ["pinky", "blinky", "inky", "clyde"]
     ]
-    asset_menu = [f"assets/menu/BGmenu.jpg"]
+    asset_menu = [
+        "assets/menu/BGmenu.jpg",
+        "assets/menu/back.png",
+        "assets/menu/unpaused.png",
+        "assets/menu/paused.png",
+        ]
     total = (
         maze_assets
         + pacman_anim_frames
