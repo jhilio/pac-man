@@ -1,12 +1,16 @@
 [project]
 name = "pacman"
 version = "0.1.0"
-description = "Add your description here"
+description = "it's arond like a ball"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "mazegenerator",
     "pygame>=2.6.1",
+	"flake8>=7.3.0",
+    "mypy>=1.20.0",
+    "numpy",
+    "pydantic",
 ]
 
 [dependency-groups]
@@ -14,5 +18,17 @@ dev = [
     "pyinstaller>=6.22.2",
 ]
 
+[tool.mypy]
+python_version = "3.12"
+ignore_missing_imports = true
+disallow_untyped_defs = true
+check_untyped_defs = true
+warn_unused_ignores = true
+warn_return_any = true
+show_error_codes = true
+
 [tool.uv.sources]
 mazegenerator = { path = "src/mazegenerator-2.1.0-py3-none-any.whl" }
+
+[tool.black]
+line-length = 79

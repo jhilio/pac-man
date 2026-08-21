@@ -25,7 +25,6 @@ class Vector:
                 f"cant initialise {self.__class__.__name__} with {args}"
             )
 
-
     def __pow__(self, other):
         """
         give an exponent to each axis of a vector
@@ -34,7 +33,7 @@ class Vector:
             return self.__class__(
                 tuple(
                     map(
-                        lambda a: a ** other,
+                        lambda a: a**other,
                         [a for a in self],
                     )
                 )
@@ -281,7 +280,7 @@ class Vector:
         """
         Get the value of a specific dimension by name.
         """
-        if name in self.DIM_ORDER[0: self.CLASS_LEN]:
+        if name in self.DIM_ORDER[0 : self.CLASS_LEN]:
             value = self._dim_pos[self.DIM_ORDER.find(name)]
             return value
         return None
@@ -292,7 +291,7 @@ class Vector:
         else:
             raise ValueError(
                 f"cant use pythagore for {self.__class__.__name__} with {other}"
-                )
+            )
 
     def lerp(self, next: Any, delta: float):
         if self.__iscompatible(next):
@@ -304,7 +303,8 @@ class Vector:
 
 
 class Pos2D(Vector):
-    CLASS_LEN=2
+    CLASS_LEN = 2
+
 
 # a = Pos3d(1, 2, 3)
 # b = Pos3d(5, 2, 3)

@@ -1,6 +1,6 @@
-
 import sys
 import os
+
 os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
 from src.config import MainData
 import json
@@ -12,8 +12,10 @@ from src.visualizer import Visualizer
 from copy import deepcopy
 from typing import Optional
 
+
 class ConfigError(Exception):
     pass
+
 
 def resource_path(relative_path: str) -> Path:
     if getattr(sys, "frozen", False):
@@ -38,8 +40,8 @@ levels = (
                 ["scatter", 5],
                 ["chase", 20],
                 ["scatter", 5],
-                ["chase", None]
-            ]
+                ["chase", None],
+            ],
         }
     ]
     + [
@@ -58,8 +60,8 @@ levels = (
                 ["scatter", 5],
                 ["chase", 1033],
                 ["scatter", 1],
-                ["chase", None]
-            ]
+                ["chase", None],
+            ],
         }
         for _ in range(3)
     ]
@@ -79,8 +81,8 @@ levels = (
                 ["scatter", 5],
                 ["chase", 1033],
                 ["scatter", 1],
-                ["chase", None]
-            ]
+                ["chase", None],
+            ],
         }
         for _ in range(16)
     ]
@@ -112,11 +114,14 @@ def merge_config(default, override):
             default[key] = value
     return default
 
-def load_config(path: Optional[str]=None):
+
+def load_config(path: Optional[str] = None):
     if path is not None:
         with open(path, "r") as config_file:
             text = config_file.read()
-            text = "\n".join(line for line in text.splitlines() if not line.startswith("#"))
+            text = "\n".join(
+                line for line in text.splitlines() if not line.startswith("#")
+            )
             loaded = json.loads(text)
         if not isinstance(loaded, dict):
             raise ConfigError("config is not a dict")
@@ -127,7 +132,7 @@ def load_config(path: Optional[str]=None):
         MainData.config_from_file[k] = v
 
 
-def preload_assets(verbose:bool=False):
+def preload_assets(verbose: bool = False):
     maze_assets = [
         "assets/maze/very_small_corner_ne.png",
         "assets/maze/very_small_corner_se.png",
@@ -155,15 +160,17 @@ def preload_assets(verbose:bool=False):
         "assets/ghost/eyes/eyes_n.png",
         "assets/ghost/eyes/eyes_e.png",
         "assets/ghost/eyes/eyes_s.png",
-        "assets/ghost/eyes/eyes_w.png"
+        "assets/ghost/eyes/eyes_w.png",
     ]
     frightened_assets = [
         "assets/ghost/frightened/frightened_1.png",
         "assets/ghost/frightened/frightened_2.png",
         "assets/ghost/frightened/frightened_flash_1.png",
-        "assets/ghost/frightened/frightened_flash_2.png"
+        "assets/ghost/frightened/frightened_flash_2.png",
     ]
-    pacman_anim_frames = [f"assets/pacman/pacman_frame_{num}.png" for num in range(4)]
+    pacman_anim_frames = [
+        f"assets/pacman/pacman_frame_{num}.png" for num in range(4)
+    ]
     ghosts_anim_frames = [
         f"assets/ghost/{name}/{name}_{direc.to_text()}{num}.png"
         for num in [1, 2]
@@ -171,21 +178,26 @@ def preload_assets(verbose:bool=False):
         for name in ["pinky", "blinky", "inky", "clyde"]
     ]
     total = (
-        maze_assets +
-        pacman_anim_frames +
-        ghosts_anim_frames +
-        eyes_assets +
-        frightened_assets)
-    
+        maze_assets
+        + pacman_anim_frames
+        + ghosts_anim_frames
+        + eyes_assets
+        + frightened_assets
+    )
+
     for full_path in total:
-        MainData.assets.load(resource_path(full_path).name, str(resource_path(full_path)), (0, 0, 0))
+        MainData.assets.load(
+            resource_path(full_path).name,
+            str(resource_path(full_path)),
+            (0, 0, 0),
+        )
         if verbose:
             print(f"loaded {Path(full_path).name}")
 
 
-def load_high_scores(verbose:bool=False):
+def load_high_scores(verbose: bool = False):
     with open("high_scores.json") as file:
-        loaded =json.load(file)
+        loaded = json.load(file)
     if verbose:
         print(loaded)
     if not isinstance(loaded, dict):
@@ -203,7 +215,11 @@ def load_high_scores(verbose:bool=False):
 def main():
     verbose = "verbose" in sys.argv
     if len(sys.argv) > 1 + ("verbose" in sys.argv):
-        load_config(sys.argv[1])
+        if sys.argv[1] == "":
+            load_config()
+            print("no config provided, using default values")
+        else:
+            load_config(sys.argv[1])
     else:
         load_config()
         print("no config provided, using default values")
@@ -211,10 +227,17 @@ def main():
         print(json.dumps(MainData.config_from_file, indent=2))
     load_high_scores(verbose=verbose)
     preload_assets(verbose=verbose)
-    size = (MainData.config_from_file["width"], MainData.config_from_file["height"])
-    maze = mazegenerator.MazeGenerator(size=size, seed=MainData.config_from_file["seed"])
+    size = (
+        MainData.config_from_file["width"],
+        MainData.config_from_file["height"],
+    )
+    maze = mazegenerator.MazeGenerator(
+        size=size, seed=MainData.config_from_file["seed"]
+    )
     PacMap(maze)
-    MainData.visualizer = Visualizer(MainData.pacmap, (1400, 1100), verbose=verbose)
+    MainData.visualizer = Visualizer(
+        MainData.pacmap, (1400, 1100), verbose=verbose
+    )
     MainData.visualizer.launch_loop()
 
 

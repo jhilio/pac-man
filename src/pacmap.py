@@ -13,7 +13,6 @@ from .cells import Cell, Fruit
 from .config import MainData
 
 
-
 class PacMap:
     def __init__(self, maze: mazegenerator.MazeGenerator):
         MainData.pacmap = self
@@ -26,7 +25,7 @@ class PacMap:
         self.total_elapsed_time = 0
         self.phase_timer = 0
         self.player_name = ""
-        #self.player_name = input("name_of player :")
+        # self.player_name = input("name_of player :")
         self.init_cells()
         self.init_charachters()
 
@@ -41,15 +40,25 @@ class PacMap:
             ghost.reset_pos()
         self.pacman.reset_pos()
 
-
     def init_charachters(self):
-        self.pacman = Pacman(Direction.NORTH, x=len(self.maze.maze)//2, y=len(self.maze.maze[1])//2, lives=MainData.config_from_file["lives"])
-        self.blinky = Blinky(Direction.SOUTH, len(self.cells)-1, 0)
+        self.pacman = Pacman(
+            Direction.NORTH,
+            x=len(self.maze.maze) // 2,
+            y=len(self.maze.maze[1]) // 2,
+            lives=MainData.config_from_file["lives"],
+        )
+        self.blinky = Blinky(Direction.SOUTH, len(self.cells) - 1, 0)
         self.pinky = Pinky(Direction.EAST)
-        self.inky = Inky(Direction.WEST, len(self.cells)-1, len(self.cells[0])-1)
-        self.clyde = Clyde(Direction.NORTH, 0, len(self.cells[0])-1)
-        self.ghosts: list[Ghost]= [self.blinky, self.pinky, self.inky, self.clyde]
-
+        self.inky = Inky(
+            Direction.WEST, len(self.cells) - 1, len(self.cells[0]) - 1
+        )
+        self.clyde = Clyde(Direction.NORTH, 0, len(self.cells[0]) - 1)
+        self.ghosts: list[Ghost] = [
+            self.blinky,
+            self.pinky,
+            self.inky,
+            self.clyde,
+        ]
 
     def init_cells(self):
         self.cells: list[list[Cell]] = []
@@ -59,12 +68,14 @@ class PacMap:
             self.cells.append(column)
             for y in range(len(self.maze.maze[0])):
                 column.append(
-                    Cell(self.maze.maze[y][x], x, y, self.cells,
+                    Cell(
+                        self.maze.maze[y][x],
+                        x,
+                        y,
+                        self.cells,
                         fruit=Fruit(
-                            choices(
-                                population=[0, 1],
-                                weights=[200.2, 0.8])[0]
-                        )
+                            choices(population=[0, 1], weights=[200.2, 0.8])[0]
+                        ),
                     )
                 )
         self.cells[0][0].fruit = Fruit(2)
@@ -78,10 +89,12 @@ class PacMap:
             for y in range(len(self.cells))
         )
 
-    def update(self, dt:float):
+    def update(self, dt: float):
         self.total_elapsed_time += dt
-        self.phase_timer += (dt - self.fright_time_left if dt - self.fright_time_left > 0 else 0)
-        if self.fright_time_left >0:
+        self.phase_timer += (
+            dt - self.fright_time_left if dt - self.fright_time_left > 0 else 0
+        )
+        if self.fright_time_left > 0:
             self.fright_time_left -= dt
             if self.fright_time_left < 0:
                 self.fright_time_left = 0
@@ -91,7 +104,7 @@ class PacMap:
         for ghost in self.ghosts:
             ghost.update(dt)
         if self.offset > 1:
-            dt-=1
+            dt -= 1
             self.step()
         self.check_colision()
 
@@ -106,9 +119,9 @@ class PacMap:
             self.go_next_level()
         if self.total_elapsed_time > self.level["duration"]:
             self.pacman_died()
-         
+
     def go_next_level(self):
-        self.level_num +=1
+        self.level_num += 1
         self.level = MainData.config_from_file["levels"][str(self.level_num)]
         for ghost in self.ghosts:
             ghost.update_level_data()
@@ -130,14 +143,18 @@ class PacMap:
             self.pacman.reset_pos()
             self.pacman.lives -= 1
 
-
     def update_high_score(self):
         if not self.player_name:
             return
         k = 10
-        MainData.high_scores[self.player_name] = max(self.score, MainData.high_scores.get(self.player_name, 0))
+        MainData.high_scores[self.player_name] = max(
+            self.score, MainData.high_scores.get(self.player_name, 0)
+        )
 
-        scores =  MainData.high_scores
-        sorted_scores ={k: scores[k] for k in sorted(scores, key=lambda _, it=iter(scores): next(it))}
-        top_k = {k:v  for i, (k, v) in zip(range(k),sorted_scores.items())}
+        scores = MainData.high_scores
+        sorted_scores = {
+            k: scores[k]
+            for k in sorted(scores, key=lambda _, it=iter(scores): next(it))
+        }
+        top_k = {k: v for i, (k, v) in zip(range(k), sorted_scores.items())}
         MainData.high_scores = top_k

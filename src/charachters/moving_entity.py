@@ -5,14 +5,12 @@ from abc import ABC, abstractmethod
 from ..vector import Pos2D
 
 
-
-
 class MovingEntities(ABC):
-    def __init__(self, direction: Direction, x: int=0, y: int=0):
-        self.pos = Pos2D(x * 3, y *3) + (1, 1)
+    def __init__(self, direction: Direction, x: int = 0, y: int = 0):
+        self.pos = Pos2D(x * 3, y * 3) + (1, 1)
         self.original_pos = self.pos
         self.next_pos = self.pos
-        self.direction = direction 
+        self.direction = direction
         self.next_direction = direction
         self.offset = 0
         self.anim_step = 0
@@ -24,7 +22,7 @@ class MovingEntities(ABC):
         self.pos = self.original_pos
         self.next_pos = self.original_pos
 
-    def update(self, dt:float):
+    def update(self, dt: float):
         if MainData.pacmap.fright_time_left:
             self.offset += dt * self.fright_speed
         else:
@@ -35,7 +33,7 @@ class MovingEntities(ABC):
 
     @property
     @abstractmethod
-    def image(self) ->pygame.Surface:
+    def image(self) -> pygame.Surface:
         pass
 
     @abstractmethod
@@ -49,18 +47,18 @@ class MovingEntities(ABC):
     def move(self, new_pos: Pos2D):
         self.pos, self.next_pos = self.next_pos, new_pos
 
-
     @property
     def visual_pos(self):
         if MainData.pacmap.pacman.cheat_mode:
             return self.pos - (0.25, 0.25)
-        return (self.pos - (0.25,0.25)).lerp(self.next_pos - (0.25, 0.25), self.offset)
+        return (self.pos - (0.25, 0.25)).lerp(
+            self.next_pos - (0.25, 0.25), self.offset
+        )
 
     @property
     def cell_pos(self):
 
         return (self.pos) // 3
-
 
     def __str__(self):
         return self.__class__.__name__
