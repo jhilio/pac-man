@@ -7,10 +7,11 @@ requires-python = ">=3.13"
 dependencies = [
     "mazegenerator",
     "pygame>=2.6.1",
-	"flake8>=7.3.0",
+    "flake8>=7.3.0",
     "mypy>=1.20.0",
     "numpy",
     "pydantic",
+    "torch>=2.13.0",
 ]
 
 [dependency-groups]

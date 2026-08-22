@@ -24,20 +24,30 @@ class PacMap:
         self.total_elapsed_time = 0
         self.phase_timer = 0
         self.player_name = ""
+        self.training_mode = False
         # self.player_name = input("name_of player :")
         self.init_cells()
         self.init_charachters()
 
-    def regenerate(self) -> None:
+    def regenerate(self, maze_restart=True) -> None:
         self.maze._seed += 1
         self.fright_time_left = 0
         self.total_elapsed_time = 0
         self.phase_timer = 0
-        self.maze.generate()
+        self.maze._seed +=1
+        if maze_restart:
+            self.maze.generate(seed=self.maze._seed)
         self.init_cells()
         for ghost in self.ghosts:
             ghost.reset_pos()
         self.pacman.reset_pos()
+
+    def restart(self):
+        self.pacman.lives = MainData.config_from_file["lives"]
+        self.level_num = 1
+        self.score = 0
+        self.offset = 0
+        self.regenerate(maze_restart=False)
 
     def init_charachters(self) -> None:
         self.pacman = Pacman(
@@ -73,7 +83,7 @@ class PacMap:
                         y,
                         self.cells,
                         fruit=Fruit(
-                            choices(population=[0, 1], weights=[200.2, 0.8])[0]
+                            choices(population=[0, 1], weights=[0.2, 0.8])[0]
                         ),
                     )
                 )
@@ -157,3 +167,22 @@ class PacMap:
         }
         top_k = {k: v for i, (k, v) in zip(range(k), sorted_scores.items())}
         MainData.high_scores = top_k
+
+
+
+    def get_state_for_nn(self):
+
+        fruits_data = []
+        walls_data = []
+        for x in range(len(self.cells)):
+            current_wall_col =[]
+            current_fruit_col =[]
+
+            walls_data.append(current_wall_col)
+            fruits_data.append(current_fruit_col)
+            for y in range(len(self.cells[0])):
+                current_wall_col.append(self.cells[x][y].walls)
+                current_fruit_col.append(self.cells[x][y].fruit.val)
+
+        pacman_pos = tuple(self.pacman.pos)
+        return walls_data,fruits_data, pacman_pos,self.ghosts, self.score

@@ -1,5 +1,3 @@
-from ctypes.wintypes import HHOOK
-
 import pygame
 from typing import Callable, Optional
 from .vector import Pos2D

@@ -1,6 +1,7 @@
 import sys
+from time import sleep
 import os
-
+from src.ai.observation import ObservationBuilder
 from src.config import MainData
 import json
 from pathlib import Path
@@ -8,8 +9,12 @@ import mazegenerator
 from src.enums import Direction
 from src.pacmap import PacMap
 from src.visualizer import Visualizer
+from src.ai.network import PacmanNetwork
+from src.ai.interface import NNDirectionChooser
+from src.ai.training import Trainer
 from copy import deepcopy
 from typing import Optional
+import torch
 
 os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
 
@@ -241,12 +246,28 @@ def main():
     maze = mazegenerator.MazeGenerator(
         size=size, seed=MainData.config_from_file["seed"]
     )
-    PacMap(maze)
+    pacmap = PacMap(maze)
+    network = PacmanNetwork()
+    chooser = NNDirectionChooser(network)
+    if False:
+        trainer = Trainer(pacmap, chooser)
+        records = []
+        for i in range(300):
+            experiences, score = trainer.loop()
+            trainer.train(experiences)
+            print(f"Game {i + 1}, score={score}, steps={len(experiences)}")
+            records.append({"score": score, "steps":len(experiences)})
+            pacmap.restart()
+        with open("save_text_2", "w") as save:
+            json.dump(records, save,indent=2)
+        network.save()
     MainData.visualizer = Visualizer(
-        MainData.pacmap, (1400, 1100), verbose=verbose
+        MainData.pacmap, (1400, 1100), verbose=verbose, nn=chooser
     )
     MainData.visualizer.launch_loop()
 
 
-if __name__ == "__main__":
+
+if __name__ == "__main__": 
     main()
+

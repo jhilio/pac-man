@@ -14,12 +14,13 @@ from .button import ClickableButton, DelayedCall
 
 class Visualizer:
     Counter = 0
-    CELL_MARGIN = 5
+    CELL_MARGIN = 2
     def __init__(
         self,
         pacmap: PacMap,
         size: tuple[int, int] = (1000, 700),
         verbose=False,
+        nn=None
     ):
         pygame.init()
         self.size = size
@@ -50,6 +51,14 @@ class Visualizer:
         self.buttons_per_menu = {
             VisualState.IN_GAME: [
                 back_button,
+                ClickableButton(
+                    0.4, 0,
+                    0.6, 0.1,
+                    self.screen,
+                    effect=DelayedCall(lambda pac=self.pacmap: print(pac.score, pac.pacman.lives)),
+                    text="get_score",
+                ),
+
                 ClickableButton(
                     0.78, 0,
                     0.1, 0.1,
@@ -94,6 +103,7 @@ class Visualizer:
             VisualState.HIGH_SCORE_MENU: bg,
             VisualState.MAIN_MENU: bg
         }
+        self.nn = nn
 
     @property
     def active_buttons(self):
@@ -136,10 +146,16 @@ class Visualizer:
             self.time += dt
             if self.visualiser_state == VisualState.IN_GAME:
                 self.movement_scan()
+                pacman = self.pacmap.pacman
+                prec_pos = pacman.pos
                 self.pacmap.update(dt)
-                if not self.pacmap.pacman.lives >= 1:
-                    self.pacmap.is_finished = True
-                    self.visualiser_state = VisualState.PROMPTING_FOR_NAME
+                if pacman.pos % (3, 3) == (1, 1) and pacman.pos != prec_pos:
+                    if self.nn is not None:
+                        self.pacmap.pacman.next_direction = self.nn.choose(self.pacmap)
+
+                #if not self.pacmap.pacman.lives >= 1:
+                 #   self.pacmap.is_finished = True
+                  #  self.visualiser_state = VisualState.PROMPTING_FOR_NAME
             self.draw_dispatcher(dt)
 
     def draw_dispatcher(self, dt: float) -> None:
@@ -375,7 +391,7 @@ class Visualizer:
             case pygame.K_RETURN:
                 self.visualiser_state = VisualState.IN_GAME
             case pygame.K_r:
-                self.pacmap.regenerate()
+                self.pacmap.restart()
             case pygame.K_SPACE:
                 self.pacmap.pacman.eat_wall()
             case pygame.K_t:
