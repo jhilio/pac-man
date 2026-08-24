@@ -246,12 +246,11 @@ def main():
         size=size, seed=MainData.config_from_file["seed"]
     )
     pacmap = PacMap(maze)
-    trainer = EvolutionTrainer(pacmap, 5, 50, mutation_strength=1)
+    #trainer = EvolutionTrainer(pacmap, 5, 50, mutation_strength=1)
     nn = PacmanNetwork(model_path="models/last_result.pt")
-    chooser = NNDirectionChooser(None)
-    nn = trainer.train(nn, 10)
-    nn.save("last_result.pt")
-    chooser.network = nn
+    chooser = NNDirectionChooser(nn)
+    #nn = trainer.train(nn, 10)
+    #nn.save("last_result.pt")
     vis =Visualizer(pacmap, (1400,1200), nn=chooser)
     vis.launch_loop()
 
