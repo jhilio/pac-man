@@ -19,7 +19,10 @@ class NNDirectionChooser:
         pacman_cell = numpy.argwhere(observation[5] == 1)[0]
         pacman_x, pacman_y = pacman_cell
         walls = observation[0:4, pacman_x, pacman_y]
+
         for i in range(4):
+            if walls[i] == pacmap.pacman.direction.oppo():
+                logits[0, i] /= 2
             if walls[i] == 1:
                 logits[0, i] = float("-inf")
 
@@ -33,6 +36,7 @@ class NNDirectionChooser:
             for i in range(4):
                 if walls[i] == 1:
                     logits[batch, i] = float("-inf")
+
 
         return logits
     def choose(self, pacmap) -> Direction:

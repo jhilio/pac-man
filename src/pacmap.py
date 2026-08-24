@@ -41,6 +41,7 @@ class PacMap:
         for ghost in self.ghosts:
             ghost.reset_pos()
         self.pacman.reset_pos()
+        self.pacman.direction = Direction.NORTH
 
     def restart(self):
         self.pacman.lives = MainData.config_from_file["lives"]
@@ -128,6 +129,7 @@ class PacMap:
             self.go_next_level()
         if self.total_elapsed_time > self.level["duration"]:
             self.pacman_died()
+            self.total_elapsed_time = 0
 
     def go_next_level(self) -> None:
         self.level_num += 1

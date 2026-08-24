@@ -249,22 +249,48 @@ def main():
     pacmap = PacMap(maze)
     network = PacmanNetwork()
     chooser = NNDirectionChooser(network)
-    if False:
+    if True:
         trainer = Trainer(pacmap, chooser)
         records = []
-        for i in range(300):
-            experiences, score = trainer.loop()
-            trainer.train(experiences)
-            print(f"Game {i + 1}, score={score}, steps={len(experiences)}")
-            records.append({"score": score, "steps":len(experiences)})
-            pacmap.restart()
+        try:
+            max_score = 0
+            block_size = 100
+            for i in range(10000):
+                experiences, score = trainer.loop()
+                trainer.train(experiences)
+                print(f"\r\033[2KGame {i + 1}, score={score}, steps={len(experiences)}",end="", flush=True)
+                records.append({"score": score, "steps":len(experiences)})
+                pacmap.restart()
+                if i %block_size == 0:
+                    slice = records[-block_size:]
+                    sum_dict = {
+                        "score":0,
+                        "steps":0,
+                    }
+                    for dic in slice:
+                        sum_dict["score"] += dic["score"]
+                        sum_dict["steps"] += dic["steps"]
+                    sum_dict["score"] /= block_size
+                    sum_dict["steps"] /= block_size
+                    if sum_dict["score"] > max_score *0.85:
+                        max_score = max(max_score, sum_dict["score"])
+                        network.save()
+                        with open("models/log.txt", "a+") as log:
+                            print(f"save with score of {sum_dict["score"]}", file=log)
+                    network.load()
+                    print(f"\nfor slice {i-block_size} {i} {sum_dict["score"]=:.0f}  {sum_dict["steps"]=:.0f}\033[1A", end="", flush=True)
+        except KeyboardInterrupt:
+            pass
         with open("save_text_2", "w") as save:
             json.dump(records, save,indent=2)
-        network.save()
+
+    pacmap.restart()
     MainData.visualizer = Visualizer(
         MainData.pacmap, (1400, 1100), verbose=verbose, nn=chooser
     )
     MainData.visualizer.launch_loop()
+    if input("\n\nsave ? : ") == "yes":
+        network.save_extern(input("\nname :"),verbose=True)
 
 
 

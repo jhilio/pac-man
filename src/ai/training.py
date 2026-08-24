@@ -36,10 +36,12 @@ class Trainer:
             self.pacmap.pacman.next_direction = Direction(1 << action)
             self.run_step()
             reward = self.pacmap.score - old_score
-            reward -= 0.2
-            if self.pacmap.pacman.lives != last_life_amount:
-                reward -= reward_total // 4
-                last_life_amount = self.pacmap.pacman.lives
+            reward += -0.2
+            if False:
+                reward -= 0.2
+                if self.pacmap.pacman.lives != last_life_amount:
+                    reward -= reward_total // 4
+                    last_life_amount = self.pacmap.pacman.lives
             reward_total += reward
             list_experiences.append(Experience(
                 observation,
@@ -75,7 +77,7 @@ class Trainer:
 
 
 
-    def train(self, experiences: list[Experience]):
+    def new_train(self, experiences: list[Experience]):
         observations = torch.from_numpy(
             np.stack([e.observation for e in experiences])
         )
@@ -156,7 +158,7 @@ class Trainer:
             loss.backward()
             self.optimizer.step()
 
-    def old_train(self, experiences: list[Experience]):
+    def train(self, experiences: list[Experience]):
         observations = torch.from_numpy(
             np.stack([e.observation for e in experiences])
         )
@@ -174,13 +176,6 @@ class Trainer:
         distribution = torch.distributions.Categorical(logits=logits)
         new_log_probs = distribution.log_prob(actions)
         ratio = torch.exp(new_log_probs - old_log_probs)
-        print(
-            f"ratio: "
-            f"mean={ratio.mean().item():.6f}, "
-            f"std={ratio.std().item():.6f}, "
-            f"min={ratio.min().item():.6f}, "
-            f"max={ratio.max().item():.6f}",
-        )
         returns = self.calculate_returns(experiences)
         advantages = returns - values.detach().squeeze(-1)
         
@@ -211,26 +206,5 @@ class Trainer:
         loss = policy_loss + value_coefficient * value_loss
         self.optimizer.zero_grad()
         loss.backward()
-        for name, parameter in self.chooser.network.named_parameters():
-            if parameter.grad is not None:
-                print(
-                    name,
-                    "gradient:",
-                    parameter.grad.abs().mean().item()
-                )
         self.optimizer.step()
-        print(
-            f"policy={policy_loss.item():.2f}",
-            f"value={value_loss.item():.2f}",
-            f"total={loss.item():.2f}",
-            sep="\n",
-        )
 
-        print(
-            f"advantage: "
-            f"mean={advantages.mean().item():.2f}, "
-            f"std={advantages.std().item():.2f}, "
-            f"min={advantages.min().item():.2f}, "
-            f"max={advantages.max().item():.2f}",
-        )
-    
