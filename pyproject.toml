@@ -11,7 +11,6 @@ dependencies = [
     "mypy>=1.20.0",
     "numpy",
     "pydantic",
-    "torch>=2.13.0",
 ]
 
 [dependency-groups]
