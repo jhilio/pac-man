@@ -11,6 +11,7 @@ dependencies = [
     "mypy>=1.20.0",
     "numpy",
     "pydantic",
+    "torch>=2.13.0",
 ]
 
 [dependency-groups]
@@ -26,6 +27,9 @@ check_untyped_defs = true
 warn_unused_ignores = true
 warn_return_any = true
 show_error_codes = true
+
+[[tool.uv.index]]
+url = "https://download.pytorch.org/whl/cpu"
 
 [tool.uv.sources]
 mazegenerator = { path = "src/mazegenerator-2.1.0-py3-none-any.whl" }

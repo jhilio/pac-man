@@ -30,7 +30,7 @@ class PacMap:
         self.init_charachters()
 
     def regenerate(self, maze_restart=True) -> None:
-        self.maze._seed += 1
+        self.is_finished = False
         self.fright_time_left = 0
         self.total_elapsed_time = 0
         self.phase_timer = 0
@@ -48,7 +48,7 @@ class PacMap:
         self.level_num = 1
         self.score = 0
         self.offset = 0
-        self.regenerate(maze_restart=False)
+        self.regenerate(maze_restart=True)
 
     def init_charachters(self) -> None:
         self.pacman = Pacman(
@@ -152,7 +152,9 @@ class PacMap:
             ghost.is_alive = True
         if not self.pacman.cheat_mode:
             self.pacman.reset_pos()
-            self.pacman.lives -= 1
+            self.pacman.lives -= 1 
+            if self.pacman.lives <= 0:
+                self.is_finished = True
 
     def update_high_score(self) -> None:
         if not self.player_name:
@@ -187,4 +189,18 @@ class PacMap:
                 current_fruit_col.append(self.cells[x][y].fruit.val)
 
         pacman_pos = tuple(self.pacman.pos)
-        return walls_data,fruits_data, pacman_pos,self.ghosts, self.score
+        fright_time = max(
+            0.0,
+            min(
+                1.0,
+                self.fright_time_left / self.level["frightened_duration"]
+            )
+        )
+        return (
+            walls_data,
+            fruits_data,
+            pacman_pos,
+            self.ghosts,
+            self.score,
+            fright_time
+        )

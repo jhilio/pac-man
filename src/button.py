@@ -34,7 +34,7 @@ class DelayedCall:
             raise ValueError(f"DelayedCall with a non callable func")
         func, args, kwargs = self.call.values()
 
-        func(*args, **kwargs)
+        return func(*args, **kwargs)
 
 
 
@@ -48,7 +48,7 @@ class ClickableButton:
         height: float,
         screen: pygame.Surface,
         effect: Optional[DelayedCall] = None,
-        text: str = "",
+        text: str | DelayedCall = "",
         font_size: Optional[int] = None,
         image: Optional[pygame.Surface]=None,
         hovered_image: Optional[pygame.Surface]=None
@@ -56,7 +56,7 @@ class ClickableButton:
         self.percent_rect =PercentRect(x, y, width, height)
         self.effect = effect
         self.screen = screen
-        self.text = text
+        self.__text = text
         self.font_size = font_size
         self.__image = image
         self.__hovered_image = hovered_image
@@ -67,6 +67,12 @@ class ClickableButton:
     def on_click(self):
         if self.effect:
             self.effect()
+
+    @property
+    def text(self):
+        if isinstance(self.__text, str):
+            return self.__text
+        return self.__text()
 
     @property
     def to_screen_rect(self):

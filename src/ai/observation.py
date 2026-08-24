@@ -4,8 +4,8 @@ from ..charachters.ghost import Ghost
 class ObservationBuilder:
 
     @staticmethod
-    def build(state: tuple[list[int],list[int], tuple[int, int], tuple[Ghost, ...], int], ghost_count:int=4) -> np.ndarray:
-        walls_data, fruits_data, pacman_pos, ghosts, score = state
+    def build(state: tuple[list[int],list[int], tuple[int, int], tuple[Ghost, ...], int, float], ghost_count:int=4) -> tuple[np.ndarray, int, float]:
+        walls_data, fruits_data, pacman_pos, ghosts, score, fright_time_ratio = state
         height = len(walls_data)
         width = len(walls_data[0])
         channels = 6 + ghost_count
@@ -40,4 +40,4 @@ class ObservationBuilder:
             ghost_x = ghost_pos[0] // 3
             ghost_y = ghost_pos[1] // 3
             observation[6 + i, ghost_x, ghost_y] = ghost.direction.value
-        return observation, score
+        return observation, score, fright_time_ratio

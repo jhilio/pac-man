@@ -1,21 +1,21 @@
 import sys
 from time import sleep
 import os
-from src.ai.observation import ObservationBuilder
+from tkinter.messagebox import RETRY
 from src.config import MainData
 import json
 from pathlib import Path
 import mazegenerator
-from src.enums import Direction
+from src.enums import Direction, VisualState
 from src.pacmap import PacMap
 from src.visualizer import Visualizer
 from src.ai.network import PacmanNetwork
 from src.ai.interface import NNDirectionChooser
-from src.ai.training import Trainer
+from src.ai.training import EvolutionTrainer, evaluate
 from copy import deepcopy
 from typing import Optional
+from src.button import ClickableButton, DelayedCall
 import torch
-
 os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
 
 
@@ -206,7 +206,6 @@ def preload_assets(verbose: bool = False):
         if verbose:
             print(f"loaded {Path(full_path).name}")
 
-
 def load_high_scores(verbose: bool = False):
     with open("high_scores.json") as file:
         loaded = json.load(file)
@@ -247,53 +246,22 @@ def main():
         size=size, seed=MainData.config_from_file["seed"]
     )
     pacmap = PacMap(maze)
-    network = PacmanNetwork()
-    chooser = NNDirectionChooser(network)
-    if True:
-        trainer = Trainer(pacmap, chooser)
-        records = []
-        try:
-            max_score = 0
-            block_size = 100
-            for i in range(10000):
-                experiences, score = trainer.loop()
-                trainer.train(experiences)
-                print(f"\r\033[2KGame {i + 1}, score={score}, steps={len(experiences)}",end="", flush=True)
-                records.append({"score": score, "steps":len(experiences)})
-                pacmap.restart()
-                if i %block_size == 0:
-                    slice = records[-block_size:]
-                    sum_dict = {
-                        "score":0,
-                        "steps":0,
-                    }
-                    for dic in slice:
-                        sum_dict["score"] += dic["score"]
-                        sum_dict["steps"] += dic["steps"]
-                    sum_dict["score"] /= block_size
-                    sum_dict["steps"] /= block_size
-                    if sum_dict["score"] > max_score *0.85:
-                        max_score = max(max_score, sum_dict["score"])
-                        network.save()
-                        with open("models/log.txt", "a+") as log:
-                            print(f"save with score of {sum_dict["score"]}", file=log)
-                    network.load()
-                    print(f"\nfor slice {i-block_size} {i} {sum_dict["score"]=:.0f}  {sum_dict["steps"]=:.0f}\033[1A", end="", flush=True)
-        except KeyboardInterrupt:
-            pass
-        with open("save_text_2", "w") as save:
-            json.dump(records, save,indent=2)
-
-    pacmap.restart()
-    MainData.visualizer = Visualizer(
-        MainData.pacmap, (1400, 1100), verbose=verbose, nn=chooser
-    )
-    MainData.visualizer.launch_loop()
-    if input("\n\nsave ? : ") == "yes":
-        network.save_extern(input("\nname :"),verbose=True)
+    trainer = EvolutionTrainer(pacmap, 5, 50, mutation_strength=1)
+    nn = PacmanNetwork(model_path="models/last_result.pt")
+    chooser = NNDirectionChooser(None)
+    nn = trainer.train(nn, 10)
+    nn.save("last_result.pt")
+    chooser.network = nn
+    vis =Visualizer(pacmap, (1400,1200), nn=chooser)
+    vis.launch_loop()
 
 
+   
 
-if __name__ == "__main__": 
-    main()
+
+if __name__ == "__main__":
+    try:
+        main()
+    except KeyboardInterrupt:
+        pass
 

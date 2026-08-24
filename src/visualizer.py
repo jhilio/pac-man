@@ -2,6 +2,8 @@ from __future__ import annotations
 import json
 import pygame
 from typing import Optional
+
+from src.ai.interface import NNDirectionChooser
 from .vector import Pos2D
 from .charachters.ghost import get_ghost_state
 from .charachters.moving_entity import MovingEntities
@@ -19,14 +21,16 @@ class Visualizer:
         self,
         pacmap: PacMap,
         size: tuple[int, int] = (1000, 700),
-        verbose=False,
-        nn=None
+        verbose: bool=False,
+        nn: NNDirectionChooser=None
     ):
         pygame.init()
         self.size = size
         self.fps = 60
         self.visualiser_state = VisualState.MAIN_MENU
         self.paused = False
+
+        self.autoplay = True
         game_size = (
             (Pos2D(
                 MainData.config_from_file["width"],
@@ -53,7 +57,7 @@ class Visualizer:
                 back_button,
                 ClickableButton(
                     0.4, 0,
-                    0.6, 0.1,
+                    0.6, 0.05,
                     self.screen,
                     effect=DelayedCall(lambda pac=self.pacmap: print(pac.score, pac.pacman.lives)),
                     text="get_score",
@@ -86,7 +90,7 @@ class Visualizer:
                     0.2, 0.03,
                     self.screen,
                     DelayedCall(self.change_state, VisualState.IN_GAME),
-                    text="Start game",
+                    text=DelayedCall(lambda pacmap:"Start game" if pacmap.total_elapsed_time ==0 or pacmap.is_finished else "resume game", self.pacmap)
                 ),
                  ClickableButton(
                     0.4, 0.45,
@@ -119,6 +123,8 @@ class Visualizer:
         return bg
 
     def change_state(self, new: VisualState):
+        if new == VisualState.IN_GAME and self.pacmap.is_finished:
+            self.pacmap.restart()
         self.visualiser_state = new
 
     def launch_loop(self) -> None:
@@ -132,6 +138,8 @@ class Visualizer:
     def loop(self) -> None:
         """Main loop of the visualizer."""
         clock = pygame.time.Clock()
+        pacman = self.pacmap.pacman
+        prec_pos = pacman.pos
         while True:
             dt = clock.tick(self.fps) / 1000.0  # seconds since last frame
             for event in pygame.event.get():
@@ -145,17 +153,14 @@ class Visualizer:
             self.movement_scan()
             self.time += dt
             if self.visualiser_state == VisualState.IN_GAME:
-                self.movement_scan()
-                pacman = self.pacmap.pacman
+                if not self.autoplay or self.nn is None:
+                    self.movement_scan()
+                elif (self.nn is not None and pacman.pos != prec_pos):
+                    self.pacmap.pacman.next_direction = self.nn.choose(self.pacmap)
                 prec_pos = pacman.pos
                 self.pacmap.update(dt)
-                if pacman.pos % (3, 3) == (1, 1) and pacman.pos != prec_pos:
-                    if self.nn is not None:
-                        self.pacmap.pacman.next_direction = self.nn.choose(self.pacmap)
-
-                #if not self.pacmap.pacman.lives >= 1:
-                 #   self.pacmap.is_finished = True
-                  #  self.visualiser_state = VisualState.PROMPTING_FOR_NAME
+                if self.pacmap.is_finished:
+                    self.change_state(VisualState.PROMPTING_FOR_NAME)
             self.draw_dispatcher(dt)
 
     def draw_dispatcher(self, dt: float) -> None:
@@ -386,6 +391,8 @@ class Visualizer:
         match event.key:
             case pygame.K_ESCAPE:
                 return pygame.QUIT
+            case pygame.K_n:
+                self.autoplay = not self.autoplay
             case pygame.K_HOME:
                 self.visualiser_state = VisualState.MAIN_MENU
             case pygame.K_RETURN:
