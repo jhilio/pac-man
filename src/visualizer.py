@@ -56,7 +56,7 @@ class Visualizer:
             effect=DelayedCall(
                 lambda vis: vis.change_state(
                     VisualState.MAIN_MENU,
-                    vis.anim_durationa,
+                    vis.anim_duration,
                     vis.anim_type.oppo(),
                 ),
                 self,
@@ -185,7 +185,7 @@ class Visualizer:
             self.pacmap.restart()
         self.prec_state = self.visualiser_state
 
-        self.anim_durationa = max(anim_duration, 0.000001)
+        self.anim_duration = max(anim_duration, 0.000001)
         self.act_anim = 1
 
         self.prec_state_frame = self.screen.copy()
@@ -193,7 +193,7 @@ class Visualizer:
         self.visualiser_state = new
 
     def launch_loop(self) -> None:
-        self.anim_durationa = 1
+        self.anim_duration = 1
         self.anim_type = AnimTypes.LEFT_TO_RIGHT
         self.act_anim = 0
         self.time: float = 0.0
@@ -250,7 +250,7 @@ class Visualizer:
         lives : {self.pacmap.pacman.lives}
         cell_size : {MainData.cell_size}
         fps : {1/dt:.1f}
-        anim: {self.act_anim / self.anim_durationa}
+        anim: {self.act_anim / self.anim_duration}
         """
         match self.visualiser_state:
             case (
@@ -531,7 +531,7 @@ class Visualizer:
 
         if self.act_anim:
             self.act_anim = max(
-                0, self.act_anim - (dt * 1 / self.anim_durationa)
+                0, self.act_anim - (dt * 1 / self.anim_duration)
             )
         if self.act_anim:
             copy = self.screen.copy()
