@@ -2,6 +2,7 @@ import torch
 import numpy as np
 
 from src.ai.interface import NNDirectionChooser
+from src.vector import Pos2D
 from .network import PacmanNetwork
 
 from ..pacmap import PacMap
@@ -12,7 +13,7 @@ def evaluate(pacmap:PacMap, chooser: NNDirectionChooser):
     pacmap.restart()
     score = 0
     turns = 0
-
+    visited = set()
     while pacmap.pacman.lives and turns < 1000:
         turns += 1
         old_score = pacmap.score
@@ -22,11 +23,14 @@ def evaluate(pacmap:PacMap, chooser: NNDirectionChooser):
         while True:
             pacman = pacmap.pacman
             old_pos = pacman.pos
+            visited.add(old_pos)
             pacmap.update(1 / 60)
             if pacman.pos != old_pos:
                 break
         score += pacmap.score - old_score
-    return score
+    
+    scaled_score = score ** len(visited)
+    return score, scaled_score
 
 class EvolutionTrainer:
     def __init__(
@@ -34,25 +38,28 @@ class EvolutionTrainer:
         pacmap: PacMap,
         children_count: int,
         games_per_network: int,
-        mutation_strength: float=0.1,
+        mutation_strength: float=0.05,
     ):
         self.pacmap = pacmap
         self.children_count = children_count
         self.games_per_network = games_per_network
         self.mutation_strength = mutation_strength
 
-    def train(self, start_network, generation:int) -> PacmanNetwork:
+    def train(self, start_network:list[PacmanNetwork], generation:int) -> PacmanNetwork:
         if generation <= 0:
-            return start_network
-        network_pool = [start_network.mutate(self.mutation_strength) for _ in range(self.children_count)] + [start_network]
+            return start_network[-1]
+        network_pool = start_network + [start_network[-1].mutate(self.mutation_strength) for _ in range(self.children_count)]
         total_scores = [0] * len(network_pool)
+        total_scaled_scores = [0] * len(network_pool)
         for i, network in enumerate(network_pool):
             chooser = NNDirectionChooser(network)
             for j in range(self.games_per_network):
-                total_scores[i] += evaluate(self.pacmap, chooser)
+                score, scaled_score = evaluate(self.pacmap, chooser)
+                total_scores[i] += score
+                total_scaled_scores[i] += score
 
-        best_index = total_scores.index(
-            max(total_scores)
+        best_index = total_scaled_scores.index(
+            max(total_scaled_scores)
         )
         best_one = network_pool[best_index]
         best_one.save(
@@ -62,4 +69,4 @@ class EvolutionTrainer:
             f"generation {generation}: "
             f"best score = {total_scores[best_index] / self.games_per_network}"
         )
-        return self.train(best_one, generation-1)
+        return self.train([start_network[0]] +[best_one], generation-1)

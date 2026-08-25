@@ -1,3 +1,4 @@
+from random import Random, randint
 import sys
 from time import sleep
 import os
@@ -242,15 +243,17 @@ def main():
         MainData.config_from_file["width"],
         MainData.config_from_file["height"],
     )
+    seed = MainData.config_from_file["seed"]  if MainData.config_from_file["seed"]  else randint(0, 1000)
     maze = mazegenerator.MazeGenerator(
-        size=size, seed=MainData.config_from_file["seed"]
+        size=size, seed=seed
     )
     pacmap = PacMap(maze)
-    #trainer = EvolutionTrainer(pacmap, 5, 50, mutation_strength=1)
+    trainer = EvolutionTrainer(pacmap, 3, 100, 0.01)
     nn = PacmanNetwork(model_path="models/last_result.pt")
+    nn = trainer.train([nn], 10)
+    nn.save("models/last_result.pt")
     chooser = NNDirectionChooser(nn)
-    #nn = trainer.train(nn, 10)
-    #nn.save("last_result.pt")
+    pacmap.restart()
     vis =Visualizer(pacmap, (1400,1200), nn=chooser)
     vis.launch_loop()
 
