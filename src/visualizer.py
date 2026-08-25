@@ -8,7 +8,7 @@ from .vector import Pos2D
 from .charachters.ghost import get_ghost_state
 from .charachters.moving_entity import MovingEntities
 from .pacmap import PacMap
-from .enums import Direction, VisualState
+from .enums import Direction, VisualState, AnimTypes
 from .config import MainData
 
 from .button import ClickableButton, DelayedCall
@@ -53,7 +53,12 @@ class Visualizer:
             0.1,
             0.1,
             self.screen,
-            effect=DelayedCall(self.change_state, VisualState.MAIN_MENU),
+            effect=DelayedCall(
+                self.change_state,
+                VisualState.MAIN_MENU,
+                1,
+                AnimTypes.ZOOM_OUT,
+            ),
             image=MainData.assets.get_asset("back.png", scaling=False),
         )
         self.buttons_per_menu = {
@@ -108,7 +113,12 @@ class Visualizer:
                     0.2,
                     0.03,
                     self.screen,
-                    DelayedCall(self.change_state, VisualState.IN_GAME),
+                    DelayedCall(
+                        self.change_state,
+                        VisualState.IN_GAME,
+                        anim_duration=4,
+                        anim_type=AnimTypes.ZOOM_IN,
+                    ),
                     text=DelayedCall(
                         lambda pacmap: (
                             "Start game"
@@ -126,15 +136,25 @@ class Visualizer:
                     0.03,
                     self.screen,
                     DelayedCall(
-                        self.change_state, VisualState.HIGH_SCORE_MENU
+                        self.change_state, VisualState.HIGH_SCORE_MENU, 0
                     ),
                     text="High scores",
                 ),
+                ClickableButton(
+                    0.4,
+                    0.50,
+                    0.2,
+                    0.03,
+                    self.screen,
+                    DelayedCall(self.change_state, VisualState.CONFIG),
+                ),
             ],
+            VisualState.CONFIG: [back_button],
         }
         bg = MainData.assets.get_asset("BGmenu.jpg", scaling=False)
 
         self.background_per_menu = {
+            VisualState.CONFIG: bg,
             VisualState.HIGH_SCORE_MENU: bg,
             VisualState.MAIN_MENU: bg,
         }
@@ -153,12 +173,26 @@ class Visualizer:
             )
         return bg
 
-    def change_state(self, new: VisualState):
+    def change_state(
+        self,
+        new: VisualState,
+        anim_duration=1,
+        anim_type=AnimTypes.LEFT_TO_RIGHT,
+    ):
         if new == VisualState.IN_GAME and self.pacmap.is_finished:
             self.pacmap.restart()
+        self.prec_state = self.visualiser_state
+
+        self.anim_durationa = max(anim_duration, 0.000001)
+        self.act_anim = 1
+        self.prec_state_frame = self.screen.copy()
+        self.anim_type = anim_type
         self.visualiser_state = new
 
     def launch_loop(self) -> None:
+        self.anim_durationa = 1
+        self.anim_type = AnimTypes.LEFT_TO_RIGHT
+        self.act_anim = 0
         self.time: float = 0.0
         self.loop()
 
@@ -213,6 +247,7 @@ class Visualizer:
         lives : {self.pacmap.pacman.lives}
         cell_size : {MainData.cell_size}
         fps : {1/dt:.1f}
+        anim: {self.act_anim / self.anim_durationa}
         """
         match self.visualiser_state:
             case (
@@ -246,7 +281,8 @@ class Visualizer:
                     100,
                     font=self.get_font(25),
                 )
-
+            case VisualState.CONFIG:
+                pass
         mouse_pos = Pos2D(pygame.mouse.get_pos())
         for button in self.active_buttons:
             self.screen.blit(
@@ -266,6 +302,7 @@ class Visualizer:
         if self.pacmap.pacman.cheat_mode:
             text += "\ncheat mode: on"
         self.draw_text_multiline(text, 1000, 100, font=self.get_font(25))
+        self.anim_transition(dt)
         pygame.display.update()
 
     def event_handler(
@@ -483,3 +520,93 @@ class Visualizer:
                     not self.pacmap.pacman.cheat_mode
                 )
                 self.code_sequence.clear()
+
+    def anim_transition(self, dt: float):
+        if self.act_anim:
+            self.act_anim = max(
+                0, self.act_anim - (dt * 1 / self.anim_durationa)
+            )
+        if self.act_anim:
+            copy = self.screen.copy()
+            scaled_prec = pygame.transform.scale(
+                self.prec_state_frame, self.screen.get_size()
+            )
+            match self.anim_type:
+                case AnimTypes.LEFT_TO_RIGHT:
+                    self.screen.blit(scaled_prec, (0, 0))
+                    self.screen.blit(
+                        copy,
+                        (
+                            1 - copy.get_width() * self.act_anim,
+                            0,
+                        ),
+                    )
+                case AnimTypes.RIGHT_TO_LEFT:
+                    self.screen.blit(scaled_prec, (0, 0))
+                    self.screen.blit(
+                        copy,
+                        (
+                            1 + copy.get_width() * self.act_anim,
+                            0,
+                        ),
+                    )
+                case AnimTypes.UP_TO_DOWN:
+                    self.screen.blit(scaled_prec, (0, 0))
+                    self.screen.blit(
+                        copy,
+                        (
+                            0,
+                            1 - (copy.get_height() * self.act_anim),
+                        ),
+                    )
+                case AnimTypes.DOWN_TO_UP:
+                    self.screen.blit(scaled_prec, (0, 0))
+                    self.screen.blit(
+                        copy,
+                        (
+                            0,
+                            0 + (copy.get_height() * self.act_anim),
+                        ),
+                    )
+                case AnimTypes.ZOOM_IN:
+                    scaled = pygame.transform.scale(
+                        copy, (Pos2D(copy.get_size()) * (1 - self.act_anim))
+                    )
+                    pos = Pos2D(self.screen.get_size()) / 2
+                    rescaled_prec = pygame.transform.scale_by(
+                        scaled_prec,
+                        1 / ((self.act_anim + 0.3) / 1.3),
+                    )
+                    scaled_center = Pos2D(scaled_prec.get_size()) / 2
+                    rescaled_center = Pos2D(rescaled_prec.get_size()) / 2
+                    self.screen.blit(
+                        rescaled_prec, scaled_center - rescaled_center
+                    )
+                    self.screen.blit(
+                        scaled, pos - Pos2D(scaled.get_size()) / 2
+                    )
+
+                case AnimTypes.ZOOM_OUT:
+                    # current screen grows from ~30% up to 100% ("dezoomed")
+                    scaled = pygame.transform.scale(
+                        copy,
+                        Pos2D(copy.get_size()) * ((self.act_anim + 0.3) / 1.3),
+                    )
+                    pos = Pos2D(self.screen.get_size()) / 2
+
+                    # previous screen shrinks from 100% down to 0 (vanishes into center)
+                    rescaled_prec = pygame.transform.scale_by(
+                        scaled_prec,
+                        1 - self.act_anim,
+                    )
+                    scaled_center = Pos2D(scaled_prec.get_size()) / 2
+                    rescaled_center = Pos2D(rescaled_prec.get_size()) / 2
+
+                    # growing screen goes underneath...
+                    # self.screen.blit(
+                    #    scaled, pos - Pos2D(scaled.get_size()) / 2
+                    # )
+                    # ...shrinking screen stays on top, disappearing into it
+                    self.screen.blit(
+                        rescaled_prec, rescaled_center - scaled_center
+                    )

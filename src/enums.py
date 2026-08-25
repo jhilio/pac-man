@@ -8,6 +8,16 @@ class VisualState(Enum):
     IN_GAME = "IN_GAME"
     IN_GAME_PAUSED = "IN_GAME_PAUSED"
     PROMPTING_FOR_NAME = "PROMPTING_FOR_NAME"
+    CONFIG = "CONFIG"
+
+
+class AnimTypes(Enum):
+    RIGHT_TO_LEFT = "RIGHT_TO_LEFT"
+    LEFT_TO_RIGHT = "LEFT_TO_RIGHT"
+    UP_TO_DOWN = "UP_TO_DOWN"
+    DOWN_TO_UP = "DOWN_TO_UP"
+    ZOOM_IN = "ZOOM_IN"
+    ZOOM_OUT = "ZOOM_OUT"
 
 
 class GhostState(Enum):
