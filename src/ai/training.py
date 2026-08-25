@@ -1,12 +1,7 @@
-import torch
-import numpy as np
-
 from src.ai.interface import NNDirectionChooser
-from src.vector import Pos2D
 from .network import PacmanNetwork
 
 from ..pacmap import PacMap
-from ..enums import Direction
 
 
 def evaluate(pacmap:PacMap, chooser: NNDirectionChooser):
@@ -29,7 +24,7 @@ def evaluate(pacmap:PacMap, chooser: NNDirectionChooser):
                 break
         score += pacmap.score - old_score
     
-    scaled_score = score ** len(visited)
+    scaled_score = score * len(visited) / turns
     return score, scaled_score
 
 class EvolutionTrainer:

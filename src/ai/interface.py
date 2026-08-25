@@ -1,7 +1,5 @@
 from math import log2
-
 from src.pacmap import PacMap
-
 from ..enums import Direction
 from .observation import ObservationBuilder
 import torch
@@ -46,14 +44,14 @@ class NNDirectionChooser:
     def choose(self, pacmap, temperature=1) -> Direction:
         with torch.no_grad():
             observation, logits = self._get_distribution(pacmap)
-            #probabilities = torch.softmax(
-            #    logits / temperature,
-            #    dim=1,
-            #)
-            #action = torch.multinomial(
-            #    probabilities,
-            #    1,
-            #).item()
-            action = torch.argmax(logits, dim=1).item()
+            probabilities = torch.softmax(
+                logits / temperature,
+                dim=1,
+            )
+            action = torch.multinomial(
+                probabilities,
+                1,
+            ).item()
+            #action = torch.argmax(logits, dim=1).item()
         return Direction(1 << action)
 

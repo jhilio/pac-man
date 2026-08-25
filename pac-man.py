@@ -1,13 +1,14 @@
-from random import Random, randint
+from random import randint
 import sys
 from time import sleep
 import os
+os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
 from tkinter.messagebox import RETRY
 from src.config import MainData
 import json
 from pathlib import Path
 import mazegenerator
-from src.enums import Direction, VisualState
+from src.enums import Direction
 from src.pacmap import PacMap
 from src.visualizer import Visualizer
 from src.ai.network import PacmanNetwork
@@ -15,9 +16,24 @@ from src.ai.interface import NNDirectionChooser
 from src.ai.training import EvolutionTrainer, evaluate
 from copy import deepcopy
 from typing import Optional
-from src.button import ClickableButton, DelayedCall
-import torch
-os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
+import src.reloader, signal, importlib
+
+
+reloader_cache = None
+
+def reload_handler(signum, frame):
+    global reloader_cache
+    importlib.invalidate_caches()
+    importlib.reload(src.reloader)
+    new_reloader=Path(src.reloader.__file__).read_bytes()
+    if new_reloader == reloader_cache:
+        raise KeyboardInterrupt
+    else:
+        reloader_cache = new_reloader
+        src.reloader.replace(globals())
+
+
+signal.signal(signal.SIGINT, reload_handler)
 
 
 class ConfigError(Exception):
@@ -247,8 +263,9 @@ def main():
     maze = mazegenerator.MazeGenerator(
         size=size, seed=seed
     )
+    print(seed)
     pacmap = PacMap(maze)
-    trainer = EvolutionTrainer(pacmap, 3, 100, 0.01)
+    trainer = EvolutionTrainer(pacmap, 3, 5, 0.01)
     nn = PacmanNetwork(model_path="models/last_result.pt")
     nn = trainer.train([nn], 10)
     nn.save("models/last_result.pt")
@@ -256,6 +273,7 @@ def main():
     pacmap.restart()
     vis =Visualizer(pacmap, (1400,1200), nn=chooser)
     vis.launch_loop()
+
 
 
    
