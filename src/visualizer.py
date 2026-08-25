@@ -54,10 +54,12 @@ class Visualizer:
             0.1,
             self.screen,
             effect=DelayedCall(
-                self.change_state,
-                VisualState.MAIN_MENU,
-                1,
-                AnimTypes.ZOOM_OUT,
+                lambda vis: vis.change_state(
+                    VisualState.MAIN_MENU,
+                    vis.anim_durationa,
+                    vis.anim_type.oppo(),
+                ),
+                self,
             ),
             image=MainData.assets.get_asset("back.png", scaling=False),
         )
@@ -185,6 +187,7 @@ class Visualizer:
 
         self.anim_durationa = max(anim_duration, 0.000001)
         self.act_anim = 1
+
         self.prec_state_frame = self.screen.copy()
         self.anim_type = anim_type
         self.visualiser_state = new
@@ -522,6 +525,10 @@ class Visualizer:
                 self.code_sequence.clear()
 
     def anim_transition(self, dt: float):
+        def zoom(image: pygame.surface.Surface, size: Pos2D):
+            center = Pos2D(image.get_size()) / 2
+            return image.subsurface(center - (size / 2), size)
+
         if self.act_anim:
             self.act_anim = max(
                 0, self.act_anim - (dt * 1 / self.anim_durationa)
@@ -533,7 +540,14 @@ class Visualizer:
             )
             match self.anim_type:
                 case AnimTypes.LEFT_TO_RIGHT:
-                    self.screen.blit(scaled_prec, (0, 0))
+                    self.screen.blit(
+                        scaled_prec,
+                        (
+                            scaled_prec.get_width()
+                            - scaled_prec.get_width() * self.act_anim,
+                            0,
+                        ),
+                    )
                     self.screen.blit(
                         copy,
                         (
@@ -542,7 +556,14 @@ class Visualizer:
                         ),
                     )
                 case AnimTypes.RIGHT_TO_LEFT:
-                    self.screen.blit(scaled_prec, (0, 0))
+                    self.screen.blit(
+                        scaled_prec,
+                        (
+                            scaled_prec.get_width()
+                            + scaled_prec.get_width() * self.act_anim,
+                            0,
+                        ),
+                    )
                     self.screen.blit(
                         copy,
                         (
@@ -551,7 +572,14 @@ class Visualizer:
                         ),
                     )
                 case AnimTypes.UP_TO_DOWN:
-                    self.screen.blit(scaled_prec, (0, 0))
+                    self.screen.blit(
+                        scaled_prec,
+                        (
+                            0,
+                            scaled_prec.get_width()
+                            - scaled_prec.get_width() * self.act_anim,
+                        ),
+                    )
                     self.screen.blit(
                         copy,
                         (
@@ -560,7 +588,14 @@ class Visualizer:
                         ),
                     )
                 case AnimTypes.DOWN_TO_UP:
-                    self.screen.blit(scaled_prec, (0, 0))
+                    self.screen.blit(
+                        scaled_prec,
+                        (
+                            0,
+                            scaled_prec.get_width()
+                            - scaled_prec.get_width() * self.act_anim,
+                        ),
+                    )
                     self.screen.blit(
                         copy,
                         (
@@ -568,45 +603,37 @@ class Visualizer:
                             0 + (copy.get_height() * self.act_anim),
                         ),
                     )
+
                 case AnimTypes.ZOOM_IN:
-                    scaled = pygame.transform.scale(
-                        copy, (Pos2D(copy.get_size()) * (1 - self.act_anim))
+                    screen_size = Pos2D(self.screen.get_size())
+                    center_part = pygame.transform.scale(
+                        copy, screen_size * (1 - self.act_anim)
                     )
-                    pos = Pos2D(self.screen.get_size()) / 2
-                    rescaled_prec = pygame.transform.scale_by(
-                        scaled_prec,
-                        1 / ((self.act_anim + 0.3) / 1.3),
+                    extern_part = zoom(
+                        self.prec_state_frame, screen_size * (self.act_anim)
                     )
-                    scaled_center = Pos2D(scaled_prec.get_size()) / 2
-                    rescaled_center = Pos2D(rescaled_prec.get_size()) / 2
+                    extern_part = pygame.transform.scale(
+                        extern_part, screen_size
+                    )
+                    self.screen.blit(extern_part, (0, 0))
+                    # ...shrinking screen stays on top, disappearing into it
                     self.screen.blit(
-                        rescaled_prec, scaled_center - rescaled_center
-                    )
-                    self.screen.blit(
-                        scaled, pos - Pos2D(scaled.get_size()) / 2
+                        center_part,
+                        screen_size / 2 - (Pos2D(center_part.get_size()) / 2),
                     )
 
                 case AnimTypes.ZOOM_OUT:
-                    # current screen grows from ~30% up to 100% ("dezoomed")
-                    scaled = pygame.transform.scale(
-                        copy,
-                        Pos2D(copy.get_size()) * ((self.act_anim + 0.3) / 1.3),
+                    screen_size = Pos2D(self.screen.get_size())
+                    center_part = pygame.transform.scale(
+                        self.prec_state_frame, screen_size * (self.act_anim)
                     )
-                    pos = Pos2D(self.screen.get_size()) / 2
-
-                    # previous screen shrinks from 100% down to 0 (vanishes into center)
-                    rescaled_prec = pygame.transform.scale_by(
-                        scaled_prec,
-                        1 - self.act_anim,
+                    extern_part = zoom(copy, screen_size * (1 - self.act_anim))
+                    extern_part = pygame.transform.scale(
+                        extern_part, screen_size
                     )
-                    scaled_center = Pos2D(scaled_prec.get_size()) / 2
-                    rescaled_center = Pos2D(rescaled_prec.get_size()) / 2
-
-                    # growing screen goes underneath...
-                    # self.screen.blit(
-                    #    scaled, pos - Pos2D(scaled.get_size()) / 2
-                    # )
+                    self.screen.blit(extern_part, (0, 0))
                     # ...shrinking screen stays on top, disappearing into it
                     self.screen.blit(
-                        rescaled_prec, rescaled_center - scaled_center
+                        center_part,
+                        screen_size / 2 - (Pos2D(center_part.get_size()) / 2),
                     )

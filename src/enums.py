@@ -19,6 +19,16 @@ class AnimTypes(Enum):
     ZOOM_IN = "ZOOM_IN"
     ZOOM_OUT = "ZOOM_OUT"
 
+    def oppo(self) -> "AnimTypes":
+        return {
+            AnimTypes.RIGHT_TO_LEFT: AnimTypes.LEFT_TO_RIGHT,
+            AnimTypes.LEFT_TO_RIGHT: AnimTypes.RIGHT_TO_LEFT,
+            AnimTypes.DOWN_TO_UP: AnimTypes.UP_TO_DOWN,
+            AnimTypes.UP_TO_DOWN: AnimTypes.DOWN_TO_UP,
+            AnimTypes.ZOOM_IN: AnimTypes.ZOOM_OUT,
+            AnimTypes.ZOOM_OUT: AnimTypes.ZOOM_IN,
+        }[self]
+
 
 class GhostState(Enum):
     CHASE = "CHASE"
