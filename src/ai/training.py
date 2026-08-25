@@ -50,7 +50,7 @@ class EvolutionTrainer:
             for j in range(self.games_per_network):
                 score, scaled_score = evaluate(self.pacmap, chooser)
                 total_scores[i] += score
-                total_scaled_scores[i] += score
+                total_scaled_scores[i] += scaled_score
 
         best_index = total_scaled_scores.index(
             max(total_scaled_scores)
