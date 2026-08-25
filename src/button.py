@@ -1,7 +1,7 @@
 import pygame
-from typing import Callable, Optional
+from typing import Callable, Optional, Any
 from .vector import Pos2D
-from .config import MainData
+
 
 class PercentRect:
     def __init__(self, x, y, width, height):
@@ -10,7 +10,7 @@ class PercentRect:
         self.width = width
         self.height = height
 
-    def to_rect(self, screen):
+    def to_rect(self, screen) -> Any:
         screen_width, screen_height = screen.get_size()
 
         return pygame.Rect(
@@ -29,14 +29,12 @@ class DelayedCall:
             "kwargs": dict(kwargs) if kwargs else {},
         }
 
-    def __call__(self):
+    def __call__(self) -> Any:
         if not callable(self.call.get("function")):
-            raise ValueError(f"DelayedCall with a non callable func")
+            raise ValueError("DelayedCall with a non callable func")
         func, args, kwargs = self.call.values()
 
         return func(*args, **kwargs)
-
-
 
 
 class ClickableButton:
@@ -50,10 +48,10 @@ class ClickableButton:
         effect: Optional[DelayedCall] = None,
         text: str | DelayedCall = "",
         font_size: Optional[int] = None,
-        image: Optional[pygame.Surface]=None,
-        hovered_image: Optional[pygame.Surface]=None
+        image: Optional[pygame.Surface] = None,
+        hovered_image: Optional[pygame.Surface] = None,
     ):
-        self.percent_rect =PercentRect(x, y, width, height)
+        self.percent_rect = PercentRect(x, y, width, height)
         self.effect = effect
         self.screen = screen
         self.__text = text
@@ -61,36 +59,41 @@ class ClickableButton:
         self.__image = image
         self.__hovered_image = hovered_image
 
-    def is_in(self, pos: Pos2D):
+    def is_in(self, pos: Pos2D) -> Any:
         return self.to_screen_rect.collidepoint(*pos)
 
-    def on_click(self):
+    def on_click(self) -> None:
         if self.effect:
             self.effect()
 
     @property
-    def text(self):
+    def text(self) -> str:
         if isinstance(self.__text, str):
             return self.__text
         return self.__text()
 
     @property
-    def to_screen_rect(self):
+    def to_screen_rect(self) -> Any:
         return self.percent_rect.to_rect(self.screen)
 
     @property
-    def image(self):
+    def image(self) -> pygame.Surface:
         if self.__image:
-            return pygame.transform.scale(self.__image, tuple(self.to_screen_rect)[2:])
+            return pygame.transform.scale(
+                self.__image, tuple(self.to_screen_rect)[2:]
+            )
         surface = pygame.Surface(tuple(self.to_screen_rect)[2:])
         return surface
 
     @property
-    def hovered_image(self):
+    def hovered_image(self) -> pygame.Surface:
         if self.__hovered_image:
-            return pygame.transform.scale(self.__hovered_image, tuple(self.to_screen_rect)[2:])
+            return pygame.transform.scale(
+                self.__hovered_image, tuple(self.to_screen_rect)[2:]
+            )
         if self.__image:
-            return pygame.transform.scale(self.__image, tuple(self.to_screen_rect)[2:])
+            return pygame.transform.scale(
+                self.__image, tuple(self.to_screen_rect)[2:]
+            )
         surface = pygame.Surface(tuple(self.to_screen_rect)[2:])
         return surface
-

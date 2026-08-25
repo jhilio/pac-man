@@ -1,21 +1,17 @@
 import sys
-from time import sleep
 import os
-from tkinter.messagebox import RETRY
 from src.config import MainData
 import json
 from pathlib import Path
 import mazegenerator
-from src.enums import Direction, VisualState
+from src.enums import Direction
 from src.pacmap import PacMap
 from src.visualizer import Visualizer
 from src.ai.network import PacmanNetwork
 from src.ai.interface import NNDirectionChooser
-from src.ai.training import EvolutionTrainer, evaluate
 from copy import deepcopy
 from typing import Optional
-from src.button import ClickableButton, DelayedCall
-import torch
+
 os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
 
 
@@ -187,7 +183,7 @@ def preload_assets(verbose: bool = False):
         "assets/menu/back.png",
         "assets/menu/unpaused.png",
         "assets/menu/paused.png",
-        ]
+    ]
     total = (
         maze_assets
         + pacman_anim_frames
@@ -205,6 +201,7 @@ def preload_assets(verbose: bool = False):
         )
         if verbose:
             print(f"loaded {Path(full_path).name}")
+
 
 def load_high_scores(verbose: bool = False):
     with open("high_scores.json") as file:
@@ -246,16 +243,13 @@ def main():
         size=size, seed=MainData.config_from_file["seed"]
     )
     pacmap = PacMap(maze)
-    #trainer = EvolutionTrainer(pacmap, 5, 50, mutation_strength=1)
+    # trainer = EvolutionTrainer(pacmap, 5, 50, mutation_strength=1)
     nn = PacmanNetwork(model_path="models/last_result.pt")
     chooser = NNDirectionChooser(nn)
-    #nn = trainer.train(nn, 10)
-    #nn.save("last_result.pt")
-    vis =Visualizer(pacmap, (1400,1200), nn=chooser)
+    # nn = trainer.train(nn, 10)
+    # nn.save("last_result.pt")
+    vis = Visualizer(pacmap, (1400, 1200), nn=chooser)
     vis.launch_loop()
-
-
-   
 
 
 if __name__ == "__main__":
@@ -263,4 +257,3 @@ if __name__ == "__main__":
         main()
     except KeyboardInterrupt:
         pass
-

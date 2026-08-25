@@ -34,7 +34,7 @@ class PacMap:
         self.fright_time_left = 0
         self.total_elapsed_time = 0
         self.phase_timer = 0
-        self.maze._seed +=1
+        self.maze._seed += 1
         if maze_restart:
             self.maze.generate(seed=self.maze._seed)
         self.init_cells()
@@ -152,7 +152,7 @@ class PacMap:
             ghost.is_alive = True
         if not self.pacman.cheat_mode:
             self.pacman.reset_pos()
-            self.pacman.lives -= 1 
+            self.pacman.lives -= 1
             if self.pacman.lives <= 0:
                 self.is_finished = True
 
@@ -172,15 +172,13 @@ class PacMap:
         top_k = {k: v for i, (k, v) in zip(range(k), sorted_scores.items())}
         MainData.high_scores = top_k
 
-
-
     def get_state_for_nn(self):
 
         fruits_data = []
         walls_data = []
         for x in range(len(self.cells)):
-            current_wall_col =[]
-            current_fruit_col =[]
+            current_wall_col = []
+            current_fruit_col = []
 
             walls_data.append(current_wall_col)
             fruits_data.append(current_fruit_col)
@@ -192,9 +190,8 @@ class PacMap:
         fright_time = max(
             0.0,
             min(
-                1.0,
-                self.fright_time_left / self.level["frightened_duration"]
-            )
+                1.0, self.fright_time_left / self.level["frightened_duration"]
+            ),
         )
         return (
             walls_data,
@@ -202,5 +199,5 @@ class PacMap:
             pacman_pos,
             self.ghosts,
             self.score,
-            fright_time
+            fright_time,
         )

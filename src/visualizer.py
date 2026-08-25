@@ -17,12 +17,13 @@ from .button import ClickableButton, DelayedCall
 class Visualizer:
     Counter = 0
     CELL_MARGIN = 2
+
     def __init__(
         self,
         pacmap: PacMap,
         size: tuple[int, int] = (1000, 700),
-        verbose: bool=False,
-        nn: NNDirectionChooser=None
+        verbose: bool = False,
+        nn: NNDirectionChooser = None,
     ):
         pygame.init()
         self.size = size
@@ -32,12 +33,13 @@ class Visualizer:
 
         self.autoplay = True
         game_size = (
-            (Pos2D(
+            Pos2D(
                 MainData.config_from_file["width"],
                 MainData.config_from_file["height"],
             )
             * MainData.cell_size
-            * 3) // 1)
+            * 3
+        ) // 1
         self.game_space = pygame.Surface(game_size)
         self.pacmap = pacmap
         self.base_font_size = 13
@@ -46,8 +48,10 @@ class Visualizer:
         self.code_sequence = []
         self.verbose = verbose
         back_button = ClickableButton(
-            0.9, 0,
-            0.1, 0.1,
+            0.9,
+            0,
+            0.1,
+            0.1,
             self.screen,
             effect=DelayedCall(self.change_state, VisualState.MAIN_MENU),
             image=MainData.assets.get_asset("back.png", scaling=False),
@@ -56,56 +60,83 @@ class Visualizer:
             VisualState.IN_GAME: [
                 back_button,
                 ClickableButton(
-                    0.4, 0,
-                    0.6, 0.05,
+                    0.4,
+                    0,
+                    0.6,
+                    0.05,
                     self.screen,
-                    effect=DelayedCall(lambda pac=self.pacmap: print(pac.score, pac.pacman.lives)),
+                    effect=DelayedCall(
+                        lambda pac=self.pacmap: print(
+                            pac.score, pac.pacman.lives
+                        )
+                    ),
                     text="get_score",
                 ),
-
                 ClickableButton(
-                    0.78, 0,
-                    0.1, 0.1,
+                    0.78,
+                    0,
+                    0.1,
+                    0.1,
                     self.screen,
-                    effect=DelayedCall(self.change_state, VisualState.IN_GAME_PAUSED),
-                    image=MainData.assets.get_asset("unpaused.png", scaling=False),
-                )
+                    effect=DelayedCall(
+                        self.change_state, VisualState.IN_GAME_PAUSED
+                    ),
+                    image=MainData.assets.get_asset(
+                        "unpaused.png", scaling=False
+                    ),
+                ),
             ],
             VisualState.IN_GAME_PAUSED: [
                 back_button,
                 ClickableButton(
-                    0.78, 0,
-                    0.1, 0.1,
+                    0.78,
+                    0,
+                    0.1,
+                    0.1,
                     self.screen,
                     effect=DelayedCall(self.change_state, VisualState.IN_GAME),
-                    image=MainData.assets.get_asset("paused.png", scaling=False),
-                )
+                    image=MainData.assets.get_asset(
+                        "paused.png", scaling=False
+                    ),
+                ),
             ],
-            VisualState.HIGH_SCORE_MENU: [
-                back_button
-            ],
+            VisualState.HIGH_SCORE_MENU: [back_button],
             VisualState.MAIN_MENU: [
                 ClickableButton(
-                    0.4, 0.4,
-                    0.2, 0.03,
+                    0.4,
+                    0.4,
+                    0.2,
+                    0.03,
                     self.screen,
                     DelayedCall(self.change_state, VisualState.IN_GAME),
-                    text=DelayedCall(lambda pacmap:"Start game" if pacmap.total_elapsed_time ==0 or pacmap.is_finished else "resume game", self.pacmap)
+                    text=DelayedCall(
+                        lambda pacmap: (
+                            "Start game"
+                            if pacmap.total_elapsed_time == 0
+                            or pacmap.is_finished
+                            else "resume game"
+                        ),
+                        self.pacmap,
+                    ),
                 ),
-                 ClickableButton(
-                    0.4, 0.45,
-                    0.2, 0.03,
+                ClickableButton(
+                    0.4,
+                    0.45,
+                    0.2,
+                    0.03,
                     self.screen,
-                    DelayedCall(self.change_state, VisualState.HIGH_SCORE_MENU),
+                    DelayedCall(
+                        self.change_state, VisualState.HIGH_SCORE_MENU
+                    ),
                     text="High scores",
-                )
+                ),
             ],
         }
         bg = MainData.assets.get_asset("BGmenu.jpg", scaling=False)
-        
+
         self.background_per_menu = {
             VisualState.HIGH_SCORE_MENU: bg,
-            VisualState.MAIN_MENU: bg
+            VisualState.MAIN_MENU: bg,
         }
         self.nn = nn
 
@@ -118,8 +149,8 @@ class Visualizer:
         bg = self.background_per_menu.get(self.visualiser_state, None)
         if bg is not None:
             bg = pygame.transform.scale(
-                        bg, (self.screen.get_width(), self.screen.get_height())
-                    )
+                bg, (self.screen.get_width(), self.screen.get_height())
+            )
         return bg
 
     def change_state(self, new: VisualState):
@@ -155,8 +186,10 @@ class Visualizer:
             if self.visualiser_state == VisualState.IN_GAME:
                 if not self.autoplay or self.nn is None:
                     self.movement_scan()
-                elif (self.nn is not None and pacman.pos != prec_pos):
-                    self.pacmap.pacman.next_direction = self.nn.choose(self.pacmap)
+                elif self.nn is not None and pacman.pos != prec_pos:
+                    self.pacmap.pacman.next_direction = self.nn.choose(
+                        self.pacmap
+                    )
                 prec_pos = pacman.pos
                 self.pacmap.update(dt)
                 if self.pacmap.is_finished:
@@ -167,7 +200,7 @@ class Visualizer:
         if self.active_background is not None:
             self.screen.blit(self.active_background, (0, 0))
         else:
-            self.screen.fill((0,0,0))
+            self.screen.fill((0, 0, 0))
         t = self.pacmap.level["duration"] - self.pacmap.total_elapsed_time
         text = f"""
         {("fright left : "
@@ -187,12 +220,18 @@ class Visualizer:
                 | VisualState.IN_GAME_PAUSED
                 | VisualState.PROMPTING_FOR_NAME
             ):
-                self.game_space.fill((0,0,0))
+                self.game_space.fill((0, 0, 0))
                 self.draw_cells()
                 if self.pacmap.pacman.cheat_mode:
                     self.draw_targets()
                 self.draw_charachters()
-                pos = Pos2D(MainData.cell_size * self.CELL_MARGIN * 3, MainData.cell_size * self.CELL_MARGIN * 3) // 1
+                pos = (
+                    Pos2D(
+                        MainData.cell_size * self.CELL_MARGIN * 3,
+                        MainData.cell_size * self.CELL_MARGIN * 3,
+                    )
+                    // 1
+                )
                 self.screen.blit(self.game_space, pos)
                 if self.visualiser_state is VisualState.PROMPTING_FOR_NAME:
                     self.draw_text_multiline(
@@ -216,7 +255,7 @@ class Visualizer:
                     if button.is_in(mouse_pos)
                     else button.image
                 ),
-                button.to_screen_rect
+                button.to_screen_rect,
             )
             self.draw_text_multiline(
                 button.text,
@@ -251,10 +290,13 @@ class Visualizer:
         elif event.type == pygame.VIDEORESIZE:
             # 1. Enforce Minimum Size
             min_size = (
-                (Pos2D(
-                    MainData.config_from_file["width"],
-                    MainData.config_from_file["height"],
-                ) + (Pos2D(self.CELL_MARGIN, self.CELL_MARGIN) *2))
+                (
+                    Pos2D(
+                        MainData.config_from_file["width"],
+                        MainData.config_from_file["height"],
+                    )
+                    + (Pos2D(self.CELL_MARGIN, self.CELL_MARGIN) * 2)
+                )
                 * MainData.cell_size
                 * 3
             )
@@ -315,7 +357,9 @@ class Visualizer:
                                 MainData.cell_size,
                                 MainData.cell_size,
                             )
-                            self.game_space.fill(pygame.Color(20, 20, 80), rect)
+                            self.game_space.fill(
+                                pygame.Color(20, 20, 80), rect
+                            )
                         self.game_space.blit(
                             cell.image[x2][y2],
                             (

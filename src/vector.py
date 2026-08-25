@@ -305,9 +305,6 @@ class Vector:
 class Pos2D(Vector):
     CLASS_LEN = 2
 
-
-
-
 # a = Pos3d(1, 2, 3)
 # b = Pos3d(5, 2, 3)
 
