@@ -44,7 +44,7 @@ make run
 | ```config.json``` | it used to create the score board and more
 
 > [!NOTE]
-> [info] use with make :
+> use with make :
 
 | command | what it does |
 |---------|--------------|
