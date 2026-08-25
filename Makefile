@@ -18,6 +18,9 @@ run:
 	@echo ">>> Lancement de la simulation..."
 	$(PYTHON) $(PAC) $(CONFIG)
 
+exe:
+	$(PYTHON) -m pyinstaller --onefile $(PAC)
+
 verbose:
 	$(PYTHON) $(PAC) $(CONFIG) verbose
 debug:

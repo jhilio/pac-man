@@ -1,9 +1,7 @@
 import json
 
-with open("save_text_2") as file: 
+with open("save_text_2") as file:
     data = json.load(file)
-
-
 
 step = len(data)//10
 

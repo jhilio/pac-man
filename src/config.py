@@ -22,7 +22,11 @@ class AssetsManager:
         return self.get_asset(name)
 
     def get_asset(
-        self, name: str, scaled_size:Optional[int]=None,size_multiplier: float = 1, scaling: bool = True
+        self,
+        name: str,
+        scaled_size: Optional[int] = None,
+        size_multiplier: float = 1,
+        scaling: bool = True,
     ) -> Any | pygame.Surface:
         if scaled_size:
             size = scaled_size

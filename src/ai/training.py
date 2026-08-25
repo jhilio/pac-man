@@ -1,6 +1,5 @@
 from src.ai.interface import NNDirectionChooser
 from .network import PacmanNetwork
-
 from ..pacmap import PacMap
 
 

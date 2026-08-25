@@ -1,9 +1,7 @@
 from random import randint
 import sys
-from time import sleep
 import os
 os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
-from tkinter.messagebox import RETRY
 from src.config import MainData
 import json
 from pathlib import Path
@@ -13,7 +11,7 @@ from src.pacmap import PacMap
 from src.visualizer import Visualizer
 from src.ai.network import PacmanNetwork
 from src.ai.interface import NNDirectionChooser
-from src.ai.training import EvolutionTrainer, evaluate
+from src.ai.training import EvolutionTrainer
 from copy import deepcopy
 from typing import Optional
 import src.reloader, signal, importlib
@@ -204,7 +202,7 @@ def preload_assets(verbose: bool = False):
         "assets/menu/back.png",
         "assets/menu/unpaused.png",
         "assets/menu/paused.png",
-        ]
+    ]
     total = (
         maze_assets
         + pacman_anim_frames
@@ -222,6 +220,7 @@ def preload_assets(verbose: bool = False):
         )
         if verbose:
             print(f"loaded {Path(full_path).name}")
+
 
 def load_high_scores(verbose: bool = False):
     with open("high_scores.json") as file:
@@ -284,4 +283,3 @@ if __name__ == "__main__":
         main()
     except KeyboardInterrupt:
         pass
-

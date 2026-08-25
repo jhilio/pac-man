@@ -1,5 +1,8 @@
 *This project has been created as part of the 42 curriculum by aspenle jtardieu*
 
+![Build](https://img.shields.io/badge/build-passing-brightgreen)
+![License](https://img.shields.io/badge/license-MIT-white)
+
 # Pac-Man
 
 <table>
@@ -37,12 +40,21 @@ make run
 
 | used | for what |
 |---------|--------------|
-| verbose | it use to see what asset is load |
-| config.json | it used to create the score board and more
+| ```verbose``` | it use to see what asset is load |
+| ```config.json``` | it used to create the score board and more
+
+> [!NOTE]
+> use with make :
 
 | command | what it does |
 |---------|--------------|
-
+| `run` | run the program you can put your config with CONFIG=<put your json file> |
+| `verbose` | to run the program with verbose |
+| `debug` | to used pdb model for debug |
+| `lint` | used to check the norme |
+| `lint-strict` | used to check the norme in strict mode |
+| `make clean` | 🧹 Remove tempory files |
+| `make fclean` | 🗑️ Remove everything (including .venv) |
 
 
 ### json
@@ -55,12 +67,93 @@ you can run without config.json files to use default value
   </tr>
   <tr>
     <td>
-      <img src="assets/readmefile/json.png"width=90%>
+      <img src="assets/readmefile/json.png"width=80%>
     </td>
     <td>
-      <img src="https://media1.tenor.com/m/lbObw07b8FIAAAAC/pacman-pac.gif" width="500">
+      <img src="https://media1.tenor.com/m/lbObw07b8FIAAAAC/pacman-pac.gif" width=50%>
     </td>
   </tr>
 </table>
 
+<details>
+<summary>Voir la config JSON</summary>
+
+```json
+{
+  "lives": <number of lives you have>,
+  "seed": <seed to use>,
+  "width": <width of the maze>,
+  "height": <height of the maze>,
+  "points_per_pacgum": <number of points earned per Pac-Gum eaten>,
+  "points_per_super_pacgum": <number of points earned per Super Pac-Gum eaten>,
+  "points_per_ghost": <number of points earned per ghost eaten>,
+  "levels": {
+    "<level number>": {
+      "frightened_duration": <how long the ghosts are frightened>,
+      "ghost_speed": <ghost movement speed>,
+      "ghost_fright_speed": <ghost movement speed when frightened>,
+      "pacman_speed": <Pac-Man movement speed>,
+      "pacman_fright_speed": <Pac-Man movement speed after eating a Super Pac-Gum>,
+      "duration": <time limit to complete the level>,
+      "phases": [
+        ["scatter", <how long the ghosts scatter>],
+        ["chase", <how long the ghosts chase you>],
+        "... you can repeat this as many times as you want ...",
+        ["chase", null <ghost will only chass you without looping>]
+      ]
+    }
+  }
+}
+```
+
+</details>
+
+
+## 📚 Resources
+
+| need | url |
+|------|-----|
+| sprite | [sprite resource](https://www.spriters-resource.com/arcade/pacman/) ![Aperçu du jeu](assets/pacman/pacman_frame_1.png)|
+| all knowlege | [pacman info](https://pacman.holenet.info/) 📖 |
+
+
+
+## test
+
+
+
+![Aperçu du jeu](assets/pacman/pacman_frame_1.png)
+[Texte du lien](https://exemple.com)
+
+
+> [!NOTE]
+> Info générale
+
+> [!WARNING]
+> Attention à ceci
+
+> [!TIP]
+> Astuce utile
+
+<details>
+<summary>Texte toujours visible (le titre cliquable)</summary>
+
+Contenu caché ici, affiché seulement au clic.
+
+</details>
+
+
+<details>
+<summary>Voir la config JSON</summary>
+
+```json
+{
+  "lives": 3
+}
+```
+
+</details>*This project has been created as part of the 42 curriculum by aspenle jtardieu*
+
+![Build](https://img.shields.io/badge/build-passing-brightgreen)
+![License](https://img.shields.io/badge/license-MIT-white)
 

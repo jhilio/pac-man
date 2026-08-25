@@ -128,9 +128,7 @@ class PacmanNetwork(nn.Module):
     def save(self, path=None):
         path = Path(path) if path else self.model_path
         if path is None:
-            raise ValueError(
-                "No save path provided."
-            )
+            raise ValueError("No save path provided.")
         path.parent.mkdir(
             parents=True,
             exist_ok=True,
@@ -140,13 +138,13 @@ class PacmanNetwork(nn.Module):
             path,
         )
         print(f"Model saved to {path.resolve()}")
-    
+
     def load(self, path=None):
         path = Path(path) if path else self.model_path
         if path is None:
             print(
                 "no path provided either in init or load",
-                "using random initialization."
+                "using random initialization.",
             )
             return
         if not path.exists():
@@ -174,23 +172,21 @@ class PacmanNetwork(nn.Module):
                 mutated.parameters(),
             ):
                 mutated_parameter.copy_(
-                    parameter
-                    + torch.randn_like(parameter) * strength
+                    parameter + torch.randn_like(parameter) * strength
                 )
 
         return mutated
 
     def compare(self, other: Self):
         for name, parameter in self.named_parameters():
-            other_parameter = dict(
-                other.named_parameters()
-            )[name]
+            other_parameter = dict(other.named_parameters())[name]
 
             difference = (
-                parameter.detach() - other_parameter.detach()
-            ).abs().max().item()
+                (parameter.detach() - other_parameter.detach())
+                .abs()
+                .max()
+                .item()
+            )
 
             if difference != 0:
-                print(
-                    f"{name}: max difference = {difference}"
-                )
+                print(f"{name}: max difference = {difference}")

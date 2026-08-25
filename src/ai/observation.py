@@ -1,11 +1,30 @@
 import numpy as np
 from ..enums import Direction
 from ..charachters.ghost import Ghost
+
+
 class ObservationBuilder:
 
     @staticmethod
-    def build(state: tuple[list[int],list[int], tuple[int, int], tuple[Ghost, ...], int, float], ghost_count:int=4) -> tuple[np.ndarray, int, float]:
-        walls_data, fruits_data, pacman_pos, ghosts, score, fright_time_ratio = state
+    def build(
+        state: tuple[
+            list[int],
+            list[int],
+            tuple[int, int],
+            tuple[Ghost, ...],
+            int,
+            float,
+        ],
+        ghost_count: int = 4,
+    ) -> tuple[np.ndarray, int, float]:
+        (
+            walls_data,
+            fruits_data,
+            pacman_pos,
+            ghosts,
+            score,
+            fright_time_ratio,
+        ) = state
         height = len(walls_data)
         width = len(walls_data[0])
         channels = 6 + ghost_count
@@ -17,18 +36,10 @@ class ObservationBuilder:
         for x in range(height):
             for y in range(width):
                 walls = walls_data[x][y]
-                observation[0, x, y] = bool(
-                    walls & Direction.NORTH.value
-                )
-                observation[1, x, y] = bool(
-                    walls & Direction.EAST.value
-                )
-                observation[2, x, y] = bool(
-                    walls & Direction.SOUTH.value
-                )
-                observation[3, x, y] = bool(
-                    walls & Direction.WEST.value
-                )
+                observation[0, x, y] = bool(walls & Direction.NORTH.value)
+                observation[1, x, y] = bool(walls & Direction.EAST.value)
+                observation[2, x, y] = bool(walls & Direction.SOUTH.value)
+                observation[3, x, y] = bool(walls & Direction.WEST.value)
                 observation[4, x, y] = fruits_data[x][y]
 
         pacman_x = pacman_pos[0] // 3

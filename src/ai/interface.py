@@ -13,9 +13,7 @@ class NNDirectionChooser:
 
     def _get_distribution(self, pacmap:PacMap):
         info = pacmap.get_state_for_nn()
-        observation, score, fright_time_ratio = (
-            ObservationBuilder.build(info)
-        )
+        observation, score, fright_time_ratio = ObservationBuilder.build(info)
         tensor = torch.from_numpy(observation).unsqueeze(0)
         fright_tensor = torch.tensor(
             [[fright_time_ratio]],
@@ -54,4 +52,3 @@ class NNDirectionChooser:
             ).item()
             #action = torch.argmax(logits, dim=1).item()
         return Direction(1 << action)
-

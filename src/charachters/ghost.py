@@ -67,6 +67,7 @@ class Ghost(MovingEntities):
 
     @property
     def image(self):
+        tl = f"{self.ghost_name}_{self.direction.to_text()}{self.anim_step+1}"
         path_name = ""
         fright_time = MainData.pacmap.fright_time_left
         if not self.is_alive:
@@ -77,7 +78,7 @@ class Ghost(MovingEntities):
             else:
                 path_name = f"frightened_flash_{self.anim_step+1}.png"
         else:
-            path_name = f"{self.ghost_name}_{self.direction.to_text()}{self.anim_step+1}.png"
+            path_name = tl + ".png"
 
         frame = MainData.assets.get_asset(path_name, size_multiplier=1.3)
         return frame

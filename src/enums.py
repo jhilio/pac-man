@@ -8,6 +8,26 @@ class VisualState(Enum):
     IN_GAME = "IN_GAME"
     IN_GAME_PAUSED = "IN_GAME_PAUSED"
     PROMPTING_FOR_NAME = "PROMPTING_FOR_NAME"
+    CONFIG = "CONFIG"
+
+
+class AnimTypes(Enum):
+    RIGHT_TO_LEFT = "RIGHT_TO_LEFT"
+    LEFT_TO_RIGHT = "LEFT_TO_RIGHT"
+    UP_TO_DOWN = "UP_TO_DOWN"
+    DOWN_TO_UP = "DOWN_TO_UP"
+    ZOOM_IN = "ZOOM_IN"
+    ZOOM_OUT = "ZOOM_OUT"
+
+    def oppo(self) -> "AnimTypes":
+        return {
+            AnimTypes.RIGHT_TO_LEFT: AnimTypes.LEFT_TO_RIGHT,
+            AnimTypes.LEFT_TO_RIGHT: AnimTypes.RIGHT_TO_LEFT,
+            AnimTypes.DOWN_TO_UP: AnimTypes.UP_TO_DOWN,
+            AnimTypes.UP_TO_DOWN: AnimTypes.DOWN_TO_UP,
+            AnimTypes.ZOOM_IN: AnimTypes.ZOOM_OUT,
+            AnimTypes.ZOOM_OUT: AnimTypes.ZOOM_IN,
+        }[self]
 
 
 class GhostState(Enum):
