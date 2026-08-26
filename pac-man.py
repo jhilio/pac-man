@@ -204,6 +204,7 @@ def preload_assets(verbose: bool = False):
         "assets/menu/unpaused.png",
         "assets/menu/paused.png",
         "assets/menu/leftbg.png",
+        "assets/menu/gameback.jpg",
     ]
     total = (
         maze_assets

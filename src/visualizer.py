@@ -51,6 +51,8 @@ class Visualizer:
         self.init_button()
         bg = MainData.assets.get_asset("BGmenu.jpg", scaling=False)
         bgleft = MainData.assets.get_asset("leftbg.png", scaling=False)
+        bggame = MainData.assets.get_asset("gameback.jpg", scaling=False)
+
         self.surface_per_menu = {
             VisualState.MAIN_MENU: self.screen.copy(),
             VisualState.CONFIG: self.screen.copy(),
@@ -62,6 +64,7 @@ class Visualizer:
             VisualState.CONFIG: bg,
             VisualState.HIGH_SCORE_MENU: bgleft,
             VisualState.MAIN_MENU: bg,
+            VisualState.IN_GAME: bggame,
         }
         self.prec_state = None
         self.nn = nn
@@ -69,7 +72,6 @@ class Visualizer:
     @property
     def active_buttons(self):
         return self.buttons_per_menu.get(self.visualiser_state, [])
-
 
     def get_background(self, state: VisualState):
         bg = self.background_per_menu.get(state, None)
@@ -163,15 +165,15 @@ class Visualizer:
         )
         pygame.display.update()
 
-    def draw_to_menu(self, state: VisualState, dt:float):
+    def draw_to_menu(self, state: VisualState, dt: float):
         if state is None:
             print(f"returned early, {state}")
             return None
         target = self.surface_per_menu[state]
         if self.get_background(state) is not None:
-           target.blit(self.get_background(state), (0, 0))
+            target.blit(self.get_background(state), (0, 0))
         else:
-           target.fill((0, 0, 0))
+            target.fill((0, 0, 0))
         match state:
             case VisualState.IN_GAME:
                 self.game_space.fill((0, 0, 0))
@@ -270,7 +272,9 @@ class Visualizer:
                     (new_w, new_h), pygame.RESIZABLE
                 )
             for k, value in self.surface_per_menu.items():
-                self.surface_per_menu[k] = pygame.surface.Surface((new_w, new_h))
+                self.surface_per_menu[k] = pygame.surface.Surface(
+                    (new_w, new_h)
+                )
         return event
 
     def movement_scan(self) -> None:
@@ -455,7 +459,8 @@ class Visualizer:
         def zoom(image: pygame.surface.Surface, size: Pos2D):
             center = Pos2D(image.get_size()) / 2
             return image.subsurface(center - (size / 2), size)
-        print(act,prec, self.act_anim)
+
+        print(act, prec, self.act_anim)
         final_buf = self.surface_per_menu["final_buffer"]
         if self.act_anim:
             self.act_anim = max(
@@ -537,9 +542,7 @@ class Visualizer:
                     center_part = pygame.transform.scale(
                         act, screen_size * (1 - self.act_anim)
                     )
-                    extern_part = zoom(
-                        prec, screen_size * (self.act_anim**3)
-                    )
+                    extern_part = zoom(prec, screen_size * (self.act_anim**3))
                     extern_part = pygame.transform.scale(
                         extern_part, screen_size
                     )
@@ -565,7 +568,7 @@ class Visualizer:
                         screen_size / 2 - (Pos2D(center_part.get_size()) / 2),
                     )
         return final_buf
-    
+
     def init_button(self):
         back_button = ClickableButton(
             0.9,
@@ -658,10 +661,14 @@ class Visualizer:
                 0.2,
                 0.03,
                 self.screen,
-                DelayedCall(self.change_state, VisualState.HIGH_SCORE_MENU, 1, AnimTypes.LEFT_TO_RIGHT),
+                DelayedCall(
+                    self.change_state,
+                    VisualState.HIGH_SCORE_MENU,
+                    1,
+                    AnimTypes.LEFT_TO_RIGHT,
+                ),
                 text="High scores",
                 animation_image=paused_pacman,
-
             ),
             AnimatedButton(
                 0.4,
@@ -680,4 +687,3 @@ class Visualizer:
             VisualState.MAIN_MENU: main_menu,
             VisualState.CONFIG: [back_button],
         }
-    
