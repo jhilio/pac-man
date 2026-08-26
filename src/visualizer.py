@@ -49,10 +49,10 @@ class Visualizer:
         self.verbose = verbose
         self.init_button()
         bg = MainData.assets.get_asset("BGmenu.jpg", scaling=False)
-
+        bgleft = MainData.assets.get_asset("leftbg.png", scaling=False)
         self.background_per_menu = {
             VisualState.CONFIG: bg,
-            VisualState.HIGH_SCORE_MENU: bg,
+            VisualState.HIGH_SCORE_MENU: bgleft,
             VisualState.MAIN_MENU: bg,
         }
         self.nn = nn
