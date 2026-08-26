@@ -20,6 +20,7 @@ class PacMap:
         self.maze = maze
         self.offset = 0
         self.score = 0
+        self.has_started = False
         self.fright_time_left = 0
         self.total_elapsed_time = 0
         self.phase_timer = 0
@@ -30,6 +31,7 @@ class PacMap:
         self.init_charachters()
 
     def regenerate(self, maze_restart=True) -> None:
+        self.has_started = False
         self.is_finished = False
         self.fright_time_left = 0
         self.total_elapsed_time = 0
@@ -102,6 +104,7 @@ class PacMap:
         )
 
     def update(self, dt: float) -> None:
+        self.has_started = True
         self.total_elapsed_time += dt
         self.phase_timer += (
             dt - self.fright_time_left if dt - self.fright_time_left > 0 else 0
@@ -155,6 +158,7 @@ class PacMap:
         if not self.pacman.cheat_mode:
             self.pacman.reset_pos()
             self.pacman.lives -= 1
+            self.total_elapsed_time = 0
             if self.pacman.lives <= 0:
                 self.is_finished = True
 
