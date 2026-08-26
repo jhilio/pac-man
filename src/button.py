@@ -158,9 +158,9 @@ class AnimatedButton(ClickableButton):
         self.__class__.last_hovered = self
 
     def on_click(self) -> None:
-        # if not self.__class__.anim_launched:
-        self.anim_stage = 1
-        self.__class__.anim_launched = True
+        if not self.__class__.anim_launched:
+            self.anim_stage = 1
+            self.__class__.anim_launched = True
 
     def update(self, dt: float):
         if self.anim_stage:

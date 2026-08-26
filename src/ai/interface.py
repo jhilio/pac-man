@@ -30,7 +30,7 @@ class NNDirectionChooser:
 
         if sum(walls[0:4]) != 3:
             opposite = int(log2(pacmap.pacman.direction.oppo().value))
-            logits[0, opposite] = float("-inf")   
+            logits[0, opposite] = float("-inf")
         return observation, logits
 
     def choose(self, pacmap, temperature=1) -> Direction:

@@ -207,7 +207,9 @@ class Visualizer:
             case VisualState.CONFIG:
                 self.draw_text_multiline(
                     target,
-                    "shortcut:\narrow keys: movement\nr-> reload map\nn: togle neural network\nbackspace/delete: go back\nhome: return to main menu\n\nEnjoy !!",
+                    "shortcut:\narrow keys: movement\nr-> reload map\n"
+                    + "n: togle neural network\nbackspace/delete: go back"
+                    + "\nhome: return to main menu\n\nEnjoy !!",
                     500,
                     600,
                     font=self.get_font(35),
@@ -233,7 +235,7 @@ class Visualizer:
                     button.text,
                     button.to_screen_rect.x,
                     button.to_screen_rect.y,
-                    font=button.font_size,
+                    font=self.get_font(button.font_size),
                 )
         return target
 
@@ -412,7 +414,10 @@ class Visualizer:
             case pygame.K_HOME:
                 self.visualiser_state = VisualState.MAIN_MENU
             case pygame.K_RETURN:
-                if AnimatedButton.last_hovered is not None:
+                if (
+                    AnimatedButton.last_hovered is not None
+                    and AnimatedButton.last_hovered in self.active_buttons
+                ):
                     AnimatedButton.last_hovered.on_click()
             case pygame.K_BACKSPACE:
                 self.back_button.on_click()
@@ -426,14 +431,30 @@ class Visualizer:
                 ]
             case pygame.K_UP:
                 if self.visualiser_state == VisualState.MAIN_MENU:
-                    AnimatedButton.last_hovered = self.active_buttons[(self.active_buttons.index(AnimatedButton.last_hovered) -1) % len(self.active_buttons)]
+                    AnimatedButton.last_hovered = self.active_buttons[
+                        (
+                            self.active_buttons.index(
+                                AnimatedButton.last_hovered
+                            )
+                            - 1
+                        )
+                        % len(self.active_buttons)
+                    ]
             case pygame.K_DOWN:
                 if self.visualiser_state == VisualState.MAIN_MENU:
-                    AnimatedButton.last_hovered = self.active_buttons[(self.active_buttons.index(AnimatedButton.last_hovered) +1) % len(self.active_buttons)]
+                    AnimatedButton.last_hovered = self.active_buttons[
+                        (
+                            self.active_buttons.index(
+                                AnimatedButton.last_hovered
+                            )
+                            + 1
+                        )
+                        % len(self.active_buttons)
+                    ]
             case _:
                 if self.verbose:
                     print(event)
-            
+
         # konami sequence detection
         konami_code = [
             pygame.K_UP,
@@ -596,12 +617,13 @@ class Visualizer:
                 for i in range(4)
             ]
         )
+
         main_menu = [
             AnimatedButton(
+                0.35,
                 0.4,
-                0.4,
-                0.2,
-                0.03,
+                0.3,
+                0.05,
                 self.screen,
                 DelayedCall(
                     self.change_state,
@@ -617,14 +639,16 @@ class Visualizer:
                     ),
                     self.pacmap,
                 ),
+                image=MainData.assets.get_asset("button.png", scaling=False),
+                font_size=30,
                 animation_image=paused_pacman,
-                animation_frames_count=10
+                animation_frames_count=10,
             ),
             AnimatedButton(
-                0.4,
-                0.45,
-                0.2,
-                0.03,
+                0.35,
+                0.475,
+                0.3,
+                0.05,
                 self.screen,
                 DelayedCall(
                     lambda: self.change_state(
@@ -633,19 +657,23 @@ class Visualizer:
                         AnimTypes.LEFT_TO_RIGHT,
                     )
                 ),
+                font_size=30,
+                image=MainData.assets.get_asset("button.png", scaling=False),
                 text="High scores",
                 animation_image=paused_pacman,
-                animation_frames_count=10
+                animation_frames_count=10,
             ),
             AnimatedButton(
-                0.4,
-                0.50,
-                0.2,
-                0.03,
+                0.35,
+                0.55,
+                0.3,
+                0.05,
                 self.screen,
                 DelayedCall(self.change_state, VisualState.CONFIG),
+                image=MainData.assets.get_asset("button.png", scaling=False),
+                font_size=30,
                 animation_image=paused_pacman,
-                animation_frames_count=10
+                animation_frames_count=10,
             ),
         ]
 
