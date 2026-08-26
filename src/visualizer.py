@@ -11,7 +11,7 @@ from .pacmap import PacMap
 from .enums import Direction, VisualState, AnimTypes
 from .config import MainData
 
-from .button import ClickableButton, DelayedCall
+from .button import ClickableButton, DelayedCall, AnimatedButton, CyclicList
 
 
 class Visualizer:
@@ -47,112 +47,7 @@ class Visualizer:
         self.screen = pygame.display.set_mode(size, pygame.RESIZABLE)
         self.code_sequence = []
         self.verbose = verbose
-        back_button = ClickableButton(
-            0.9,
-            0,
-            0.1,
-            0.1,
-            self.screen,
-            effect=DelayedCall(
-                lambda vis: vis.change_state(
-                    VisualState.MAIN_MENU,
-                    vis.anim_duration,
-                    vis.anim_type.oppo(),
-                ),
-                self,
-            ),
-            image=MainData.assets.get_asset("back.png", scaling=False),
-        )
-        self.buttons_per_menu = {
-            VisualState.IN_GAME: [
-                back_button,
-                ClickableButton(
-                    0.4,
-                    0,
-                    0.6,
-                    0.05,
-                    self.screen,
-                    effect=DelayedCall(
-                        lambda pac=self.pacmap: print(
-                            pac.score, pac.pacman.lives
-                        )
-                    ),
-                    text="get_score",
-                ),
-                ClickableButton(
-                    0.78,
-                    0,
-                    0.1,
-                    0.1,
-                    self.screen,
-                    effect=DelayedCall(
-                        self.change_state, VisualState.IN_GAME_PAUSED
-                    ),
-                    image=MainData.assets.get_asset(
-                        "unpaused.png", scaling=False
-                    ),
-                ),
-            ],
-            VisualState.IN_GAME_PAUSED: [
-                back_button,
-                ClickableButton(
-                    0.78,
-                    0,
-                    0.1,
-                    0.1,
-                    self.screen,
-                    effect=DelayedCall(self.change_state, VisualState.IN_GAME),
-                    image=MainData.assets.get_asset(
-                        "paused.png", scaling=False
-                    ),
-                ),
-            ],
-            VisualState.HIGH_SCORE_MENU: [back_button],
-            VisualState.MAIN_MENU: [
-                ClickableButton(
-                    0.4,
-                    0.4,
-                    0.2,
-                    0.03,
-                    self.screen,
-                    DelayedCall(
-                        self.change_state,
-                        VisualState.IN_GAME,
-                        anim_duration=4,
-                        anim_type=AnimTypes.ZOOM_IN,
-                    ),
-                    text=DelayedCall(
-                        lambda pacmap: (
-                            "Start game"
-                            if pacmap.total_elapsed_time == 0
-                            or pacmap.is_finished
-                            else "resume game"
-                        ),
-                        self.pacmap,
-                    ),
-                ),
-                ClickableButton(
-                    0.4,
-                    0.45,
-                    0.2,
-                    0.03,
-                    self.screen,
-                    DelayedCall(
-                        self.change_state, VisualState.HIGH_SCORE_MENU, 0
-                    ),
-                    text="High scores",
-                ),
-                ClickableButton(
-                    0.4,
-                    0.50,
-                    0.2,
-                    0.03,
-                    self.screen,
-                    DelayedCall(self.change_state, VisualState.CONFIG),
-                ),
-            ],
-            VisualState.CONFIG: [back_button],
-        }
+        self.init_button()
         bg = MainData.assets.get_asset("BGmenu.jpg", scaling=False)
 
         self.background_per_menu = {
@@ -178,7 +73,7 @@ class Visualizer:
     def change_state(
         self,
         new: VisualState,
-        anim_duration=1,
+        anim_duration=0,
         anim_type=AnimTypes.LEFT_TO_RIGHT,
     ):
         if new == VisualState.IN_GAME and self.pacmap.is_finished:
@@ -288,6 +183,8 @@ class Visualizer:
                 pass
         mouse_pos = Pos2D(pygame.mouse.get_pos())
         for button in self.active_buttons:
+            if isinstance(button, AnimatedButton):
+                button.update(dt)
             self.screen.blit(
                 (
                     button.hovered_image
@@ -302,6 +199,7 @@ class Visualizer:
                 button.to_screen_rect.y,
                 font=button.font_size,
             )
+            
         if self.pacmap.pacman.cheat_mode:
             text += "\ncheat mode: on"
         self.draw_text_multiline(text, 1000, 100, font=self.get_font(25))
@@ -610,7 +508,7 @@ class Visualizer:
                         copy, screen_size * (1 - self.act_anim)
                     )
                     extern_part = zoom(
-                        self.prec_state_frame, screen_size * (self.act_anim)
+                        self.prec_state_frame, screen_size * (self.act_anim**3)
                     )
                     extern_part = pygame.transform.scale(
                         extern_part, screen_size
@@ -637,3 +535,116 @@ class Visualizer:
                         center_part,
                         screen_size / 2 - (Pos2D(center_part.get_size()) / 2),
                     )
+    def init_button(self):
+        back_button = ClickableButton(
+            0.9,
+            0,
+            0.1,
+            0.1,
+            self.screen,
+            effect=DelayedCall(
+                lambda vis: vis.change_state(
+                    VisualState.MAIN_MENU,
+                    vis.anim_duration,
+                    vis.anim_type.oppo(),
+                ),
+                self,
+            ),
+            image=MainData.assets.get_asset("back.png", scaling=False),
+        )
+        in_game = [
+            back_button,
+            ClickableButton(
+                0.4, 0,
+                0.2, 0.05,
+                self.screen,
+                effect=DelayedCall(
+                    lambda pac=self.pacmap: print(
+                        pac.score, pac.pacman.lives
+                    )
+                ),
+                text="get_score",
+            ),
+            ClickableButton(
+                0.78,
+                0,
+                0.1,
+                0.1,
+                self.screen,
+                effect=DelayedCall(
+                    self.change_state, VisualState.IN_GAME_PAUSED
+                ),
+                image=MainData.assets.get_asset(
+                    "unpaused.png", scaling=False
+                ),
+            ),
+        ]
+        in_game_paused = [
+            back_button,
+            ClickableButton(
+                0.78,
+                0,
+                0.1,
+                0.1,
+                self.screen,
+                effect=DelayedCall(self.change_state, VisualState.IN_GAME),
+                image=MainData.assets.get_asset(
+                    "paused.png", scaling=False
+                ),
+            ),
+        ]
+
+        paused_pacman = CyclicList([MainData.assets.get_asset(f"pacman_frame_{i}.png", size_multiplier=1.3) for i in range(4)])
+        main_menu = [
+            AnimatedButton(
+                0.4,
+                0.4,
+                0.2,
+                0.03,
+                self.screen,
+                DelayedCall(
+                    self.change_state,
+                    VisualState.IN_GAME,
+                    anim_duration=1,
+                    anim_type=AnimTypes.ZOOM_IN,
+                ),
+                text=DelayedCall(
+                    lambda pacmap: (
+                        "Start game"
+                        if pacmap.total_elapsed_time == 0
+                        or pacmap.is_finished
+                        else "resume game"
+                    ),
+                    self.pacmap,
+                ),
+                animation_image=paused_pacman
+            ),
+            AnimatedButton(
+                0.4,
+                0.45,
+                0.2,
+                0.03,
+                self.screen,
+                DelayedCall(
+                    self.change_state, VisualState.HIGH_SCORE_MENU, 0
+                ),
+                text="High scores",
+                animation_image=paused_pacman
+            ),
+            AnimatedButton(
+                0.4,
+                0.50,
+                0.2,
+                0.03,
+                self.screen,
+                DelayedCall(self.change_state, VisualState.CONFIG),
+                animation_image=paused_pacman
+            ),
+        ]
+        self.buttons_per_menu = {
+            VisualState.IN_GAME: in_game,
+            VisualState.IN_GAME_PAUSED: in_game_paused,
+            VisualState.HIGH_SCORE_MENU: [back_button],
+            VisualState.MAIN_MENU: main_menu,
+            VisualState.CONFIG: [back_button],
+        }
