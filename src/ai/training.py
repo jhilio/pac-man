@@ -4,7 +4,7 @@ from ..pacmap import PacMap
 
 
 def evaluate(pacmap:PacMap, chooser: NNDirectionChooser):
-    pacmap.restart()
+    pacmap.restart(True)
     score = 0
     turns = 0
     visited = set()
@@ -51,6 +51,7 @@ class EvolutionTrainer:
                 score, scaled_score = evaluate(self.pacmap, chooser)
                 total_scores[i] += score
                 total_scaled_scores[i] += scaled_score
+            self.pacmap.restart()
 
         best_index = total_scaled_scores.index(
             max(total_scaled_scores)
@@ -63,4 +64,6 @@ class EvolutionTrainer:
             f"generation {generation}: "
             f"best score = {total_scores[best_index] / self.games_per_network}"
         )
+        with open("models/generations/logs.txt", "a+") as log:
+            log.write(f"generation {generation:03d} : {total_scores[best_index] / self.games_per_network}\n")
         return self.train([start_network[0]] +[best_one], generation-1)

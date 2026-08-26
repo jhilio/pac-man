@@ -43,9 +43,11 @@ class PacMap:
         self.pacman.reset_pos()
         self.pacman.direction = Direction.NORTH
 
-    def restart(self):
+    def restart(self, guard_map=False):
         self.pacman.lives = MainData.config_from_file["lives"]
         self.level_num = 1
+        if guard_map:
+            self.maze._seed -= 1
         self.score = 0
         self.offset = 0
         self.regenerate(maze_restart=True)
