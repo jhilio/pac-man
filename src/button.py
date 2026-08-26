@@ -173,13 +173,18 @@ class AnimatedButton(ClickableButton):
 
     def default_animate(self, base_image: pygame.surface.Surface):
         if self.animation_image is not None and self.anim_stage is not None:
-            x = base_image.get_width() * self.anim_stage
+            anim_frame = self.animation_image[
+                int(self.anim_stage * self.animation_frames_count)
+            ]
+            x = (
+                base_image.get_width() - anim_frame.get_width()
+            ) * self.anim_stage
+            x = x * 0.9 + 5
+            y = base_image.get_height() / 2 - anim_frame.get_height() / 2
             new = base_image.copy()
             new.blit(
-                self.animation_image[
-                    int(self.anim_stage * self.animation_frames_count)
-                ],
-                (x, 0),
+                anim_frame,
+                (x, y),
             )
             return new
         elif (
@@ -187,9 +192,12 @@ class AnimatedButton(ClickableButton):
             and self.__class__.last_hovered is self
             and not self.__class__.anim_launched
         ):
-            x = base_image.get_width() - self.animation_image[0].get_width()
+            anim_frame = self.animation_image[0]
+            x = base_image.get_width() - anim_frame.get_width()
+            x = x * 0.9 + 5
+            y = base_image.get_height() / 2 - anim_frame.get_height() / 2
             new = base_image.copy()
-            new.blit(self.animation_image[0], (x, 0))
+            new.blit(anim_frame, (x, y))
             return new
         return base_image
 
