@@ -21,7 +21,6 @@ class PacmanNetwork(nn.Module):
                 padding=1,
             ),
             nn.ReLU(),
-
             nn.Conv2d(
                 32,
                 64,
@@ -29,7 +28,6 @@ class PacmanNetwork(nn.Module):
                 padding=1,
             ),
             nn.ReLU(),
-
             nn.Conv2d(
                 64,
                 64,
@@ -70,7 +68,6 @@ class PacmanNetwork(nn.Module):
                 64,
             ),
             nn.ReLU(),
-
             nn.Linear(
                 64,
                 4,
@@ -103,15 +100,11 @@ class PacmanNetwork(nn.Module):
             global_features,
             1,
         )
-        global_features = self.global_head(
-            global_features
-        )
+        global_features = self.global_head(global_features)
         # -----------------------------------------
         # Frightened information
         # -----------------------------------------
-        frightened = self.frightened(
-            fright_time
-        )
+        frightened = self.frightened(fright_time)
         # -----------------------------------------
         # Combine everything
         # -----------------------------------------

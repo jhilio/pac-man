@@ -1,6 +1,7 @@
 from random import randint
 import sys
 import os
+
 os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
 from src.config import MainData
 import json
@@ -16,14 +17,14 @@ from copy import deepcopy
 from typing import Optional
 import src.reloader, signal, importlib
 
-
 reloader_cache = None
+
 
 def reload_handler(signum, frame):
     global reloader_cache
     importlib.invalidate_caches()
     importlib.reload(src.reloader)
-    new_reloader=Path(src.reloader.__file__).read_bytes()
+    new_reloader = Path(src.reloader.__file__).read_bytes()
     if new_reloader == reloader_cache:
         raise KeyboardInterrupt
     else:
@@ -263,17 +264,13 @@ def main():
     )
     pacmap = PacMap(maze)
     nn = PacmanNetwork(model_path="models/last_result.pt")
-    #trainer = EvolutionTrainer(pacmap, 3, 5, 0.01)
-    #nn = trainer.train([nn], 10)
-    #nn.save("models/last_result.pt")
-    #pacmap.restart()
+    # trainer = EvolutionTrainer(pacmap, 3, 5, 0.01)
+    # nn = trainer.train([nn], 10)
+    # nn.save("models/last_result.pt")
+    # pacmap.restart()
     chooser = NNDirectionChooser(nn)
-    vis =Visualizer(pacmap, (1400,1200), nn=chooser)
+    vis = Visualizer(pacmap, (1400, 1200), nn=chooser)
     vis.launch_loop()
-
-
-
-   
 
 
 if __name__ == "__main__":

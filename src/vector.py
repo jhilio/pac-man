@@ -280,7 +280,7 @@ class Vector:
         """
         Get the value of a specific dimension by name.
         """
-        if name in self.DIM_ORDER[0:self.CLASS_LEN]:
+        if name in self.DIM_ORDER[0 : self.CLASS_LEN]:
             value = self._dim_pos[self.DIM_ORDER.find(name)]
             return value
         return None
@@ -304,6 +304,7 @@ class Vector:
 
 class Pos2D(Vector):
     CLASS_LEN = 2
+
 
 # a = Pos3d(1, 2, 3)
 # b = Pos3d(5, 2, 3)

@@ -4,7 +4,6 @@ from typing import Callable, Optional, Any
 from .vector import Pos2D
 
 
-
 class CyclicList(list):
     def __getitem__(self, s):
         if isinstance(s, int):
@@ -126,7 +125,7 @@ class AnimatedButton(ClickableButton):
         hovered_image: Optional[pygame.Surface] = None,
         on_hover=None,
         animation_image: Optional[CyclicList[pygame.surface.Surface]] = None,
-        animation_frames_count: int=5,
+        animation_frames_count: int = 5,
         animate_func: Optional[DelayedCall] = None,
         anim_duration=1,
     ):
@@ -159,7 +158,7 @@ class AnimatedButton(ClickableButton):
         self.__class__.last_hovered = self
 
     def on_click(self) -> None:
-        #if not self.__class__.anim_launched:
+        # if not self.__class__.anim_launched:
         self.anim_stage = 1
         self.__class__.anim_launched = True
 
@@ -176,7 +175,12 @@ class AnimatedButton(ClickableButton):
         if self.animation_image is not None and self.anim_stage is not None:
             x = base_image.get_width() * self.anim_stage
             new = base_image.copy()
-            new.blit(self.animation_image[int(self.anim_stage*self.animation_frames_count)], (x, 0))
+            new.blit(
+                self.animation_image[
+                    int(self.anim_stage * self.animation_frames_count)
+                ],
+                (x, 0),
+            )
             return new
         elif (
             self.animation_image is not None

@@ -199,7 +199,7 @@ class Visualizer:
                 button.to_screen_rect.y,
                 font=button.font_size,
             )
-            
+
         if self.pacmap.pacman.cheat_mode:
             text += "\ncheat mode: on"
         self.draw_text_multiline(text, 1000, 100, font=self.get_font(25))
@@ -535,6 +535,7 @@ class Visualizer:
                         center_part,
                         screen_size / 2 - (Pos2D(center_part.get_size()) / 2),
                     )
+
     def init_button(self):
         back_button = ClickableButton(
             0.9,
@@ -555,13 +556,13 @@ class Visualizer:
         in_game = [
             back_button,
             ClickableButton(
-                0.4, 0,
-                0.2, 0.05,
+                0.4,
+                0,
+                0.2,
+                0.05,
                 self.screen,
                 effect=DelayedCall(
-                    lambda pac=self.pacmap: print(
-                        pac.score, pac.pacman.lives
-                    )
+                    lambda pac=self.pacmap: print(pac.score, pac.pacman.lives)
                 ),
                 text="get_score",
             ),
@@ -574,9 +575,7 @@ class Visualizer:
                 effect=DelayedCall(
                     self.change_state, VisualState.IN_GAME_PAUSED
                 ),
-                image=MainData.assets.get_asset(
-                    "unpaused.png", scaling=False
-                ),
+                image=MainData.assets.get_asset("unpaused.png", scaling=False),
             ),
         ]
         in_game_paused = [
@@ -588,13 +587,18 @@ class Visualizer:
                 0.1,
                 self.screen,
                 effect=DelayedCall(self.change_state, VisualState.IN_GAME),
-                image=MainData.assets.get_asset(
-                    "paused.png", scaling=False
-                ),
+                image=MainData.assets.get_asset("paused.png", scaling=False),
             ),
         ]
 
-        paused_pacman = CyclicList([MainData.assets.get_asset(f"pacman_frame_{i}.png", size_multiplier=1.3) for i in range(4)])
+        paused_pacman = CyclicList(
+            [
+                MainData.assets.get_asset(
+                    f"pacman_frame_{i}.png", size_multiplier=1.3
+                )
+                for i in range(4)
+            ]
+        )
         main_menu = [
             AnimatedButton(
                 0.4,
@@ -611,13 +615,12 @@ class Visualizer:
                 text=DelayedCall(
                     lambda pacmap: (
                         "Start game"
-                        if pacmap.total_elapsed_time == 0
-                        or pacmap.is_finished
+                        if pacmap.total_elapsed_time == 0 or pacmap.is_finished
                         else "resume game"
                     ),
                     self.pacmap,
                 ),
-                animation_image=paused_pacman
+                animation_image=paused_pacman,
             ),
             AnimatedButton(
                 0.4,
@@ -625,11 +628,9 @@ class Visualizer:
                 0.2,
                 0.03,
                 self.screen,
-                DelayedCall(
-                    self.change_state, VisualState.HIGH_SCORE_MENU, 0
-                ),
+                DelayedCall(self.change_state, VisualState.HIGH_SCORE_MENU, 0),
                 text="High scores",
-                animation_image=paused_pacman
+                animation_image=paused_pacman,
             ),
             AnimatedButton(
                 0.4,
@@ -638,7 +639,7 @@ class Visualizer:
                 0.03,
                 self.screen,
                 DelayedCall(self.change_state, VisualState.CONFIG),
-                animation_image=paused_pacman
+                animation_image=paused_pacman,
             ),
         ]
         self.buttons_per_menu = {
