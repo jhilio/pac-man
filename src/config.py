@@ -24,18 +24,18 @@ class AssetsManager:
     def get_asset(
         self,
         name: str,
-        scaled_size: Optional[int] = None,
+        scaled_size: Optional[tuple[int, int]]=None,
         size_multiplier: float = 1,
         scaling: bool = True,
     ) -> Any | pygame.Surface:
-        if scaled_size:
-            size = scaled_size
+        if scaled_size is None:
+            x = y = MainData.cell_size * size_multiplier
         else:
-            size = MainData.cell_size * size_multiplier
-        hashable = (name, size_multiplier, scaling)
-        if self.scaled.get(size) is None:
-            self.scaled[size] = {}
-        cache = self.scaled[size]
+            x, y = scaled_size
+        hashable = (name, x, y, size_multiplier, scaling)
+        if self.scaled.get((x, y)) is None:
+            self.scaled[(x, y)] = {}
+        cache = self.scaled[(x, y)]
         if hashable in cache:
             return cache[hashable]
         unscaled = self._originals.get(name)
@@ -44,7 +44,7 @@ class AssetsManager:
         if not scaling:
             return unscaled
         scaled = pygame.transform.scale(
-            unscaled, (size * size_multiplier, size * size_multiplier)
+            unscaled, (x * size_multiplier, y * size_multiplier)
         )
         if unscaled.get_colorkey() is not None:
             scaled.set_colorkey(unscaled.get_colorkey()[:3])

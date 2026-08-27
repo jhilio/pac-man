@@ -9,7 +9,7 @@ from pathlib import Path
 import mazegenerator
 from src.enums import Direction
 from src.pacmap import PacMap
-from src.visualizer import Visualizer
+from src.visualizer.visualizer import Visualizer
 from src.ai.network import PacmanNetwork
 from src.ai.interface import NNDirectionChooser
 from src.ai.training import EvolutionTrainer

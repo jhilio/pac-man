@@ -1,18 +1,27 @@
 from __future__ import annotations
 import json
-from unittest import result
+from tkinter import NO
 import pygame
 from typing import Optional
 
-from src.ai.interface import NNDirectionChooser
-from .vector import Pos2D
-from .charachters.ghost import get_ghost_state
-from .charachters.moving_entity import MovingEntities
-from .pacmap import PacMap
-from .enums import Direction, VisualState, AnimTypes
-from .config import MainData
+from ..ai.interface import NNDirectionChooser
+from ..vector import Pos2D
+from ..charachters.ghost import get_ghost_state
+from ..charachters.moving_entity import MovingEntities
+from ..pacmap import PacMap
+from ..enums import Direction, VisualState, AnimTypes
+from ..config import MainData
+from .utils import draw_text_multiline
+from ..visualizer.button import (
+    ClickableButton,
+    DelayedCall,
+    AnimatedButton,
+    CyclicList,
+    pac_button_anim,
+)
 
-from .button import ClickableButton, DelayedCall, AnimatedButton, CyclicList
+
+
 
 
 def zoom(image: pygame.surface.Surface, size: Pos2D):
@@ -55,9 +64,6 @@ class Visualizer:
         self.verbose = verbose
         self.init_button()
         bg = MainData.assets.get_asset("BGmenu.jpg", scaling=False)
-        bgleft = MainData.assets.get_asset("leftbg.png", scaling=False)
-        bggame = MainData.assets.get_asset("gameback.jpg", scaling=False)
-
         self.surface_per_menu = {
             VisualState.MAIN_MENU: self.screen.copy(),
             VisualState.CONFIG: self.screen.copy(),
@@ -65,12 +71,12 @@ class Visualizer:
             VisualState.IN_GAME: self.screen.copy(),
             "final_buffer": self.screen.copy(),
         }
-        self.background_per_menu = {
-            VisualState.CONFIG: bg,
-            VisualState.HIGH_SCORE_MENU: bgleft,
+        self.background_name_per_menu = {
+            VisualState.CONFIG: "BGmenu.jpg",
+            VisualState.HIGH_SCORE_MENU: "leftbg.png",
             VisualState.IN_GAME: zoom(bg, Pos2D(bg.get_width(), 160)),
-            VisualState.MAIN_MENU: bg,
-            VisualState.IN_GAME: bggame,
+            VisualState.MAIN_MENU: "BGmenu.jpg",
+            VisualState.IN_GAME: "gameback.jpg",
         }
         self.prec_state = None
         self.nn = nn
@@ -83,11 +89,10 @@ class Visualizer:
         return self.buttons_per_menu.get(self.visualiser_state, [])
 
     def get_background(self, state: VisualState):
-        bg = self.background_per_menu.get(state, None)
-        if bg is not None:
-            bg = pygame.transform.scale(
-                bg, (self.screen.get_width(), self.screen.get_height())
-            )
+        bg_name = self.background_name_per_menu.get(state, None)
+        if bg_name is None:
+            return None
+        bg = MainData.assets.get_asset(bg_name, self.screen.get_size())
         return bg
 
     def change_state(
@@ -162,11 +167,12 @@ class Visualizer:
         actual = self.draw_to_menu(self.visualiser_state, dt)
         prec = self.draw_to_menu(self.prec_state, dt)
 
-        finish_result = self.anim_transition(actual, prec, dt)
-        self.screen.blit(finish_result, (0, 0))
+        if self.prec_state:
+            finish_result = self.anim_transition(actual, prec, dt)
+            self.screen.blit(finish_result, (0, 0))
         if self.pacmap.pacman.cheat_mode:
             text += "\ncheat mode: on"
-        self.draw_text_multiline(
+        draw_text_multiline(
             self.screen, text, 1000, 100, font=self.get_font(25)
         )
         pygame.display.update()
@@ -174,7 +180,10 @@ class Visualizer:
     def draw_to_menu(self, state: VisualState, dt: float):
         if state is None:
             return None
-        target = self.surface_per_menu[state]
+        if self.prec_state:
+            target = self.surface_per_menu[state]
+        else:
+            target = self.screen
         if self.get_background(state) is not None:
             target.blit(self.get_background(state), (0, 0))
         else:
@@ -195,7 +204,7 @@ class Visualizer:
                 )
                 target.blit(self.game_space, pos)
             case VisualState.HIGH_SCORE_MENU:
-                self.draw_text_multiline(
+                draw_text_multiline(
                     target,
                     "\n".join(
                         f'"{k}": {v}' for k, v in MainData.high_scores.items()
@@ -205,7 +214,7 @@ class Visualizer:
                     font=self.get_font(25),
                 )
             case VisualState.CONFIG:
-                self.draw_text_multiline(
+                draw_text_multiline(
                     target,
                     "shortcut:\narrow keys: movement\nr-> reload map\n"
                     + "n: togle neural network\nbackspace/delete: go back"
@@ -220,22 +229,10 @@ class Visualizer:
         mouse_pos = Pos2D(pygame.mouse.get_pos())
         if state == self.visualiser_state:
             for button in self.buttons_per_menu[state]:
-                if isinstance(button, AnimatedButton):
-                    button.update(dt)
+                button.update(dt, button.is_in(mouse_pos))
                 target.blit(
-                    (
-                        button.hovered_image
-                        if button.is_in(mouse_pos)
-                        else button.image
-                    ),
+                    (button.image),
                     button.to_screen_rect,
-                )
-                self.draw_text_multiline(
-                    target,
-                    button.text,
-                    button.to_screen_rect.x,
-                    button.to_screen_rect.y,
-                    font=self.get_font(button.font_size),
                 )
         return target
 
@@ -371,39 +368,7 @@ class Visualizer:
 
         return self.font_cache[size]
 
-    def draw_text_multiline(
-        self,
-        target: pygame.surface.Surface,
-        text: str,
-        x: int,
-        y: int,
-        line_spacing: int = 2,
-        color: tuple[int, int, int] = (255, 255, 255),
-        font: Optional[pygame.font.Font] = None,
-    ) -> None:
-        """Draw text on the screen, allowing for multiline text.
-
-        Args:
-            text (str): The text to draw.
-            x (int): The x position to \
-                start drawing the text.
-            y (int): The y position to \
-                start drawing the text.
-            line_spacing (int, optional): \
-                The spacing between lines. Defaults to 2.
-            color (tuple[int, int, int], optional): \
-                The color of the text. Defaults to (255, 255, 255).
-            font (Optional[pygame.font.Font], optional): \
-                The font to use for the text. Defaults to None.
-        """
-        lines = text.split("\n")
-        if font is None:
-            font = self.get_font()
-        for i, line in enumerate(lines):
-            text_surface = font.render(line, True, color)
-            target.blit(
-                text_surface, (x, y + i * (font.get_height() + line_spacing))
-            )
+    
 
     def keyboard_handler(self, event: pygame.event):
         match event.key:
@@ -572,6 +537,7 @@ class Visualizer:
             0.1,
             0.1,
             self.screen,
+            self.get_font(25),
             effect=DelayedCall(
                 lambda vis: vis.change_state(
                     VisualState.MAIN_MENU,
@@ -591,6 +557,7 @@ class Visualizer:
                 0.2,
                 0.05,
                 self.screen,
+                self.get_font(25),
                 effect=DelayedCall(
                     lambda pac=self.pacmap: print(pac.score, pac.pacman.lives)
                 ),
@@ -602,6 +569,7 @@ class Visualizer:
                 0.1,
                 0.1,
                 self.screen,
+                self.get_font(25),
                 effect=DelayedCall(
                     lambda self: setattr(self, "paused", not self.paused), self
                 ),
@@ -625,7 +593,8 @@ class Visualizer:
                 0.3,
                 0.05,
                 self.screen,
-                DelayedCall(
+                self.get_font(30),
+                effect=DelayedCall(
                     self.change_state,
                     VisualState.IN_GAME,
                     anim_duration=1,
@@ -640,8 +609,8 @@ class Visualizer:
                     self.pacmap,
                 ),
                 image=MainData.assets.get_asset("button.png", scaling=False),
-                font_size=30,
                 animation_image=paused_pacman,
+                animate_func=pac_button_anim,
                 animation_frames_count=10,
             ),
             AnimatedButton(
@@ -650,17 +619,18 @@ class Visualizer:
                 0.3,
                 0.05,
                 self.screen,
-                DelayedCall(
+                self.get_font(30),
+                effect=DelayedCall(
                     lambda: self.change_state(
                         VisualState.HIGH_SCORE_MENU,
                         1,
                         AnimTypes.LEFT_TO_RIGHT,
                     )
                 ),
-                font_size=30,
                 image=MainData.assets.get_asset("button.png", scaling=False),
                 text="High scores",
                 animation_image=paused_pacman,
+                animate_func=pac_button_anim,
                 animation_frames_count=10,
             ),
             AnimatedButton(
@@ -669,10 +639,12 @@ class Visualizer:
                 0.3,
                 0.05,
                 self.screen,
-                DelayedCall(self.change_state, VisualState.CONFIG),
+                self.get_font(30),
+                effect=DelayedCall(self.change_state, VisualState.CONFIG),
                 image=MainData.assets.get_asset("button.png", scaling=False),
-                font_size=30,
+                text="Controls",
                 animation_image=paused_pacman,
+                animate_func=pac_button_anim,
                 animation_frames_count=10,
             ),
         ]
