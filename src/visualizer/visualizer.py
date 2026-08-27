@@ -90,9 +90,25 @@ class Visualizer:
         self.anim_type = AnimTypes.LEFT_TO_RIGHT
         self.act_anim = 0
         custom_cell = []
-        custom_cell.append([Cell(9, 0, 0, custom_cell), Cell(12, 0, 1, custom_cell)])
-        custom_cell.extend([[Cell(1, x, 0, custom_cell), Cell(4, x, 1, custom_cell)] for x in range(MainData.config_from_file["width"]-2)])
-        custom_cell.append([Cell(3, MainData.config_from_file["width"]-1, 0, custom_cell), Cell(6, MainData.config_from_file["width"]-1, 1, custom_cell)])
+        custom_cell.append(
+            [Cell(9, 0, 0, custom_cell), Cell(12, 0, 1, custom_cell)]
+        )
+        custom_cell.extend(
+            [
+                [Cell(1, x, 0, custom_cell), Cell(4, x, 1, custom_cell)]
+                for x in range(MainData.config_from_file["width"] - 2)
+            ]
+        )
+        custom_cell.append(
+            [
+                Cell(
+                    3, MainData.config_from_file["width"] - 1, 0, custom_cell
+                ),
+                Cell(
+                    6, MainData.config_from_file["width"] - 1, 1, custom_cell
+                ),
+            ]
+        )
         self.custom_cell = custom_cell
 
     @property
@@ -360,16 +376,21 @@ class Visualizer:
                 charachter.incr_anim()
             pos = (charachter.visual_pos) * MainData.cell_size
             target.blit(charachter.image, pos + offset)
-        for x in (range(self.pacmap.pacman.lives-1)):
-            pos = (Pos2D(len(self.pacmap.cells)-1-x, len(self.pacmap.cells[0])) * 3 + (1, 1)) * MainData.cell_size 
+        for x in range(self.pacmap.pacman.lives - 1):
+            pos = (
+                Pos2D(
+                    len(self.pacmap.cells) - 1 - x, len(self.pacmap.cells[0])
+                )
+                * 3
+                + (1, 1)
+            ) * MainData.cell_size
             target.blit(self.pacmap.pacman.raw_image, pos + offset)
-
 
     def draw_cells(
         self,
         target: pygame.surface.Surface,
         offset: Pos2D,
-        cells: list[list[cells.Cell]],
+        cells: list[list[Cell]],
     ) -> None:
         for x, row in enumerate(cells):
             for y, cell in enumerate(row):
@@ -728,7 +749,18 @@ class Visualizer:
                 animation_frames_count=10,
             ),
         ]
-
+        high_score = AnimatedButton(
+            0.2,
+            0.2,
+            0.5,
+            0.5,
+            self.screen,
+            self.get_font(10),
+            image=MainData.assets.get_asset("control.png", scaling=False),
+            text="\n".join(
+                f'"{k}": {v}' for k, v in MainData.high_scores.items()
+            ),
+        )
         prompting_for_name = [
             ClickableButton(
                 0.35,
@@ -749,7 +781,7 @@ class Visualizer:
         AnimatedButton.last_hovered = main_menu[0]
         self.buttons_per_menu: dict[VisualState, list[ClickableButton]] = {
             VisualState.IN_GAME: in_game,
-            VisualState.HIGH_SCORE_MENU: [back_button],
+            VisualState.HIGH_SCORE_MENU: [back_button, high_score],
             VisualState.MAIN_MENU: main_menu,
             VisualState.CONFIG: [back_button],
             VisualState.PROMPTING_FOR_NAME: prompting_for_name,
