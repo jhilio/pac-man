@@ -32,7 +32,7 @@ def zoom(image: pygame.surface.Surface, size: Pos2D):
 
 class Visualizer:
     Counter = 0
-    CELL_MARGIN = 2
+    CELL_MARGIN = 3
 
     def __init__(
         self,
@@ -89,10 +89,11 @@ class Visualizer:
         self.anim_duration = 1
         self.anim_type = AnimTypes.LEFT_TO_RIGHT
         self.act_anim = 0
+        y = len(self.pacmap.cells[0])
         custom_cell = []
-        custom_cell.append([Cell(9, 0, 0, custom_cell), Cell(12, 0, 1, custom_cell)])
-        custom_cell.extend([[Cell(1, x, 0, custom_cell), Cell(4, x, 1, custom_cell)] for x in range(MainData.config_from_file["width"]-2)])
-        custom_cell.append([Cell(3, MainData.config_from_file["width"]-1, 0, custom_cell), Cell(6, MainData.config_from_file["width"]-1, 1, custom_cell)])
+        custom_cell.append([Cell(9, 0, y, custom_cell), Cell(12, 0, y+1, custom_cell)])
+        custom_cell.extend([[Cell(1, x, y, custom_cell), Cell(4, x, y+1, custom_cell)] for x in range(1,MainData.config_from_file["width"]-1)])
+        custom_cell.append([Cell(3, MainData.config_from_file["width"]-1, y, custom_cell), Cell(6, MainData.config_from_file["width"]-1, y+1, custom_cell)])
         self.custom_cell = custom_cell
 
     @property
@@ -209,17 +210,25 @@ class Visualizer:
             target.fill((0, 0, 0))
         match state:
             case VisualState.IN_GAME | VisualState.PROMPTING_FOR_NAME:
-                self.game_space.fill((0, 0, 0))
+                shortest_side = min(target.get_size())
+                longest_maze = (max(len(self.pacmap.cells), len(self.pacmap.cells[0]))+(self.CELL_MARGIN*2)) * 3
+                if shortest_side // longest_maze != MainData.cell_size:
+                    MainData.cell_size = shortest_side // longest_maze
+                    for col in self.pacmap.cells + self.custom_cell:
+                        for cell in col:
+                            cell.init_image()
+                game_size = Pos2D(MainData.cell_size * longest_maze, MainData.cell_size * longest_maze)
+                game_offset = Pos2D(target.get_size()) / 2 - Pos2D(game_size) / 2
                 offset = (
                     Pos2D(
                         MainData.cell_size * self.CELL_MARGIN * 3,
                         MainData.cell_size * self.CELL_MARGIN * 3,
                     )
                     // 1
-                )
-                self.draw_cells(self.game_space, offset, self.pacmap.cells)
+                ) + game_offset
+                self.draw_cells(target, offset, self.pacmap.cells)
                 self.draw_cells(
-                    self.game_space,
+                    target,
                     offset
                     + Pos2D(
                         0, len(self.pacmap.cells[0]) * MainData.cell_size * 3
@@ -227,16 +236,10 @@ class Visualizer:
                     self.custom_cell,
                 )
                 if self.pacmap.pacman.cheat_mode:
-                    self.draw_targets(self.game_space, offset)
-                self.draw_charachters(self.game_space, offset)
+                    self.draw_targets(target, offset)
+                self.draw_charachters(target, offset)
                 self.draw_timer(
-                    self.game_space, offset - Pos2D(MainData.cell_size, 0)
-                )
-                size = min(target.get_size())
-                final = pygame.transform.scale(self.game_space, (size, size))
-                target.blit(
-                    final,
-                    Pos2D(target.get_size()) / 2 - Pos2D(final.get_size()) / 2,
+                    target, offset - Pos2D(MainData.cell_size, 0)
                 )
             case VisualState.HIGH_SCORE_MENU:
                 draw_text_multiline(
@@ -369,32 +372,12 @@ class Visualizer:
         self,
         target: pygame.surface.Surface,
         offset: Pos2D,
-        cells: list[list[cells.Cell]],
+        cells: list[list[Cell]],
     ) -> None:
         for x, row in enumerate(cells):
             for y, cell in enumerate(row):
-                for x2 in range(3):
-                    for y2 in range(3):
-                        rect = pygame.Rect(
-                            ((x * 3 + x2) * MainData.cell_size) + offset.x,
-                            ((y * 3 + y2) * MainData.cell_size) + offset.y,
-                            MainData.cell_size,
-                            MainData.cell_size,
-                        )
-                        if (x + y + x2 + y2) & 1:
-                            target.fill(pygame.Color(20, 20, 80), rect)
-                        target.blit(cell.image[x2][y2], rect)
-                        if cell.fruit:
-                            image = cell.fruit.image
-                            target.blit(
-                                image,
-                                offset
-                                + (
-                                    (x * 3 + 1) * MainData.cell_size,
-                                    (y * 3 + 1) * MainData.cell_size,
-                                ),
-                            )
-
+                target.blit(cell.image, offset + (x*3*MainData.cell_size, y*3*MainData.cell_size))
+              
     def draw_timer(self, target: pygame.surface.Surface, offset: Pos2D):
         ratio = (
             self.pacmap.level["duration"] - self.pacmap.total_elapsed_time
