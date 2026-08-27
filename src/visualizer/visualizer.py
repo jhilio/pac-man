@@ -266,16 +266,6 @@ class Visualizer:
                     self.draw_targets(target, offset)
                 self.draw_charachters(target, offset)
                 self.draw_timer(target, offset - Pos2D(MainData.cell_size, 0))
-            case VisualState.HIGH_SCORE_MENU:
-                draw_text_multiline(
-                    target,
-                    "\n".join(
-                        f'"{k}": {v}' for k, v in MainData.high_scores.items()
-                    ),
-                    200,
-                    100,
-                    font=self.get_font(25),
-                )
             case VisualState.CONFIG:
                 draw_text_multiline(
                     target,
@@ -751,10 +741,11 @@ class Visualizer:
             0.5,
             0.5,
             self.screen,
-            self.get_font(10),
+            self.get_font(25),
             image=MainData.assets.get_asset("control.png", scaling=False),
-            text="\n".join(
-                f'"{k}": {v}' for k, v in MainData.high_scores.items()
+            text=DelayedCall(lambda data=MainData: "\n".join(
+                    f'"{k}": {v}' for k, v in data.high_scores.items()
+                )
             ),
         )
         prompting_for_name = [

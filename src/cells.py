@@ -135,9 +135,9 @@ class Cell:
             ),  # left
         )
         self.__image = pygame.surface.Surface((MainData.cell_size *3, MainData.cell_size *3)) 
-        self.__image.set_colorkey((0,0,0))
         for x in range(3):
             for y in range(3):
+                all_images[x][y].set_colorkey((0,0,0))
                 color = (20,20,80)
                 if (self.x + self.y + x + y) % 2:
                     color = (0, 0 ,0)

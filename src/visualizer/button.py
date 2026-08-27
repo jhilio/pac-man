@@ -106,9 +106,21 @@ class ClickableButton:
             )
         else :
             surface = pygame.Surface(tuple(self.to_screen_rect)[2:])
-        text = self.font.render(self.text, True, (255, 255, 255))
-        center = Pos2D(surface.get_size()) / 2 -( Pos2D(text.get_size()) /2)
-        surface.blit(text, center)
+        txt = self.text
+        if txt:
+            lines = self.text.split("\n")
+            surface_lines: list[pygame.surface.Surface] = []
+            for i, line in enumerate(lines):
+                surface_lines.append(self.font.render(line, True, (255,255,255)))
+
+            width = max(a.get_width() for a in surface_lines)
+            height = (self.font.get_height() + 2) * len(surface_lines)
+            start = Pos2D(surface.get_size()) / 2 -( Pos2D(width, height) /2)
+
+            for i, line in enumerate(surface_lines):
+                surface.blit(
+                    line, start + Pos2D(0, ((self.font.get_height() + 2) * i))
+                )
         return surface
 
 
