@@ -17,6 +17,12 @@ class Pacman(MovingEntities):
         self.map = MainData.pacmap
 
     @property
+    def raw_image(self):
+        frame = MainData.assets.get_asset(
+            f"pacman_frame_{self.anim_step}.png", size_multiplier=1.3
+        )
+        return frame
+    @property
     def image(self):
         frame = MainData.assets.get_asset(
             f"pacman_frame_{self.anim_step}.png", size_multiplier=1.3
