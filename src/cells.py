@@ -1,4 +1,7 @@
+import py_compile
 from typing import Optional
+
+import pygame
 from .config import MainData
 from .enums import Direction
 
@@ -6,6 +9,7 @@ from .enums import Direction
 class Fruit:
     def __init__(self, val: int = 0):
         self.val = val
+        self.parent = None
 
     @property
     def image(self):
@@ -25,6 +29,8 @@ class Fruit:
                 "frightened_duration"
             ]
         self.val = 0
+        if self.parent is not None:
+            self.parent.init_image()
 
 
 class Cell:
@@ -38,6 +44,8 @@ class Cell:
     ):
         self.walls = walls
         self.fruit = fruit if walls != 15 else Fruit(0)
+        if self.fruit:
+            self.fruit.parent = self
         self.x = x
         self.y = y
         self.neighbors = neighbors
@@ -109,8 +117,7 @@ class Cell:
             pass  # create 3*3 full block for 42 patern
 
         n = self.__get_neighbor()
-
-        self.__image = (
+        all_images = (
             (
                 get_corner(self.walls, Direction.NORTH, Direction.WEST, n),
                 get_direction(self.walls, Direction.WEST),
@@ -118,7 +125,7 @@ class Cell:
             ),  # right part
             (
                 get_direction(self.walls, Direction.NORTH),
-                MainData.assets.get_asset("no_dot.png"),
+                self.fruit.image if self.fruit else MainData.assets.get_asset("no_dot.png") ,
                 get_direction(self.walls, Direction.SOUTH),
             ),  # midle
             (
@@ -127,6 +134,15 @@ class Cell:
                 get_corner(self.walls, Direction.SOUTH, Direction.EAST, n),
             ),  # left
         )
+        self.__image = pygame.surface.Surface((MainData.cell_size *3, MainData.cell_size *3)) 
+        self.__image.set_colorkey((0,0,0))
+        for x in range(3):
+            for y in range(3):
+                color = (20,20,80)
+                if (self.x + self.y + x + y) % 2:
+                    color = (0, 0 ,0)
+                self.__image.fill(color, (x*MainData.cell_size, y*MainData.cell_size, MainData.cell_size, MainData.cell_size))
+        self.__image.blits([(image, (x*MainData.cell_size,y*MainData.cell_size)) for x, image_col in enumerate(all_images)  for y, image in enumerate(image_col)])
         return self.__image
 
     def __str__(self):
