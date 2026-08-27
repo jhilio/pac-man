@@ -1,5 +1,5 @@
 from math import sqrt
-from typing import Any, Iterator, cast, Iterable, Self
+from typing import Any, Iterator, SupportsIndex, cast, Iterable, Self
 
 
 class Vector:
@@ -221,7 +221,7 @@ class Vector:
                 result.append(self._dim_pos[i])
         return "(" + " ".join([str(a) for a in result]) + ")"
 
-    def __round__(self, ndigits: Any) -> Self:
+    def __round__(self, ndigits: SupportsIndex|None=None) -> Self:
         """
         Round the dimensions of the vector to the specified number of digits.
         """
@@ -302,10 +302,19 @@ class Vector:
             )
 
 
+class Point(Vector):
+    CLASS_LEN =1
+
 class Pos2D(Vector):
     CLASS_LEN = 2
 
+class ColorRGB(Vector):
+    CLASS_LEN = 3
+    DIM_ORDER = "RGB"
 
+class Rectangle(Vector):
+    CLASS_LEN = 4
+    DIM_ORDER = "xywh"
 # a = Pos3d(1, 2, 3)
 # b = Pos3d(5, 2, 3)
 

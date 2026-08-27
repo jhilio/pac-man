@@ -124,6 +124,7 @@ class AnimatedButton(ClickableButton):
         height: float,
         screen: pygame.Surface,
         font: pygame.font.Font,
+        *args,
         effect: Optional[DelayedCall] = None,
         text: str | DelayedCall = "",
         image: Optional[pygame.Surface] = None,
@@ -158,20 +159,23 @@ class AnimatedButton(ClickableButton):
         self.animation_image = animation_image
         self.anim_stage = None
         self.animation_frames_count = animation_frames_count
+        self.extra = args
 
     def default_hover(self):
-        self.__class__.last_hovered = self
-
+        pass
+        
     def on_click(self) -> None:
         if not self.__class__.anim_launched:
-            self.anim_stage = 1
-            self.__class__.anim_launched = True
-
+            if self.anim_duration:
+                self.anim_stage = 1
+                self.__class__.anim_launched = True
+            else:
+                self.effect()
     def update(self, dt: float, is_hovered: bool=False):
         super().update(dt, is_hovered)
-        if self.anim_stage:
+        if self.anim_stage is not None:
             self.anim_stage -= dt / self.anim_duration
-            if self.anim_stage < 0:
+            if self.anim_stage <= 0:
                 self.anim_stage = None
                 self.__class__.anim_launched = False
                 if self.effect:
@@ -186,7 +190,10 @@ class AnimatedButton(ClickableButton):
             self._on_hover(self)
         base_image = super().image
         animated = self._animate_func(self, base_image)
-        return animated
+        return pygame.transform.scale(animated, tuple(self.to_screen_rect)[2:])
+
+def pac_button_hover(self: AnimatedButton):
+    self.__class__.last_hovered = self
 
 
 def pac_button_anim(self: AnimatedButton, base_image: pygame.surface.Surface):
@@ -218,3 +225,9 @@ def pac_button_anim(self: AnimatedButton, base_image: pygame.surface.Surface):
         new.blit(anim_frame, (x, y))
         return new
     return base_image
+
+
+def paused_anim(self:AnimatedButton, base_image:  pygame.surface.Surface):
+    if self.extra[0].paused:
+        return self.animation_image[1]
+    return self.animation_image[0]

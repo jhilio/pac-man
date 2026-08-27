@@ -1,11 +1,12 @@
 from __future__ import annotations
 import json
-from tkinter import NO
 import pygame
 from typing import Optional
 
+from ..cells import Cell
+
 from ..ai.interface import NNDirectionChooser
-from ..vector import Pos2D
+from ..vector import Pos2D, Rectangle, ColorRGB, Point
 from ..charachters.ghost import get_ghost_state
 from ..charachters.moving_entity import MovingEntities
 from ..pacmap import PacMap
@@ -17,7 +18,10 @@ from ..visualizer.button import (
     DelayedCall,
     AnimatedButton,
     CyclicList,
+    PercentRect,
     pac_button_anim,
+    pac_button_hover,
+    paused_anim,
 )
 
 
@@ -44,21 +48,25 @@ class Visualizer:
         self.paused = True
         self.typed_name = ""
         self.autoplay = True
-        game_size = (
-            Pos2D(
-                MainData.config_from_file["width"],
-                MainData.config_from_file["height"],
-            )
-            * MainData.cell_size
-            * 3
-        ) // 1
-        self.game_space = pygame.Surface(game_size)
         self.pacmap = pacmap
         self.base_font_size = 13
         self.font_cache: dict[int, pygame.font.Font] = {}
         self.screen = pygame.display.set_mode(size, pygame.RESIZABLE)
         self.code_sequence = []
         self.verbose = verbose
+        game_size = (
+            (
+                Pos2D(
+                    MainData.config_from_file["width"],
+                    MainData.config_from_file["height"],
+                )
+                + Pos2D(self.CELL_MARGIN, self.CELL_MARGIN) * 2
+            )
+            * MainData.cell_size
+            * 3
+        ) // 1
+        self.game_space = pygame.Surface(game_size)
+        self.game_space.set_colorkey((0, 0, 0))
         self.init_button()
         game_copy = self.screen.copy()
         self.surface_per_menu = {
@@ -81,6 +89,11 @@ class Visualizer:
         self.anim_duration = 1
         self.anim_type = AnimTypes.LEFT_TO_RIGHT
         self.act_anim = 0
+        custom_cell = []
+        custom_cell.append([Cell(9, 0, 0, custom_cell), Cell(12, 0, 1, custom_cell)])
+        custom_cell.extend([[Cell(1, x, 0, custom_cell), Cell(4, x, 1, custom_cell)] for x in range(MainData.config_from_file["width"]-2)])
+        custom_cell.append([Cell(3, MainData.config_from_file["width"]-1, 0, custom_cell), Cell(6, MainData.config_from_file["width"]-1, 1, custom_cell)])
+        self.custom_cell = custom_cell
 
     @property
     def active_buttons(self):
@@ -123,7 +136,7 @@ class Visualizer:
         while True:
             dt = clock.tick(self.fps) / 1000.0  # seconds since last frame
             for event in pygame.event.get():
-                if self.event_handler(event) == pygame.QUIT:
+                if self.event_handler(event).type == pygame.QUIT:
                     self.pacmap.update_high_score()
                     self.save_high_score()
                     pygame.quit()
@@ -197,18 +210,34 @@ class Visualizer:
         match state:
             case VisualState.IN_GAME | VisualState.PROMPTING_FOR_NAME:
                 self.game_space.fill((0, 0, 0))
-                self.draw_cells(self.game_space)
-                if self.pacmap.pacman.cheat_mode:
-                    self.draw_targets(self.game_space)
-                self.draw_charachters(self.game_space)
-                pos = (
+                offset = (
                     Pos2D(
                         MainData.cell_size * self.CELL_MARGIN * 3,
                         MainData.cell_size * self.CELL_MARGIN * 3,
                     )
                     // 1
                 )
-                target.blit(self.game_space, pos)
+                self.draw_cells(self.game_space, offset, self.pacmap.cells)
+                self.draw_cells(
+                    self.game_space,
+                    offset
+                    + Pos2D(
+                        0, len(self.pacmap.cells[0]) * MainData.cell_size * 3
+                    ),
+                    self.custom_cell,
+                )
+                if self.pacmap.pacman.cheat_mode:
+                    self.draw_targets(self.game_space, offset)
+                self.draw_charachters(self.game_space, offset)
+                self.draw_timer(
+                    self.game_space, offset - Pos2D(MainData.cell_size, 0)
+                )
+                size = min(target.get_size())
+                final = pygame.transform.scale(self.game_space, (size, size))
+                target.blit(
+                    final,
+                    Pos2D(target.get_size()) / 2 - Pos2D(final.get_size()) / 2,
+                )
             case VisualState.HIGH_SCORE_MENU:
                 draw_text_multiline(
                     target,
@@ -274,18 +303,7 @@ class Visualizer:
                     button.on_click()
         elif event.type == pygame.VIDEORESIZE:
             # 1. Enforce Minimum Size
-            min_size = (
-                (
-                    Pos2D(
-                        MainData.config_from_file["width"],
-                        MainData.config_from_file["height"],
-                    )
-                    + (Pos2D(self.CELL_MARGIN, self.CELL_MARGIN) * 2)
-                )
-                * MainData.cell_size
-                * 3
-            )
-            min_size //= 1
+            min_size = Pos2D(self.game_space.get_size())
 
             new_w = max(min_size.x, event.w)
             new_h = max(min_size.y, event.h)
@@ -312,14 +330,16 @@ class Visualizer:
         elif keys[pygame.K_LEFT]:
             self.pacmap.pacman.next_direction = Direction.WEST
         else:
-            a =False
+            a = False
         if a:
             self.paused = False
 
-    def draw_targets(self, target: pygame.surface.Surface) -> None:
+    def draw_targets(
+        self, target: pygame.surface.Surface, offset: Pos2D
+    ) -> None:
         for ghost in self.pacmap.ghosts:
             if ghost.target_cell:
-                start = ghost.target_cell * (MainData.cell_size)
+                start = ghost.target_cell * (MainData.cell_size) + offset
                 rect = (
                     start.x,
                     start.y,
@@ -328,7 +348,9 @@ class Visualizer:
                 )
                 target.fill(ghost.ghost_color, rect)
 
-    def draw_charachters(self, target: pygame.surface.Surface) -> None:
+    def draw_charachters(
+        self, target: pygame.surface.Surface, offset: Pos2D
+    ) -> None:
         charachters: list[MovingEntities] = [
             self.pacmap.pacman
         ] + self.pacmap.ghosts
@@ -337,37 +359,57 @@ class Visualizer:
             if self.Counter % 5 == 0:
                 charachter.incr_anim()
             pos = (charachter.visual_pos) * MainData.cell_size
-            target.blit(charachter.image, pos)
+            target.blit(charachter.image, pos + offset)
+        for x in (range(self.pacmap.pacman.lives-1)):
+            pos = (Pos2D(len(self.pacmap.cells)-1-x, len(self.pacmap.cells[0])) * 3 + (1, 1)) * MainData.cell_size 
+            target.blit(self.pacmap.pacman.raw_image, pos + offset)
 
-    def draw_cells(self, target: pygame.surface.Surface) -> None:
-        for x, row in enumerate(self.pacmap.cells):
+
+    def draw_cells(
+        self,
+        target: pygame.surface.Surface,
+        offset: Pos2D,
+        cells: list[list[cells.Cell]],
+    ) -> None:
+        for x, row in enumerate(cells):
             for y, cell in enumerate(row):
                 for x2 in range(3):
                     for y2 in range(3):
-                        if (x + y + x2 + y2) & 1:
-                            rect = pygame.Rect(
-                                ((x * 3 + x2) * MainData.cell_size),
-                                ((y * 3 + y2) * MainData.cell_size),
-                                MainData.cell_size,
-                                MainData.cell_size,
-                            )
-                            target.fill(pygame.Color(20, 20, 80), rect)
-                        target.blit(
-                            cell.image[x2][y2],
-                            (
-                                (x * 3 + x2) * MainData.cell_size,
-                                (y * 3 + y2) * MainData.cell_size,
-                            ),
+                        rect = pygame.Rect(
+                            ((x * 3 + x2) * MainData.cell_size) + offset.x,
+                            ((y * 3 + y2) * MainData.cell_size) + offset.y,
+                            MainData.cell_size,
+                            MainData.cell_size,
                         )
+                        if (x + y + x2 + y2) & 1:
+                            target.fill(pygame.Color(20, 20, 80), rect)
+                        target.blit(cell.image[x2][y2], rect)
                         if cell.fruit:
                             image = cell.fruit.image
                             target.blit(
                                 image,
-                                (
+                                offset
+                                + (
                                     (x * 3 + 1) * MainData.cell_size,
                                     (y * 3 + 1) * MainData.cell_size,
                                 ),
                             )
+
+    def draw_timer(self, target: pygame.surface.Surface, offset: Pos2D):
+        ratio = (
+            self.pacmap.level["duration"] - self.pacmap.total_elapsed_time
+        ) / self.pacmap.level["duration"]
+        color = ColorRGB(255, 80, 80).lerp(ColorRGB(80, 255, 80), ratio)
+        target.fill(
+            round(color, 0),
+            (
+                0 + offset.x,
+                (1 - ratio) * target.get_height() + offset.y,
+                MainData.cell_size,
+                target.get_height()
+                - (MainData.cell_size * self.CELL_MARGIN * 3 * 2),
+            ),
+        )
 
     def get_font(self, size: Optional[int] = None) -> pygame.font.Font:
         """Get a font for rendering text.
@@ -393,7 +435,7 @@ class Visualizer:
     def keyboard_handler(self, event: pygame.event):
         match event.key:
             case pygame.K_ESCAPE:
-                return pygame.QUIT
+                return pygame.event.Event(pygame.QUIT)
             case pygame.K_n:
                 self.autoplay = not self.autoplay
             case pygame.K_HOME:
@@ -441,7 +483,6 @@ class Visualizer:
             case _:
                 if self.verbose:
                     print(event)
-
         # konami sequence detection
         konami_code = [
             pygame.K_UP,
@@ -473,6 +514,7 @@ class Visualizer:
                     not self.pacmap.pacman.cheat_mode
                 )
                 self.code_sequence.clear()
+        return event
 
     def anim_transition(
         self,
@@ -573,32 +615,29 @@ class Visualizer:
         self.back_button = back_button
         in_game = [
             back_button,
-            ClickableButton(
-                0.4,
-                0,
-                0.2,
-                0.05,
-                self.screen,
-                self.get_font(25),
-                effect=DelayedCall(
-                    lambda pac=self.pacmap: print(pac.score, pac.pacman.lives)
-                ),
-                text="get_score",
-            ),
-            ClickableButton(
+            AnimatedButton(
                 0.78,
                 0,
                 0.1,
                 0.1,
                 self.screen,
                 self.get_font(25),
+                self,
                 effect=DelayedCall(
                     lambda self: setattr(self, "paused", not self.paused), self
                 ),
-                image=MainData.assets.get_asset("unpaused.png", scaling=False),
+                animation_image=CyclicList(
+                    [
+                        MainData.assets.get_asset(
+                            "unpaused.png", scaling=False
+                        ),
+                        MainData.assets.get_asset("paused.png", scaling=False),
+                    ]
+                ),
+                anim_duration=0,
+                animate_func=paused_anim,
             ),
         ]
-
         paused_pacman = CyclicList(
             [
                 MainData.assets.get_asset(
@@ -607,7 +646,6 @@ class Visualizer:
                 for i in range(4)
             ]
         )
-
         main_menu = [
             AnimatedButton(
                 0.35,
@@ -633,6 +671,7 @@ class Visualizer:
                 image=MainData.assets.get_asset("button.png", scaling=False),
                 animation_image=paused_pacman,
                 animate_func=pac_button_anim,
+                on_hover=pac_button_hover,
                 animation_frames_count=10,
             ),
             AnimatedButton(
@@ -653,6 +692,7 @@ class Visualizer:
                 text="High scores",
                 animation_image=paused_pacman,
                 animate_func=pac_button_anim,
+                on_hover=pac_button_hover,
                 animation_frames_count=10,
             ),
             AnimatedButton(
@@ -667,6 +707,24 @@ class Visualizer:
                 text="Controls",
                 animation_image=paused_pacman,
                 animate_func=pac_button_anim,
+                on_hover=pac_button_hover,
+                animation_frames_count=10,
+            ),
+            AnimatedButton(
+                0.35,
+                0.625,
+                0.3,
+                0.05,
+                self.screen,
+                self.get_font(30),
+                effect=DelayedCall(
+                    lambda: pygame.event.post(pygame.event.Event(pygame.QUIT))
+                ),
+                image=MainData.assets.get_asset("button.png", scaling=False),
+                text="Quit",
+                animation_image=paused_pacman,
+                animate_func=pac_button_anim,
+                on_hover=pac_button_hover,
                 animation_frames_count=10,
             ),
         ]
@@ -679,8 +737,13 @@ class Visualizer:
                 0.1,
                 self.screen,
                 self.get_font(20),
-                text=DelayedCall(lambda vis: vis.typed_name if vis.typed_name else "type your name", self),
-                image=MainData.assets.get_asset("button.png", scaling=False)
+                text=DelayedCall(
+                    lambda vis: (
+                        vis.typed_name if vis.typed_name else "type your name"
+                    ),
+                    self,
+                ),
+                image=MainData.assets.get_asset("button.png", scaling=False),
             )
         ]
         AnimatedButton.last_hovered = main_menu[0]
@@ -691,8 +754,6 @@ class Visualizer:
             VisualState.CONFIG: [back_button],
             VisualState.PROMPTING_FOR_NAME: prompting_for_name,
         }
-
-
 
     def start_entering_name(self):
         self.change_state(VisualState.PROMPTING_FOR_NAME)
