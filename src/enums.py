@@ -6,6 +6,7 @@ class VisualState(Enum):
     MAIN_MENU = "MAIN_MENU"
     HIGH_SCORE_MENU = "HIGH_SCORE_MENU"
     IN_GAME = "IN_GAME"
+    PROMPTING_FOR_NAME = "PROMPTING_FOR_NAME"
     CONFIG = "CONFIG"
 
 

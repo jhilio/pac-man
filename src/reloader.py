@@ -6,7 +6,9 @@ def evaluate(pacmap, chooser):
 
 
 def replace(globals: dict):
+    print("\033[2D\033[K", end="", flush=True)
+
+
+
     # src.ai.training.evaluate.__code__ = evaluate.__code__
-    globals["MainData"].cell_size = 16
-    print("\033[2D")
-    print("je t'ai hacker")
+    #globals["MainData"].cell_size =8

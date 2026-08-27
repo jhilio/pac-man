@@ -21,9 +21,6 @@ from ..visualizer.button import (
 )
 
 
-
-
-
 def zoom(image: pygame.surface.Surface, size: Pos2D):
     center = Pos2D(image.get_size()) / 2
     return image.subsurface(center - (size / 2), size)
@@ -44,8 +41,8 @@ class Visualizer:
         self.size = size
         self.fps = 60
         self.visualiser_state = VisualState.MAIN_MENU
-        self.paused = False
-
+        self.paused = True
+        self.typed_name = ""
         self.autoplay = True
         game_size = (
             Pos2D(
@@ -63,20 +60,21 @@ class Visualizer:
         self.code_sequence = []
         self.verbose = verbose
         self.init_button()
-        bg = MainData.assets.get_asset("BGmenu.jpg", scaling=False)
+        game_copy = self.screen.copy()
         self.surface_per_menu = {
             VisualState.MAIN_MENU: self.screen.copy(),
             VisualState.CONFIG: self.screen.copy(),
             VisualState.HIGH_SCORE_MENU: self.screen.copy(),
-            VisualState.IN_GAME: self.screen.copy(),
+            VisualState.IN_GAME: game_copy,
+            VisualState.PROMPTING_FOR_NAME: game_copy,
             "final_buffer": self.screen.copy(),
         }
         self.background_name_per_menu = {
             VisualState.CONFIG: "BGmenu.jpg",
             VisualState.HIGH_SCORE_MENU: "leftbg.png",
-            VisualState.IN_GAME: zoom(bg, Pos2D(bg.get_width(), 160)),
             VisualState.MAIN_MENU: "BGmenu.jpg",
             VisualState.IN_GAME: "gameback.jpg",
+            VisualState.PROMPTING_FOR_NAME: "gameback.jpg",
         }
         self.prec_state = None
         self.nn = nn
@@ -147,6 +145,8 @@ class Visualizer:
                     )
                 prec_pos = pacman.pos
                 self.pacmap.update(dt)
+                if self.pacmap.is_finished and self.pacmap.player_name == "":
+                    self.start_entering_name()
             self.draw_dispatcher(dt)
 
     def draw_dispatcher(self, dt: float) -> None:
@@ -189,7 +189,7 @@ class Visualizer:
         else:
             target.fill((0, 0, 0))
         match state:
-            case VisualState.IN_GAME:
+            case VisualState.IN_GAME | VisualState.PROMPTING_FOR_NAME:
                 self.game_space.fill((0, 0, 0))
                 self.draw_cells(self.game_space)
                 if self.pacmap.pacman.cheat_mode:
@@ -248,7 +248,18 @@ class Visualizer:
         Returns:
             Optional[int]: The result of the event handling, if any.
         """
-        if event.type == pygame.KEYDOWN:
+        if (
+            self.visualiser_state == VisualState.PROMPTING_FOR_NAME
+            and event.type in [pygame.KEYDOWN, pygame.TEXTINPUT]
+        ):
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_BACKSPACE and self.typed_name:
+                    self.typed_name = self.typed_name[:-1]
+                elif event.key == pygame.K_RETURN and self.typed_name:
+                    self.finish_entering_name()
+            elif event.type == pygame.TEXTINPUT and len(self.typed_name) < 30:
+                self.typed_name += event.text
+        elif event.type == pygame.KEYDOWN:
             return self.keyboard_handler(event)
         elif event.type == pygame.MOUSEBUTTONDOWN:
             event_pos = Pos2D(event.pos)
@@ -285,14 +296,19 @@ class Visualizer:
     def movement_scan(self) -> None:
         """Scan for key input that can be maintained."""
         keys = pygame.key.get_pressed()
+        a = True
         if keys[pygame.K_UP]:
             self.pacmap.pacman.next_direction = Direction.NORTH
-        if keys[pygame.K_RIGHT]:
+        elif keys[pygame.K_RIGHT]:
             self.pacmap.pacman.next_direction = Direction.EAST
-        if keys[pygame.K_DOWN]:
+        elif keys[pygame.K_DOWN]:
             self.pacmap.pacman.next_direction = Direction.SOUTH
-        if keys[pygame.K_LEFT]:
+        elif keys[pygame.K_LEFT]:
             self.pacmap.pacman.next_direction = Direction.WEST
+        else:
+            a =False
+        if a:
+            self.paused = False
 
     def draw_targets(self, target: pygame.surface.Surface) -> None:
         for ghost in self.pacmap.ghosts:
@@ -368,8 +384,6 @@ class Visualizer:
 
         return self.font_cache[size]
 
-    
-
     def keyboard_handler(self, event: pygame.event):
         match event.key:
             case pygame.K_ESCAPE:
@@ -386,6 +400,8 @@ class Visualizer:
                     AnimatedButton.last_hovered.on_click()
             case pygame.K_BACKSPACE:
                 self.back_button.on_click()
+            case pygame.K_k:
+                self.pacmap.pacman_died()
             case pygame.K_r:
                 self.pacmap.restart()
             case pygame.K_SPACE:
@@ -649,10 +665,37 @@ class Visualizer:
             ),
         ]
 
+        prompting_for_name = [
+            ClickableButton(
+                0.35,
+                0.3,
+                0.3,
+                0.1,
+                self.screen,
+                self.get_font(20),
+                text=DelayedCall(lambda vis: vis.typed_name if vis.typed_name else "type your name", self),
+                image=MainData.assets.get_asset("button.png", scaling=False)
+            )
+        ]
         AnimatedButton.last_hovered = main_menu[0]
         self.buttons_per_menu: dict[VisualState, list[ClickableButton]] = {
             VisualState.IN_GAME: in_game,
             VisualState.HIGH_SCORE_MENU: [back_button],
             VisualState.MAIN_MENU: main_menu,
             VisualState.CONFIG: [back_button],
+            VisualState.PROMPTING_FOR_NAME: prompting_for_name,
         }
+
+
+
+    def start_entering_name(self):
+        self.change_state(VisualState.PROMPTING_FOR_NAME)
+        pygame.key.start_text_input()
+
+    def finish_entering_name(self):
+        pygame.key.stop_text_input()
+        self.pacmap.player_name = self.typed_name
+        self.pacmap.update_high_score()
+        self.pacmap.restart()
+        self.paused = True
+        self.back_button.on_click()

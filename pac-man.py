@@ -227,8 +227,12 @@ def preload_assets(verbose: bool = False):
 
 
 def load_high_scores(verbose: bool = False):
-    with open("high_scores.json") as file:
-        loaded = json.load(file)
+    try:
+        with open("high_scores.json") as file:
+            loaded = json.load(file)
+    except Exception as e:
+        print(f"couldnt open high_scores.json : {e}\n Defaulting to empty high scores")
+        loaded = {}
     if verbose:
         print(loaded)
     if not isinstance(loaded, dict):
