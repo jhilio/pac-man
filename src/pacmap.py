@@ -173,9 +173,10 @@ class PacMap:
         scores = MainData.high_scores
         sorted_scores = {
             k: scores[k]
-            for k in sorted(scores, key=lambda _, it=iter(scores): next(it))
+            for k in sorted(scores, key=lambda _, it=iter(scores.values()): next(it),reverse=True)
         }
         top_k = {k: v for i, (k, v) in zip(range(k), sorted_scores.items())}
+        print(top_k)
         MainData.high_scores = top_k
 
     def get_state_for_nn(self):

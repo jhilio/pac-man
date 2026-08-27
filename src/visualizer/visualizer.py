@@ -145,8 +145,14 @@ class Visualizer:
                     )
                 prec_pos = pacman.pos
                 self.pacmap.update(dt)
-                if self.pacmap.is_finished and self.pacmap.player_name == "":
-                    self.start_entering_name()
+                if self.pacmap.is_finished:
+                    if self.pacmap.player_name == "":
+                        self.start_entering_name()
+                    else:
+                        self.pacmap.update_high_score()
+                        self.paused = True
+                        self.pacmap.restart()
+                        self.back_button.on_click()
             self.draw_dispatcher(dt)
 
     def draw_dispatcher(self, dt: float) -> None:
@@ -696,6 +702,6 @@ class Visualizer:
         pygame.key.stop_text_input()
         self.pacmap.player_name = self.typed_name
         self.pacmap.update_high_score()
-        self.pacmap.restart()
         self.paused = True
+        self.pacmap.restart()
         self.back_button.on_click()
