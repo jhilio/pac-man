@@ -32,7 +32,7 @@ def zoom(image: pygame.surface.Surface, size: Pos2D):
 
 class Visualizer:
     Counter = 0
-    CELL_MARGIN = 3
+    CELL_MARGIN = 2
 
     def __init__(
         self,
@@ -47,7 +47,7 @@ class Visualizer:
         self.visualiser_state = VisualState.MAIN_MENU
         self.paused = True
         self.typed_name = ""
-        self.autoplay = True
+        self.autoplay = False
         self.pacmap = pacmap
         self.base_font_size = 13
         self.font_cache: dict[int, pygame.font.Font] = {}

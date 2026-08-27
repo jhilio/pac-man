@@ -229,7 +229,7 @@ def preload_assets(verbose: bool = False):
 
 def load_high_scores(verbose: bool = False):
     try:
-        with open("high_scores.json") as file:
+        with open(str(resource_path("high_scores.json"))) as file:
             loaded = json.load(file)
     except Exception as e:
         print(f"couldnt open high_scores.json : {e}\n Defaulting to empty high scores")
@@ -271,7 +271,7 @@ def main():
         size=size, seed=MainData.config_from_file["seed"]
     )
     pacmap = PacMap(maze)
-    nn = PacmanNetwork(model_path="models/last_result.pt")
+    nn = PacmanNetwork(model_path=str(resource_path("models/last_result.pt")))
     # trainer = EvolutionTrainer(pacmap, 3, 5, 0.01)
     # nn = trainer.train([nn], 10)
     # nn.save("models/last_result.pt")
@@ -279,6 +279,8 @@ def main():
     chooser = NNDirectionChooser(nn)
     vis = Visualizer(pacmap, (1400, 1200), nn=chooser)
     vis.launch_loop()
+    with open(str(resource_path("high_scores.json")), "w") as file:
+        json.dump(MainData.high_scores, file, indent=2)
 
 
 if __name__ == "__main__":

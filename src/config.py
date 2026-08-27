@@ -43,7 +43,6 @@ class AssetsManager:
             raise ValueError(f"asset {name} wansnt loaded")
         if not scaling:
             return unscaled
-        print("scaled", name)
         scaled = pygame.transform.scale(
             unscaled, (x * size_multiplier, y * size_multiplier)
         )
