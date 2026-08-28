@@ -58,7 +58,7 @@ class PacMap:
     def init_charachters(self) -> None:
         self.pacman = Pacman(
             Direction.NORTH,
-            x=len(self.cells) // 2,
+            x=(len(self.cells)-1) // 2,
             y=len(self.cells[0]) // 2,
             lives=MainData.config_from_file["lives"],
         )

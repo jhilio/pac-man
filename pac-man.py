@@ -21,6 +21,7 @@ reloader_cache = None
 
 def reload_handler(signum, frame):
     global reloader_cache
+    print("\033[2D\033[K", end="", flush=True)
     importlib.invalidate_caches()
     importlib.reload(src.reloader)
     new_reloader = Path(src.reloader.__file__).read_bytes()
@@ -252,16 +253,14 @@ def load_high_scores(verbose: bool = False):
 
 def clamp_config():
     config = MainData.config_from_file
-
     clamp_dict = {
         "lives": (1, 10),
-        "width": (5, 20),
-        "height": (5, 20),
+        "width": (15, 25),
+        "height": (15, 25),
         "points_per_pacgum": (1, 1000),
         "points_per_super_pacgum": (1, 1000),
         "points_per_ghost": (1, 1000),
     }
-
     for key, (minimum, maximum) in clamp_dict.items():
         clamped = min(max(config[key], minimum), maximum)
 
@@ -271,7 +270,6 @@ def clamp_config():
                 f"defaulting to safe value {clamped}"
             )
             config[key] = clamped
-
     level_clamp_dict = {
         "frightened_duration": (1, 10),
         "ghost_speed": (1, 200),
@@ -280,7 +278,6 @@ def clamp_config():
         "pacman_fright_speed": (1, 300),
         "duration": (30, 3600),
     }
-
     for level_num, level in config["levels"].items():
         for key, (minimum, maximum) in level_clamp_dict.items():
             clamped = min(max(level[key], minimum), maximum)
@@ -301,21 +298,26 @@ def clamp_config():
 
 def main():
     verbose = "verbose" in sys.argv
-    if len(sys.argv) > 1 + ("verbose" in sys.argv):
-        if sys.argv[1] == "":
+    try:
+        if len(sys.argv) > 1 + ("verbose" in sys.argv):
+            if sys.argv[1] == "":
+                load_config()
+                print("no config provided, using default values")
+            else:
+                load_config(sys.argv[1])
+        else:
             load_config()
             print("no config provided, using default values")
-        else:
-            load_config(sys.argv[1])
-    else:
-        load_config()
-        print("no config provided, using default values")
-    if verbose:
-        print(json.dumps(MainData.config_from_file, indent=2))
+        if verbose:
+            print(json.dumps(MainData.config_from_file, indent=2))
 
+        load_high_scores(verbose=verbose)
+        preload_assets(verbose=verbose)
+        nn = PacmanNetwork(model_path=str(resource_path("models/last_result.pt")))
+    except (OSError, FileNotFoundError, IsADirectoryError,PermissionError) as error:
+        print(f"error occured while loading config : {error}, exiting..,")
+        return
     clamp_config()
-    load_high_scores(verbose=verbose)
-    preload_assets(verbose=verbose)
     size = (
         MainData.config_from_file["width"],
         MainData.config_from_file["height"],
@@ -324,16 +326,19 @@ def main():
         size=size, seed=MainData.config_from_file["seed"]
     )
     pacmap = PacMap(maze)
-    nn = PacmanNetwork(model_path=str(resource_path("models/last_result.pt")))
     # trainer = EvolutionTrainer(pacmap, 3, 5, 0.01)
     # nn = trainer.train([nn], 10)
     # nn.save("models/last_result.pt")
     # pacmap.restart()
     chooser = NNDirectionChooser(nn)
-    vis = Visualizer(pacmap, (1400, 1200), nn=chooser)
-    vis.launch_loop()
-    with open(str(resource_path("high_scores.json")), "w") as file:
-        json.dump(MainData.high_scores, file, indent=2)
+    vis = Visualizer(pacmap, (1000, 1000), nn=chooser)
+    try:
+        vis.launch_loop()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        with open(str(resource_path("high_scores.json")), "w") as file:
+            json.dump(MainData.high_scores, file, indent=2)
 
 
 if __name__ == "__main__":

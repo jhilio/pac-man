@@ -260,6 +260,7 @@ class Visualizer:
                 if self.pacmap.pacman.cheat_mode:
                     self.draw_targets(target, offset)
                 self.draw_charachters(target, offset)
+                self.draw_hud(target, offset)
                 self.draw_timer(target, offset - Pos2D(MainData.cell_size, 0))
             case VisualState.CONFIG:
                 draw_text_multiline(
@@ -376,40 +377,6 @@ class Visualizer:
                 charachter.incr_anim()
             pos = (charachter.visual_pos) * MainData.cell_size
             target.blit(charachter.image, pos + offset)
-        if self.pacmap.pacman.lives <= 6:
-            for x in range(self.pacmap.pacman.lives - 1):
-                pos = (
-                    Pos2D(
-                        len(self.pacmap.cells) - 1 - x,
-                        len(self.pacmap.cells[0]),
-                    )
-                    * 3
-                    + (1, 1)
-                ) * MainData.cell_size
-                target.blit(self.pacmap.pacman.raw_image, pos + offset)
-        else:
-            offset_x = 2
-            pos = (
-                Pos2D(
-                    len(self.pacmap.cells) - 1 - offset_x,
-                    len(self.pacmap.cells[0]),
-                )
-                * 3
-                + (0.75, 0.75)
-            ) * MainData.cell_size + offset
-            target.blit(self.pacmap.pacman.raw_image, pos)
-            
-            draw_text_multiline(
-                target,
-                ["X",  str(self.pacmap.pacman.lives - 1)],
-                pos.x + MainData.cell_size * 3,
-                pos.y,
-                self.get_font(40),
-                block_spacing=MainData.cell_size*3
-            )
-        
-
-
 
     def draw_cells(
         self,
@@ -447,6 +414,88 @@ class Visualizer:
                 target.get_height() - (offset.y * 2) - y_start,
             ),
         )
+
+    def draw_hud(self, target: pygame.surface.Surface, offset: Pos2D):
+        def cell_to_screen(pos: Pos2D):
+            nonlocal offset
+            return pos * MainData.cell_size * 3 + offset
+
+        font = self.get_font(MainData.cell_size * 3)
+        right_top = Pos2D(
+            0.25,
+            len(self.pacmap.cells[0]),
+        )
+        draw_text_multiline(
+            target,
+            [char for char in "Score"],
+            *cell_to_screen(right_top),
+            font,
+            block_spacing=MainData.cell_size * 3,
+        )
+        draw_text_multiline(
+            target,
+            [char for char in f"{self.pacmap.score:05}"],
+            *cell_to_screen(right_top + (0, 1)),
+            font,
+            block_spacing=MainData.cell_size * 3,
+            color=(pygame.color.THECOLORS["yellow"]),
+        )
+
+        center = Pos2D(
+            len(self.pacmap.cells)//2,
+            len(self.pacmap.cells[0]),
+        ) + (0.25, 0)
+        draw_text_multiline(
+            target,
+            [char for char in "lvl"],
+            *cell_to_screen(center + (-1, 0)),
+            font,
+            block_spacing=MainData.cell_size * 3,
+        )
+        draw_text_multiline(
+            target,
+            [char for char in f"{self.pacmap.level_num:03}"],
+            *cell_to_screen(center + (-1, 1)),
+            font,
+            block_spacing=MainData.cell_size * 3,
+            color=(pygame.color.THECOLORS["yellow"]),
+        )
+
+
+        start_score = Pos2D(
+            len(self.pacmap.cells) - 1 - 4,
+            len(self.pacmap.cells[0]),
+        ) + (0.25, 0)
+
+        draw_text_multiline(
+            target,
+            [char for char in "lives"],
+            *cell_to_screen(start_score),
+            font,
+            block_spacing=MainData.cell_size * 3,
+        )
+        if self.pacmap.pacman.lives <= 6:
+            for x in range(self.pacmap.pacman.lives - 1):
+                pos = Pos2D(
+                    len(self.pacmap.cells) - 1 - x,
+                    len(self.pacmap.cells[0]) + 1,
+                ) + (0.25, 0.25)
+                target.blit(self.pacmap.pacman.raw_image, cell_to_screen(pos))
+        else:
+            offset_x = 2
+            pos = Pos2D(
+                len(self.pacmap.cells) - 1 - offset_x,
+                len(self.pacmap.cells[0]) + 1,
+            ) + (0.25, 0.25)
+            target.blit(self.pacmap.pacman.raw_image, cell_to_screen(pos))
+            draw_text_multiline(
+                target,
+                ["X", str(self.pacmap.pacman.lives - 1)],
+                pos.x + MainData.cell_size * 3,
+                pos.y,
+                font,
+                block_spacing=MainData.cell_size * 3,
+            )
 
     def get_font(self, size: Optional[int] = None) -> pygame.font.Font:
         """Get a font for rendering text.

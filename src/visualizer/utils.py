@@ -29,7 +29,7 @@ def draw_text_multiline(
     """
     if isinstance(text,list):
         for i, block in enumerate(text):
-            draw_text_multiline(target, block, x+ (i*block_spacing), y, font,line_spacing, block_spacing, color)
+            draw_text_multiline(target, block, x + (i*block_spacing), y, font,line_spacing, block_spacing, color)
         return
     lines = text.split("\n")
     for i, line in enumerate(lines):
