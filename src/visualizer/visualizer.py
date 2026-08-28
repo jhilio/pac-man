@@ -140,13 +140,9 @@ class Visualizer:
         self.visualiser_state = new
 
     def launch_loop(self) -> None:
-
         self.time: float = 0.0
         self.loop()
 
-    def save_high_score(self) -> None:
-        with open("high_scores.json", "w") as file:
-            json.dump(MainData.high_scores, file, indent=2)
 
     def loop(self) -> None:
         """Main loop of the visualizer."""
@@ -158,7 +154,6 @@ class Visualizer:
             for event in pygame.event.get():
                 if self.event_handler(event).type == pygame.QUIT:
                     self.pacmap.update_high_score()
-                    self.save_high_score()
                     pygame.quit()
                     return
             # MainData.cell_size = min(pygame.display.get_window_size()) //
