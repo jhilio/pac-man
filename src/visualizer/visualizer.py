@@ -484,15 +484,14 @@ class Visualizer:
         else:
             offset_x = 2
             pos = Pos2D(
-                len(self.pacmap.cells) - 1 - offset_x,
+                len(self.pacmap.cells) - 1 -offset_x,
                 len(self.pacmap.cells[0]) + 1,
             ) + (0.25, 0.25)
             target.blit(self.pacmap.pacman.raw_image, cell_to_screen(pos))
             draw_text_multiline(
                 target,
                 ["X", str(self.pacmap.pacman.lives - 1)],
-                pos.x + MainData.cell_size * 3,
-                pos.y,
+                *cell_to_screen(pos +(1, -0.25)),
                 font,
                 block_spacing=MainData.cell_size * 3,
             )

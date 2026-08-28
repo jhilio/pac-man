@@ -16,21 +16,12 @@ from copy import deepcopy
 from typing import Optional
 import src.reloader, signal, importlib
 
-reloader_cache = None
 
 
 def reload_handler(signum, frame):
-    global reloader_cache
     print("\033[2D\033[K", end="", flush=True)
-    importlib.invalidate_caches()
     importlib.reload(src.reloader)
-    new_reloader = Path(src.reloader.__file__).read_bytes()
-    if new_reloader == reloader_cache:
-        raise KeyboardInterrupt
-    else:
-        reloader_cache = new_reloader
-        src.reloader.replace(globals())
-
+    src.reloader.replace(globals())
 
 signal.signal(signal.SIGINT, reload_handler)
 

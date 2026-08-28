@@ -204,11 +204,11 @@ class AnimatedButton(ClickableButton):
         animated = self._animate_func(self, base_image)
         return pygame.transform.scale(animated, tuple(self.to_screen_rect)[2:])
 
-def pac_button_hover(self: AnimatedButton):
+def pac_button_hover(self: AnimatedButton) -> None:
     self.__class__.last_hovered = self
 
 
-def pac_button_anim(self: AnimatedButton, base_image: pygame.surface.Surface):
+def pac_button_anim(self: AnimatedButton, base_image: pygame.surface.Surface) -> pygame.surface.Surface:
     if self.animation_image is not None and self.anim_stage is not None:
         anim_frame = self.animation_image[
             int(self.anim_stage * self.animation_frames_count)
@@ -239,7 +239,7 @@ def pac_button_anim(self: AnimatedButton, base_image: pygame.surface.Surface):
     return base_image
 
 
-def paused_anim(self:AnimatedButton, base_image:  pygame.surface.Surface):
+def paused_anim(self:AnimatedButton, base_image:  pygame.surface.Surface) -> pygame.surface.Surface:
     if self.extra[0].paused:
         return self.animation_image[1]
     return self.animation_image[0]

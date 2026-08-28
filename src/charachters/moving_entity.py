@@ -55,7 +55,6 @@ class MovingEntities(ABC):
 
     @property
     def cell_pos(self):
-
         return (self.pos) // 3
 
     def __str__(self):

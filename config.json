@@ -1,5 +1,6 @@
 
 {
 	"width":1,
-	"height":1
+	"height":1,
+	"lives": 40
 }
