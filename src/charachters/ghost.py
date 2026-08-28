@@ -21,7 +21,6 @@ def get_ghost_state():
 
 
 class Ghost(MovingEntities):
-
     def __init__(self, direction: Direction, x=0, y=0):
         super().__init__(direction, x, y)
         self.mode = GhostState.SCATTER

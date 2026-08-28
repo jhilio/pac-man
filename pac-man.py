@@ -1,4 +1,3 @@
-from random import randint
 import sys
 import os
 
@@ -112,6 +111,7 @@ levels = (
 levels_dict = {str(i): level for i, level in enumerate(levels, 1)}
 
 DEFAULT_CONFIG = {
+    "pacgum_proportion": 0.5,
     "lives": 3,
     "seed": 0,
     "width": 15,
@@ -206,7 +206,7 @@ def preload_assets(verbose: bool = False):
         "assets/menu/leftbg.png",
         "assets/menu/gameback.jpg",
         "assets/menu/button.png",
-        "assets/menu/control.png"
+        "assets/menu/control.png",
     ]
     total = (
         maze_assets
@@ -232,7 +232,9 @@ def load_high_scores(verbose: bool = False):
         with open(str(resource_path("high_scores.json"))) as file:
             loaded = json.load(file)
     except Exception as e:
-        print(f"couldnt open high_scores.json : {e}\n Defaulting to empty high scores")
+        print(
+            f"couldnt open high_scores.json : {e}\n Defaulting to empty high scores"
+        )
         loaded = {}
     if verbose:
         print(loaded)
@@ -248,6 +250,55 @@ def load_high_scores(verbose: bool = False):
     MainData.high_scores = loaded
 
 
+def clamp_config():
+    config = MainData.config_from_file
+
+    clamp_dict = {
+        "lives": (1, 10),
+        "width": (5, 20),
+        "height": (5, 20),
+        "points_per_pacgum": (1, 1000),
+        "points_per_super_pacgum": (1, 1000),
+        "points_per_ghost": (1, 1000),
+    }
+
+    for key, (minimum, maximum) in clamp_dict.items():
+        clamped = min(max(config[key], minimum), maximum)
+
+        if clamped != config[key]:
+            print(
+                f"invalid value {config[key]} for {key}, "
+                f"defaulting to safe value {clamped}"
+            )
+            config[key] = clamped
+
+    level_clamp_dict = {
+        "frightened_duration": (1, 10),
+        "ghost_speed": (1, 200),
+        "ghost_fright_speed": (1, 200),
+        "pacman_speed": (1, 300),
+        "pacman_fright_speed": (1, 300),
+        "duration": (30, 3600),
+    }
+
+    for level_num, level in config["levels"].items():
+        for key, (minimum, maximum) in level_clamp_dict.items():
+            clamped = min(max(level[key], minimum), maximum)
+
+            if clamped != level[key]:
+                print(
+                    f"invalid value {level[key]} for level {level_num} "
+                    f"at key {key}, defaulting to safe value {clamped}"
+                )
+                level[key] = clamped
+
+        if not any(phase == ["chase", None] for phase in level["phases"]):
+            print(
+                f"couldnt find eternal chase at end of phases, defaulting to permanent chase"
+            )
+            level["phases"] = [["chase", None]]
+
+
 def main():
     verbose = "verbose" in sys.argv
     if len(sys.argv) > 1 + ("verbose" in sys.argv):
@@ -261,6 +312,8 @@ def main():
         print("no config provided, using default values")
     if verbose:
         print(json.dumps(MainData.config_from_file, indent=2))
+
+    clamp_config()
     load_high_scores(verbose=verbose)
     preload_assets(verbose=verbose)
     size = (

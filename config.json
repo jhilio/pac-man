@@ -1,10 +1,11 @@
 {
-	"lives": 3,
+	"lives": 100,
 	"width": 15,
-	"height": 15,
+	"height": 20,
 	"random_bulshit": "fasfaef",
 	"levels": {
 		"1": {
+			"pacman_speed":500
 		}
 	}
 }

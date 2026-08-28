@@ -49,8 +49,6 @@ class MovingEntities(ABC):
 
     @property
     def visual_pos(self):
-        if MainData.pacmap.pacman.cheat_mode:
-            return self.pos - (0.25, 0.25)
         return (self.pos - (0.25, 0.25)).lerp(
             self.next_pos - (0.25, 0.25), self.offset
         )

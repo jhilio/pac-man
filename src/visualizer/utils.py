@@ -4,11 +4,12 @@ import pygame
 
 def draw_text_multiline(
         target: pygame.surface.Surface,
-        text: str,
+        text: str | list[str],
         x: int,
         y: int,
         font: pygame.font.Font,
         line_spacing: int = 2,
+        block_spacing: int = 2,
         color: tuple[int, int, int] = (255, 255, 255),
     ) -> None:
     """Draw text on the screen, allowing for multiline text.
@@ -26,6 +27,10 @@ def draw_text_multiline(
         font (Optional[pygame.font.Font], optional): \
             The font to use for the text. Defaults to None.
     """
+    if isinstance(text,list):
+        for i, block in enumerate(text):
+            draw_text_multiline(target, block, x+ (i*block_spacing), y, font,line_spacing, block_spacing, color)
+        return
     lines = text.split("\n")
     for i, line in enumerate(lines):
         text_surface = font.render(line, True, color)

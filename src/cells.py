@@ -7,9 +7,9 @@ from .enums import Direction
 
 
 class Fruit:
-    def __init__(self, val: int = 0):
+    def __init__(self, val: int = 0, parent:Optional["Cell"]=None):
         self.val = val
-        self.parent = None
+        self.parent = parent
 
     @property
     def image(self):

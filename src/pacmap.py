@@ -1,5 +1,5 @@
 import mazegenerator
-from random import choices
+from random import Random, choices
 from .charachters.clyde import Clyde
 from .charachters.ghost import Ghost
 from .charachters.inky import Inky
@@ -25,6 +25,7 @@ class PacMap:
         self.total_elapsed_time = 0
         self.phase_timer = 0
         self.player_name = ""
+        self.random = Random(self.maze._seed)
         self.training_mode = False
         # self.player_name = input("name_of player :")
         self.init_cells()
@@ -57,8 +58,8 @@ class PacMap:
     def init_charachters(self) -> None:
         self.pacman = Pacman(
             Direction.NORTH,
-            x=len(self.maze.maze) // 2,
-            y=len(self.maze.maze[1]) // 2,
+            x=len(self.cells) // 2,
+            y=len(self.cells[0]) // 2,
             lives=MainData.config_from_file["lives"],
         )
         self.blinky = Blinky(Direction.SOUTH, len(self.cells) - 1, 0)
@@ -77,10 +78,10 @@ class PacMap:
     def init_cells(self) -> None:
         self.cells: list[list[Cell]] = []
 
-        for x in range(len(self.maze.maze)):
+        for x in range(len(self.maze.maze[0])):
             column = []
             self.cells.append(column)
-            for y in range(len(self.maze.maze[0])):
+            for y in range(len(self.maze.maze)):
                 column.append(
                     Cell(
                         self.maze.maze[y][x],
@@ -88,14 +89,25 @@ class PacMap:
                         y,
                         self.cells,
                         fruit=Fruit(
-                            choices(population=[0, 1], weights=[0.2, 0.8])[0]
+                            self.random.choices(
+                                population=[0, 1],
+                                weights=[
+                                    1
+                                    - MainData.config_from_file[
+                                        "pacgum_proportion"
+                                    ],
+                                    MainData.config_from_file[
+                                        "pacgum_proportion"
+                                    ],
+                                ],
+                            )[0]
                         ),
                     )
                 )
-        self.cells[0][0].fruit = Fruit(2)
-        self.cells[0][-1].fruit = Fruit(2)
-        self.cells[-1][0].fruit = Fruit(2)
-        self.cells[-1][-1].fruit = Fruit(2)
+        self.cells[0][0].fruit = Fruit(2, self.cells[0][0])
+        self.cells[0][-1].fruit = Fruit(2, self.cells[0][-1])
+        self.cells[-1][0].fruit = Fruit(2, self.cells[-1][0])
+        self.cells[-1][-1].fruit = Fruit(2, self.cells[-1][-1])
 
     def __str__(self) -> str:
         return "\n".join(
@@ -138,11 +150,17 @@ class PacMap:
 
     def go_next_level(self) -> None:
         self.level_num += 1
-        self.level = MainData.config_from_file["levels"][str(self.level_num)]
-        for ghost in self.ghosts:
-            ghost.update_level_data()
-        self.pacman.update_level_data()
-        self.regenerate()
+        if MainData.config_from_file["levels"].get(str(self.level_num)):
+            self.level = MainData.config_from_file["levels"][
+                str(self.level_num)
+            ]
+            for ghost in self.ghosts:
+                ghost.update_level_data()
+            self.pacman.update_level_data()
+            self.regenerate()
+        else:
+            self.regenerate()
+            self.is_finished = True
 
     def colision_effect(self, ghost: Ghost) -> None:
         if self.fright_time_left and ghost.is_alive:
@@ -173,7 +191,11 @@ class PacMap:
         scores = MainData.high_scores
         sorted_scores = {
             k: scores[k]
-            for k in sorted(scores, key=lambda _, it=iter(scores.values()): next(it),reverse=True)
+            for k in sorted(
+                scores,
+                key=lambda _, it=iter(scores.values()): next(it),
+                reverse=True,
+            )
         }
         top_k = {k: v for i, (k, v) in zip(range(k), sorted_scores.items())}
         MainData.high_scores = top_k

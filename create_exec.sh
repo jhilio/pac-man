@@ -20,20 +20,20 @@ uv run pyinstaller \
   --name pac-man-linux \
   pac-man.py
 
-echo "==> Building Windows version..."
+#echo "==> Building Windows version..."
 
-wine python -m PyInstaller \
-  --onedir \
-  --add-data "assets;assets" \
-  --add-data "models;models" \
-  --add-data "config.json;." \
-  --name pac-man-windows \
-  pac-man.py
+#wine python -m PyInstaller \
+#  --onedir \
+#  --add-data "assets;assets" \
+#  --add-data "models;models" \
+#  --add-data "config.json;." \
+#  --name pac-man-windows \
+#  pac-man.py
 
-echo
-echo "==> Builds complete:"
+#echo
+#echo "==> Builds complete:"
 
 zip -r dist/linux.zip dist/pac-man-linux
-zip -r dist/windows.zip dist/pac-man-windows
+#zip -r dist/windows.zip dist/pac-man-windows
 
 ls -lh dist

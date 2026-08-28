@@ -1,10 +1,31 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, TypedDict
 
 if TYPE_CHECKING:
     from .pacmap import PacMap
 from typing import Optional, Any
 import pygame
+
+
+class Level(TypedDict):
+    frightened_duration:int
+    ghost_speed:int
+    ghost_fright_speed:int
+    pacman_speed:int
+    pacman_fright_speed:int
+    duration:int
+    phases: list[list[str | None| int]]
+
+class Config(TypedDict):
+    pacgum_proportion: float
+    lives: int
+    seed: int    
+    width: int
+    height: int
+    points_per_pacgum: int
+    points_per_super_pacgum: int
+    points_per_ghost: int
+    levels: dict[str, Level]
 
 
 class AssetsManager:
@@ -56,6 +77,6 @@ class MainData:
     tick_rate = 10
     cell_size = 16
     high_scores = {}
-    config_from_file = {}
+    config_from_file = Config()
     assets = AssetsManager()
     pacmap: Optional[PacMap] = None

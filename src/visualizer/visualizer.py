@@ -45,7 +45,7 @@ class Visualizer:
         self.size = size
         self.fps = 60
         self.visualiser_state = VisualState.MAIN_MENU
-        self.paused = True
+        self.paused = False
         self.typed_name = ""
         self.autoplay = False
         self.pacmap = pacmap
@@ -132,7 +132,7 @@ class Visualizer:
         anim_duration=0,
         anim_type=AnimTypes.LEFT_TO_RIGHT,
     ):
-        if anim_duration:
+        if anim_duration and self.visualiser_state != new:
             self.prec_state = self.visualiser_state
             self.anim_duration = max(anim_duration, 0.000001)
             self.act_anim = 1 - self.act_anim
@@ -142,7 +142,6 @@ class Visualizer:
     def launch_loop(self) -> None:
         self.time: float = 0.0
         self.loop()
-
 
     def loop(self) -> None:
         """Main loop of the visualizer."""
@@ -162,6 +161,7 @@ class Visualizer:
             self.time += dt
             if (
                 self.visualiser_state == VisualState.IN_GAME
+                and not self.act_anim
                 and not self.paused
                 and not self.pacmap.is_finished
             ):
@@ -275,13 +275,12 @@ class Visualizer:
                 pass
 
         mouse_pos = Pos2D(pygame.mouse.get_pos())
-        if state == self.visualiser_state:
-            for button in self.buttons_per_menu[state]:
-                button.update(dt, button.is_in(mouse_pos))
-                target.blit(
-                    (button.image),
-                    button.to_screen_rect,
-                )
+        for button in self.buttons_per_menu[state]:
+            button.update(dt, button.is_in(mouse_pos))
+            target.blit(
+                (button.image),
+                button.to_screen_rect,
+            )
         return target
 
     def event_handler(
@@ -305,7 +304,11 @@ class Visualizer:
                     self.typed_name = self.typed_name[:-1]
                 elif event.key == pygame.K_RETURN and self.typed_name:
                     self.finish_entering_name()
-            elif event.type == pygame.TEXTINPUT and len(self.typed_name) < 30:
+            elif (
+                event.type == pygame.TEXTINPUT
+                and len(self.typed_name) <= 10
+                and (event.text.isalnum() or event.text.isspace())
+            ):
                 self.typed_name += event.text
         elif event.type == pygame.KEYDOWN:
             return self.keyboard_handler(event)
@@ -373,15 +376,40 @@ class Visualizer:
                 charachter.incr_anim()
             pos = (charachter.visual_pos) * MainData.cell_size
             target.blit(charachter.image, pos + offset)
-        for x in range(self.pacmap.pacman.lives - 1):
+        if self.pacmap.pacman.lives <= 6:
+            for x in range(self.pacmap.pacman.lives - 1):
+                pos = (
+                    Pos2D(
+                        len(self.pacmap.cells) - 1 - x,
+                        len(self.pacmap.cells[0]),
+                    )
+                    * 3
+                    + (1, 1)
+                ) * MainData.cell_size
+                target.blit(self.pacmap.pacman.raw_image, pos + offset)
+        else:
+            offset_x = 2
             pos = (
                 Pos2D(
-                    len(self.pacmap.cells) - 1 - x, len(self.pacmap.cells[0])
+                    len(self.pacmap.cells) - 1 - offset_x,
+                    len(self.pacmap.cells[0]),
                 )
                 * 3
-                + (1, 1)
-            ) * MainData.cell_size
-            target.blit(self.pacmap.pacman.raw_image, pos + offset)
+                + (0.75, 0.75)
+            ) * MainData.cell_size + offset
+            target.blit(self.pacmap.pacman.raw_image, pos)
+            
+            draw_text_multiline(
+                target,
+                ["X",  str(self.pacmap.pacman.lives - 1)],
+                pos.x + MainData.cell_size * 3,
+                pos.y,
+                self.get_font(40),
+                block_spacing=MainData.cell_size*3
+            )
+        
+
+
 
     def draw_cells(
         self,
@@ -398,18 +426,25 @@ class Visualizer:
                 )
 
     def draw_timer(self, target: pygame.surface.Surface, offset: Pos2D):
-        ratio = (
-            self.pacmap.level["duration"] - self.pacmap.total_elapsed_time
-        ) / self.pacmap.level["duration"]
-        color = ColorRGB(255, 80, 80).lerp(ColorRGB(80, 255, 80), ratio)
+        ratio = 1 - (
+            (self.pacmap.level["duration"] - self.pacmap.total_elapsed_time)
+            / self.pacmap.level["duration"]
+        )
+
+        color = (
+            ColorRGB(0, 255, 100)
+            .lerp(ColorRGB(255, 220, 0), min(ratio * 2, 1))
+            .lerp(ColorRGB(255, 20, 20), max(ratio * 2 - 1, 0))
+        )
+        y_start = ratio * (target.get_height() - (offset.y * 2))
+        y_start = round(y_start)
         target.fill(
             round(color, 0),
             (
                 0 + offset.x,
-                (1 - ratio) * target.get_height() + offset.y,
+                y_start + offset.y,
                 MainData.cell_size,
-                target.get_height()
-                - (MainData.cell_size * self.CELL_MARGIN * 3 * 2),
+                target.get_height() - (offset.y * 2) - y_start,
             ),
         )
 
@@ -436,10 +471,16 @@ class Visualizer:
 
     def keyboard_handler(self, event: pygame.event):
         match event.key:
-            case pygame.K_ESCAPE:
-                return pygame.event.Event(pygame.QUIT)
             case pygame.K_n:
                 self.autoplay = not self.autoplay
+            case pygame.K_s:
+                if (
+                    self.pacmap.pacman.cheat_mode
+                    and not self.pacmap.is_finished
+                ):
+                    self.pacmap.go_next_level()
+                    if self.pacmap.is_finished:
+                        self.start_entering_name()
             case pygame.K_HOME:
                 self.visualiser_state = VisualState.MAIN_MENU
             case pygame.K_RETURN:
@@ -448,18 +489,23 @@ class Visualizer:
                     and AnimatedButton.last_hovered in self.active_buttons
                 ):
                     AnimatedButton.last_hovered.on_click()
-            case pygame.K_BACKSPACE:
+            case pygame.K_ESCAPE:
                 self.back_button.on_click()
             case pygame.K_k:
-                self.pacmap.pacman_died()
+                if self.pacmap.pacman.lives > 0:
+                    self.pacmap.pacman_died()
+                    if self.pacmap.pacman.lives == 0:
+                        self.start_entering_name()
             case pygame.K_r:
-                self.pacmap.restart()
+                if self.pacmap.pacman.cheat_mode:
+                    self.pacmap.restart()
             case pygame.K_SPACE:
                 self.pacmap.pacman.eat_wall()
             case pygame.K_t:
-                self.pacmap.fright_time_left = self.pacmap.level[
-                    "frightened_duration"
-                ]
+                if self.pacmap.pacman.cheat_mode:
+                    self.pacmap.fright_time_left = self.pacmap.level[
+                        "frightened_duration"
+                    ]
             case pygame.K_UP:
                 if self.visualiser_state == VisualState.MAIN_MENU:
                     AnimatedButton.last_hovered = self.active_buttons[
@@ -704,7 +750,12 @@ class Visualizer:
                 0.05,
                 self.screen,
                 self.get_font(30),
-                effect=DelayedCall(self.change_state, VisualState.CONFIG),
+                effect=DelayedCall(
+                    self.change_state,
+                    VisualState.CONFIG,
+                    1,
+                    AnimTypes.RIGHT_TO_LEFT,
+                ),
                 image=MainData.assets.get_asset("button.png", scaling=False),
                 text="Controls",
                 animation_image=paused_pacman,
@@ -738,7 +789,8 @@ class Visualizer:
             self.screen,
             self.get_font(25),
             image=MainData.assets.get_asset("control.png", scaling=False),
-            text=DelayedCall(lambda data=MainData: "\n".join(
+            text=DelayedCall(
+                lambda data=MainData: "\n".join(
                     f'"{k}": {v}' for k, v in data.high_scores.items()
                 )
             ),
