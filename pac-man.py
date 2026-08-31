@@ -1,27 +1,30 @@
-import sys
-import os
-
-os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
-from src.config import MainData
+import importlib
 import json
+import os
+import signal
+import sys
+from copy import deepcopy
 from pathlib import Path
+from typing import Optional
+
 import mazegenerator
+
+import src.reloader
+from src.ai.interface import NNDirectionChooser
+from src.ai.network import PacmanNetwork
+from src.config import MainData
 from src.enums import Direction
 from src.pacmap import PacMap
 from src.visualizer.visualizer import Visualizer
-from src.ai.network import PacmanNetwork
-from src.ai.interface import NNDirectionChooser
-from src.ai.training import EvolutionTrainer
-from copy import deepcopy
-from typing import Optional
-import src.reloader, signal, importlib
 
+os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
 
 
 def reload_handler(signum, frame):
     print("\033[2D\033[K", end="", flush=True)
     importlib.reload(src.reloader)
     src.reloader.replace(globals())
+
 
 signal.signal(signal.SIGINT, reload_handler)
 
@@ -34,85 +37,6 @@ def resource_path(relative_path: str) -> Path:
     if getattr(sys, "frozen", False):
         return Path(sys._MEIPASS) / relative_path
     return Path(__file__).resolve().parent / relative_path
-
-
-levels = (
-    [
-        {
-            "frightened_duration": 5,
-            "ghost_speed": 75,
-            "ghost_fright_speed": 50,
-            "pacman_speed": 80,
-            "pacman_fright_speed": 90,
-            "duration": 90,
-            "phases": [
-                ["scatter", 7],
-                ["chase", 20],
-                ["scatter", 7],
-                ["chase", 20],
-                ["scatter", 5],
-                ["chase", 20],
-                ["scatter", 5],
-                ["chase", None],
-            ],
-        }
-    ]
-    + [
-        {
-            "frightened_duration": 5,
-            "ghost_speed": 85,
-            "ghost_fright_speed": 55,
-            "pacman_speed": 90,
-            "pacman_fright_speed": 95,
-            "duration": 90,
-            "phases": [
-                ["scatter", 7],
-                ["chase", 20],
-                ["scatter", 7],
-                ["chase", 20],
-                ["scatter", 5],
-                ["chase", 1033],
-                ["scatter", 1],
-                ["chase", None],
-            ],
-        }
-        for _ in range(3)
-    ]
-    + [
-        {
-            "frightened_duration": 5,
-            "ghost_speed": 95,
-            "ghost_fright_speed": 60,
-            "pacman_speed": 100,
-            "pacman_fright_speed": 100,
-            "duration": 90,
-            "phases": [
-                ["scatter", 5],
-                ["chase", 20],
-                ["scatter", 5],
-                ["chase", 20],
-                ["scatter", 5],
-                ["chase", 1033],
-                ["scatter", 1],
-                ["chase", None],
-            ],
-        }
-        for _ in range(16)
-    ]
-)
-levels_dict = {str(i): level for i, level in enumerate(levels, 1)}
-
-DEFAULT_CONFIG = {
-    "pacgum_proportion": 0.5,
-    "lives": 3,
-    "seed": 0,
-    "width": 15,
-    "height": 15,
-    "points_per_pacgum": 10,
-    "points_per_super_pacgum": 50,
-    "points_per_ghost": 50,
-    "levels": levels_dict,
-}
 
 
 def merge_config(default, override):
@@ -141,9 +65,7 @@ def load_config(path: Optional[str] = None):
             raise ConfigError("config is not a dict")
     else:
         loaded = {}
-    config = merge_config(deepcopy(DEFAULT_CONFIG), loaded)
-    for k, v in config.items():
-        MainData.config_from_file[k] = v
+    merge_config(deepcopy(MainData.config_from_file), loaded)
 
 
 def preload_assets(verbose: bool = False):
@@ -304,8 +226,9 @@ def main():
 
         load_high_scores(verbose=verbose)
         preload_assets(verbose=verbose)
-        nn = PacmanNetwork(model_path=str(resource_path("models/last_result.pt")))
-    except (OSError, FileNotFoundError, IsADirectoryError,PermissionError) as error:
+        nn = PacmanNetwork(model_path=str(
+            resource_path("models/last_result.pt")))
+    except (OSError, FileNotFoundError, IsADirectoryError, PermissionError) as error:
         print(f"error occured while loading config : {error}, exiting..,")
         return
     clamp_config()

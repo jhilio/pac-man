@@ -175,17 +175,6 @@ class Vector(Sequence[float | int]):
                     self, cast(Sequence[int | float], value)))
         raise TypeError(f"cant compare {self} to {value}")
 
-    def abs_diff(self, other: Sequence[int | float]) -> Self:
-        """
-        calculate the sum of absolute differences between this vector
-        and another compatible vector or iterable.
-        """
-        if self.__iscompatible(other):
-            return self.__class__(
-                tuple(abs(a_b[0] - a_b[1]) for a_b in zip(self, other))
-            )
-        raise TypeError(f"cant floordiv {self} to {other}")
-
     def __bool__(self) -> bool:
         """
         Return True if any dimension of the vector is non-zero.
@@ -205,18 +194,12 @@ class Vector(Sequence[float | int]):
     @overload
     def __getitem__(
         self,
-            key: slice[
-                int | None,
-                int | None,
-                int | None], /) -> Sequence[float | int]:
+            key: slice, /) -> Sequence[float | int]:
         ...
 
     def __getitem__(
         self,
-            key: int | slice[
-                int | None,
-                int | None,
-                int | None],) -> int | float | Sequence[float | int]:
+            key: int | slice) -> int | float | Sequence[float | int]:
         """
         Get the value of a specific dimension by index.
         """
@@ -249,6 +232,17 @@ class Vector(Sequence[float | int]):
             raise ValueError(
                 f"cant lerp {self.__class__.__name__} with {next}"
             )
+
+    def abs_diff(self, other: Sequence[int | float]) -> Self:
+        """
+        calculate the sum of absolute differences between this vector
+        and another compatible vector or iterable.
+        """
+        if self.__iscompatible(other):
+            return self.__class__(
+                tuple(abs(a_b[0] - a_b[1]) for a_b in zip(self, other))
+            )
+        raise TypeError(f"cant floordiv {self} to {other}")
 
 
 class Point(Vector):

@@ -15,12 +15,12 @@ from .enums import Direction
 
 class PacMap:
     def __init__(self, maze: mazegenerator.MazeGenerator):
-        MainData.pacmap = self
+        MainData.set_pacmap(self)
         self.is_finished = False
         self.level_num = 1
         self.level = MainData.config_from_file["levels"][str(self.level_num)]
         self.maze = maze
-        self.offset = 0
+        self.offset = 0.0
         self.score = 0
         self.has_started = False
         self.fright_time_left = 0.0
@@ -33,7 +33,7 @@ class PacMap:
         self.init_cells()
         self.init_charachters()
 
-    def regenerate(self, maze_restart=True) -> None:
+    def regenerate(self, maze_restart: bool = True) -> None:
         self.has_started = False
         self.is_finished = False
         self.fright_time_left = 0
@@ -48,13 +48,13 @@ class PacMap:
         self.pacman.reset_pos()
         self.pacman.direction = Direction.NORTH
 
-    def restart(self, guard_map=False):
+    def restart(self, guard_map: bool = False) -> None:
         self.pacman.lives = MainData.config_from_file["lives"]
         self.level_num = 1
         if guard_map:
             self.maze._seed -= 1
         self.score = 0
-        self.offset = 0
+        self.offset = 0.0
         self.regenerate(maze_restart=True)
 
     def init_charachters(self) -> None:
@@ -81,7 +81,7 @@ class PacMap:
 
         proporion = MainData.config_from_file["pacgum_proportion"]
         for x in range(len(self.maze.maze[0])):
-            column = []
+            column: list[Cell] = []
             self.cells.append(column)
             for y in range(len(self.maze.maze)):
                 column.append(
@@ -181,11 +181,12 @@ class PacMap:
         )
 
         scores = MainData.high_scores
+        iterator = iter(scores.values())
         sorted_scores = {
             k: scores[k]
             for k in sorted(
                 scores,
-                key=lambda _, it=iter(scores.values()): next(it),
+                key=lambda _: next(iterator),
                 reverse=True,
             )
         }
@@ -200,7 +201,6 @@ class PacMap:
         int,
         float,
     ]:
-
         fruits_data: list[list[int]] = []
         walls_data: list[list[int]] = []
         for x in range(len(self.cells)):

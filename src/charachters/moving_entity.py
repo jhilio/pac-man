@@ -12,17 +12,17 @@ class MovingEntities(ABC):
         self.next_pos = self.pos
         self.direction = direction
         self.next_direction = direction
-        self.offset = 0
+        self.offset = 0.0
         self.anim_step = 0
         self.speed = 1
         self.fright_speed = 1
         self.is_alive = True
 
-    def reset_pos(self):
+    def reset_pos(self) -> None:
         self.pos = self.original_pos
         self.next_pos = self.original_pos
 
-    def update(self, dt: float):
+    def update(self, dt: float) -> None:
         if MainData.pacmap.fright_time_left:
             self.offset += dt * self.fright_speed
         else:
@@ -31,31 +31,35 @@ class MovingEntities(ABC):
             self.offset -= 1
             self.step()
 
+    @abstractmethod
+    def step(self) -> None:
+        pass
+
     @property
     @abstractmethod
     def image(self) -> pygame.Surface:
         pass
 
     @abstractmethod
-    def update_level_data(self):
+    def update_level_data(self) -> None:
         pass
 
     @abstractmethod
-    def incr_anim(self):
+    def incr_anim(self) -> None:
         pass
 
-    def move(self, new_pos: Pos2D):
+    def move(self, new_pos: Pos2D) -> None:
         self.pos, self.next_pos = self.next_pos, new_pos
 
     @property
-    def visual_pos(self):
+    def visual_pos(self) -> Pos2D:
         return (self.pos - (0.25, 0.25)).lerp(
             self.next_pos - (0.25, 0.25), self.offset
         )
 
     @property
-    def cell_pos(self):
+    def cell_pos(self) -> Pos2D:
         return (self.pos) // 3
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.__class__.__name__

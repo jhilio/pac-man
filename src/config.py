@@ -1,9 +1,13 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, TypedDict
+
+from typing import TYPE_CHECKING, Callable, Generic, TypedDict, TypeVar
+
+from pygame.surface import Surface
 
 if TYPE_CHECKING:
     from .pacmap import PacMap
-from typing import Optional, Any
+from typing import Any, Optional
+
 import pygame
 
 
@@ -15,6 +19,72 @@ class Level(TypedDict):
     pacman_fright_speed: int
     duration: int
     phases: list[list[str | None | int]]
+
+
+levels: list[Level] = (
+    [
+        Level(
+            frightened_duration=5,
+            ghost_speed=75,
+            ghost_fright_speed=50,
+            pacman_speed=80,
+            pacman_fright_speed=90,
+            duration=90,
+            phases=[
+                ["scatter", 7],
+                ["chase", 20],
+                ["scatter", 7],
+                ["chase", 20],
+                ["scatter", 5],
+                ["chase", 20],
+                ["scatter", 5],
+                ["chase", None],
+            ],
+        )
+    ]
+    + [
+        Level(
+            frightened_duration=5,
+            ghost_speed=85,
+            ghost_fright_speed=55,
+            pacman_speed=90,
+            pacman_fright_speed=95,
+            duration=90,
+            phases=[
+                ["scatter", 7],
+                ["chase", 20],
+                ["scatter", 7],
+                ["chase", 20],
+                ["scatter", 5],
+                ["chase", 1033],
+                ["scatter", 1],
+                ["chase", None],
+            ],
+        )
+        for _ in range(3)
+    ]
+    + [
+        Level(
+            frightened_duration=5,
+            ghost_speed=95,
+            ghost_fright_speed=60,
+            pacman_speed=100,
+            pacman_fright_speed=100,
+            duration=90,
+            phases=[
+                ["scatter", 5],
+                ["chase", 20],
+                ["scatter", 5],
+                ["chase", 20],
+                ["scatter", 5],
+                ["chase", 1033],
+                ["scatter", 1],
+                ["chase", None],
+            ],
+        )
+        for _ in range(16)
+    ]
+)
 
 
 class Config(TypedDict):
@@ -29,14 +99,33 @@ class Config(TypedDict):
     levels: dict[str, Level]
 
 
+levels_dict = {
+    str(i): level for i, level in enumerate(levels, 1)
+}
+
+DEFAULT_CONFIG = Config(
+    pacgum_proportion=0.5,
+    lives=3,
+    seed=0,
+    width=15,
+    height=15,
+    points_per_pacgum=10,
+    points_per_super_pacgum=50,
+    points_per_ghost=50,
+    levels=levels_dict,
+)
+
+
 class AssetsManager:
-    def __init__(self):
-        self._originals: dict[str, pygame.Surface] = {}
-        self.scaled = {}
+    def __init__(self) -> None:
+        self._originals: dict[str, Surface] = {}
+        self.scaled: dict[
+            tuple[int | float, int | float],
+            dict[tuple[str, float, float, float, float], Surface]] = {}
 
     def load(
         self, name: str, path: str, color_key: Optional[pygame.Color] = None
-    ) -> Any | pygame.Surface:
+    ) -> Any | Surface:
         image = pygame.image.load(path)
         if color_key is not None:
             image.set_colorkey(color_key)
@@ -49,7 +138,7 @@ class AssetsManager:
         scaled_size: Optional[tuple[int, int]] = None,
         size_multiplier: float = 1,
         scaling: bool = True,
-    ) -> Any | pygame.Surface:
+    ) -> Any | Surface:
         if scaled_size is None:
             x = y = MainData.cell_size * size_multiplier
         else:
@@ -68,16 +157,39 @@ class AssetsManager:
         scaled = pygame.transform.scale(
             unscaled, (x * size_multiplier, y * size_multiplier)
         )
-        if unscaled.get_colorkey() is not None:
-            scaled.set_colorkey(unscaled.get_colorkey()[:3])
+        color_key = unscaled.get_colorkey()
+        if color_key is not None:
+            scaled.set_colorkey(color_key[:3])
         cache[hashable] = scaled
         return scaled
+
+
+T = TypeVar("T")
+
+
+class ClassProperty(Generic[T]):
+    def __init__(self, getter: Callable[[Any], T]):
+        self.getter = getter
+
+    def __get__(self, instance: None, owner: Any) -> T:
+        return self.getter(owner)
 
 
 class MainData:
     tick_rate = 10
     cell_size = 16
-    high_scores = {}
-    config_from_file = Config()
+    high_scores: dict[str, int] = {}
+    config_from_file = DEFAULT_CONFIG
     assets = AssetsManager()
-    pacmap: Optional[PacMap] = None
+
+    _pacmap: PacMap | None = None
+
+    @ClassProperty
+    def pacmap(cls) -> PacMap:
+        if cls._pacmap is None:
+            raise RuntimeError("MainData.pacmap has not been initialized")
+        return cls._pacmap
+
+    @classmethod
+    def set_pacmap(cls, pacmap: PacMap) -> None:
+        cls._pacmap = pacmap

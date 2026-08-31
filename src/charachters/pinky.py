@@ -7,7 +7,7 @@ class Pinky(Ghost):
     ghost_color = (255, 182, 193)
     ghost_name = "pinky"
 
-    def specific_chase_cell(self):
+    def specific_chase_cell(self) -> Pos2D:
         pacman = MainData.pacmap.pacman
         target = (Pos2D(pacman.direction.delta()) * 4) + pacman.pos
         if pacman.direction == Direction.NORTH:

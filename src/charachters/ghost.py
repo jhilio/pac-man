@@ -1,5 +1,6 @@
 from random import shuffle
-from typing import Optional
+
+from pygame.surface import Surface
 
 from ..enums import GhostState
 from .moving_entity import (
@@ -12,9 +13,19 @@ from .moving_entity import (
 
 
 def get_ghost_state() -> GhostState:
-    phases: list[tuple[str, Optional[int]]] = MainData.pacmap.level["phases"]
+    phases: list[list[str | None | int]] = MainData.pacmap.level["phases"]
     time_left = MainData.pacmap.phase_timer
-    for mode, duration in phases:
+    for phase in phases:
+        if isinstance(phase[0], str):
+            mode: str = phase[0]
+        else:
+            raise TypeError("phase should start with a str")
+        du_test = phase[1]
+        if isinstance(du_test, (int, type(None))):
+            duration: int | None = du_test
+        else:
+            raise TypeError("phase duratiton should be int or None")
+
         if duration is None or time_left < duration:
             return GhostState(mode.upper())
         time_left -= duration
@@ -22,14 +33,15 @@ def get_ghost_state() -> GhostState:
 
 
 class Ghost(MovingEntities):
-    def __init__(self, direction: Direction, x=0, y=0):
+    def __init__(self, direction: Direction, x: int = 0, y: int = 0):
         super().__init__(direction, x, y)
         self.mode = GhostState.SCATTER
         self.choose_target_cell()
-        self.speed = MainData.pacmap.level["ghost_speed"] / 100
-        self.fright_speed = MainData.pacmap.level["ghost_fright_speed"] / 100
+        self.speed = int(MainData.pacmap.level["ghost_speed"] // 100)
+        self.fright_speed = int(
+            MainData.pacmap.level["ghost_fright_speed"] // 100)
 
-    def __init_subclass__(cls, **kwargs):
+    def __init_subclass__(cls, **kwargs: dict) -> None:
         super().__init_subclass__(**kwargs)
 
         if "ghost_name" not in cls.__dict__:
@@ -37,9 +49,9 @@ class Ghost(MovingEntities):
         if "ghost_color" not in cls.__dict__:
             raise TypeError(f"{cls.__name__} must define 'ghost_color'")
 
-    def rank_neighbor(self):
+    def rank_neighbor(self) -> list[Direction]:
         new_pos = self.next_pos
-        cell_x, cell_y = new_pos // 3
+        cell_x, cell_y = int(new_pos.x // 3), int(new_pos.y // 3)
         if new_pos % (3, 3) != (1, 1):
             valide_dirs = [self.direction]
         else:
@@ -66,8 +78,9 @@ class Ghost(MovingEntities):
         return ranked
 
     @property
-    def image(self):
-        tl = f"{self.ghost_name}_{self.direction.to_text()}{self.anim_step+1}"
+    def image(self) -> Surface:
+        tl = (f"{getattr(self, "ghost_name", "no_name")}_"
+              f"{self.direction.to_text()}{self.anim_step+1}")
         path_name = ""
         fright_time = MainData.pacmap.fright_time_left
         if not self.is_alive:
@@ -83,7 +96,7 @@ class Ghost(MovingEntities):
         frame = MainData.assets.get_asset(path_name, size_multiplier=1.3)
         return frame
 
-    def update(self, dt: float):
+    def update(self, dt: float) -> None:
         if self.pos == self.original_pos:
             self.is_alive = True
         if not self.is_alive:
@@ -99,20 +112,20 @@ class Ghost(MovingEntities):
             self.mode = new_mode
         super().update(dt)
 
-    def incr_anim(self):
+    def incr_anim(self) -> None:
         self.anim_step = 0 if self.anim_step else 1
 
-    def update_level_data(self):
-        self.speed = MainData.pacmap.level["ghost_speed"] / 100
-        self.fright_speed = MainData.pacmap.level["ghost_fright_speed"] / 100
+    def update_level_data(self) -> None:
+        self.speed = MainData.pacmap.level["ghost_speed"] // 100
+        self.fright_speed = MainData.pacmap.level["ghost_fright_speed"] // 100
 
-    def choose_target_cell(self):
+    def choose_target_cell(self) -> None:
         if self.mode in [GhostState.DEAD, GhostState.SCATTER]:
             self.target_cell = self.original_pos
         else:
             self.target_cell = self.specific_chase_cell()
 
-    def step(self):
+    def step(self) -> None:
         self.choose_target_cell()
         self.direction = self.rank_neighbor()[0]
         self.move(self.next_pos + self.direction.delta())

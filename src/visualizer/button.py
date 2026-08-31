@@ -1,5 +1,5 @@
 from collections.abc import Callable
-from typing import Any, Optional, Self
+from typing import Any, Optional, Self, SupportsIndex, overload
 
 import pygame
 from pygame.surface import Surface
@@ -8,22 +8,29 @@ from ..vector import Pos2D
 
 
 class CyclicList(list):
-    def __getitem__(self, s):
-        if isinstance(s, int):
-            s %= len(self)
-        return super().__getitem__(s)
+    @overload
+    def __getitem__(self, k: SupportsIndex) -> Any:
+        ...
+
+    @overload
+    def __getitem__(self, k: slice) -> list[Any]:
+        ...
+
+    def __getitem__(self, k: SupportsIndex | slice) -> Any | list[Any]:
+        if isinstance(k, int):
+            k %= len(self)
+        return super().__getitem__(k)
 
 
 class PercentRect:
-    def __init__(self, x, y, width, height):
+    def __init__(self, x: float, y: float, width: float, height: float):
         self.x = x
         self.y = y
         self.width = width
         self.height = height
 
-    def to_rect(self, screen) -> pygame.Rect:
+    def to_rect(self, screen: Surface) -> pygame.Rect:
         screen_width, screen_height = screen.get_size()
-
         return pygame.Rect(
             int(self.x * screen_width),
             int(self.y * screen_height),
@@ -33,19 +40,15 @@ class PercentRect:
 
 
 class DelayedCall:
-    def __init__(self, func: Callable, *args, **kwargs):
-        self.call = {
-            "function": func,
-            "args": tuple(args),
-            "kwargs": dict(kwargs) if kwargs else {},
-        }
+    def __init__(self, func: Callable, *args: Any, **kwargs: Any):
+        self.func = func
+        self.args = tuple(args)
+        self.kwargs = dict(kwargs) if kwargs else {}
 
     def __call__(self) -> Any:
-        if not callable(self.call.get("function")):
+        if not callable(self.func):
             raise ValueError("DelayedCall with a non callable func")
-        func, args, kwargs = self.call.values()
-
-        return func(*args, **kwargs)
+        return self.func(*self.args, **self.kwargs)
 
 
 class ClickableButton:
@@ -55,12 +58,12 @@ class ClickableButton:
         y: float,
         width: float,
         height: float,
-        screen: pygame.Surface,
+        screen: Surface,
         font: pygame.font.Font,
         effect: Optional[DelayedCall] = None,
         text: str | DelayedCall = "",
-        image: Optional[pygame.Surface] = None,
-        hovered_image: Optional[pygame.Surface] = None,
+        image: Optional[Surface] = None,
+        hovered_image: Optional[Surface] = None,
     ):
         self.percent_rect = PercentRect(x, y, width, height)
         self.font = font
@@ -71,10 +74,10 @@ class ClickableButton:
         self._hovered_image = hovered_image
         self.is_hovered = False
 
-    def update(self, dt: float, is_hovered: bool = False):
+    def update(self, dt: float, is_hovered: bool = False) -> None:
         self.is_hovered = is_hovered
 
-    def is_in(self, pos: Pos2D) -> Any:
+    def is_in(self, pos: Pos2D) -> bool:
         return self.to_screen_rect.collidepoint(*pos)
 
     def on_click(self) -> None:
@@ -85,7 +88,10 @@ class ClickableButton:
     def text(self) -> str:
         if isinstance(self._text, str):
             return self._text
-        return self._text()
+        res = self._text()
+        if isinstance(res, str):
+            return res
+        raise TypeError(f"text generator for button returned {type(res)}")
 
     @property
     def to_screen_rect(self) -> pygame.Rect:
@@ -116,9 +122,9 @@ class ClickableButton:
             height = (self.font.get_height() + 2) * len(surface_lines)
             start = Pos2D(surface.get_size()) / 2 - (Pos2D(width, height) / 2)
 
-            for i, line in enumerate(surface_lines):
+            for i, line2 in enumerate(surface_lines):
                 surface.blit(
-                    line, start + Pos2D(0, ((self.font.get_height() + 2) * i))
+                    line2, start + Pos2D(0, ((self.font.get_height() + 2) * i))
                 )
         return surface
 
@@ -135,17 +141,17 @@ class AnimatedButton(ClickableButton):
         height: float,
         screen: Surface,
         font: pygame.font.Font,
-        *args,
+        *args: Any,
         effect: Optional[DelayedCall] = None,
         text: str | DelayedCall = "",
         image: Optional[pygame.Surface] = None,
-        hovered_image: Optional[pygame.Surface] = None,
+        hovered_image: Optional[Surface] = None,
         on_hover: Optional[Callable[[Self], None]] = None,
-        animation_image: Optional[CyclicList[Surface]] = None,
+        animation_image: Optional[CyclicList] = None,
         animation_frames_count: int = 5,
         animate_func: Optional[Callable[[
             Self, Surface], Surface]] = None,
-        anim_duration=1,
+        anim_duration: float = 1.0,
     ):
         super().__init__(
             x,
@@ -159,32 +165,38 @@ class AnimatedButton(ClickableButton):
             image,
             hovered_image,
         )
-        self._on_hover = (
-            on_hover if on_hover is not None else self.__class__.default_hover
+        self._on_hover: Callable[[Any], None] = (
+            on_hover if on_hover is not None else self.default_hover
         )
-        self._animate_func = (
+        self._animate_func: Callable[[Any, Surface], Surface] = (
             animate_func
             if animate_func is not None
-            else self.__class__.default_animate
+            else self.default_animate
         )
         self.anim_duration = anim_duration
         self.animation_image = animation_image
-        self.anim_stage = None
+        self.anim_stage: Optional[float] = None
         self.animation_frames_count = animation_frames_count
         self.extra = args
 
-    def default_hover(self):
+    @staticmethod
+    def default_hover(button: Any) -> None:
         pass
+
+    @staticmethod
+    def default_animate(
+            button: Any, base_image: Surface) -> Surface:
+        return base_image
 
     def on_click(self) -> None:
         if not self.__class__.anim_launched:
             if self.anim_duration:
-                self.anim_stage = 1
+                self.anim_stage = 1.0
                 self.__class__.anim_launched = True
-            else:
+            elif self.effect:
                 self.effect()
 
-    def update(self, dt: float, is_hovered: bool = False):
+    def update(self, dt: float, is_hovered: bool = False) -> None:
         super().update(dt, is_hovered)
         if self.anim_stage is not None:
             self.anim_stage -= dt / self.anim_duration
@@ -194,11 +206,8 @@ class AnimatedButton(ClickableButton):
                 if self.effect:
                     self.effect()
 
-    def default_animate(self, base_image: Surface):
-        return base_image
-
     @property
-    def image(self):
+    def image(self) -> Surface:
         if self.is_hovered:
             self._on_hover(self)
         base_image = super().image
@@ -211,7 +220,7 @@ def pac_button_hover(self: AnimatedButton) -> None:
 
 
 def pac_button_anim(
-    self: AnimatedButton, base_image: Surface
+    self: Any, base_image: Surface
 ) -> Surface:
     if self.animation_image is not None and self.anim_stage is not None:
         anim_frame = self.animation_image[
@@ -242,8 +251,12 @@ def pac_button_anim(
 
 
 def paused_anim(
-    self: AnimatedButton, base_image: Surface
+    self: Any, base_image: Surface
 ) -> Surface:
+    if self.animation_image is None:
+        raise ValueError("need animation images for this animation")
     if self.extra[0].paused:
-        return self.animation_image[1]
-    return self.animation_image[0]
+        ret: Surface = self.animation_image[1]
+    else:
+        ret = self.animation_image[0]
+    return ret

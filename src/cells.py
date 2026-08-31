@@ -1,6 +1,7 @@
 from typing import Optional
 
 import pygame
+from pygame.surface import Surface
 
 from .config import MainData
 from .enums import Direction
@@ -12,11 +13,11 @@ class Fruit:
         self.parent = parent
 
     @property
-    def image(self):
+    def image(self) -> Surface:
         names = ("no_dot.png", "small_dot.png", "big_dot.png")
         return MainData.assets.get_asset(names[self.val])
 
-    def eated(self):
+    def eated(self) -> None:
         pacmap = MainData.pacmap
         if self.val == 1:
             pacmap.score += MainData.config_from_file["points_per_pacgum"]
@@ -50,32 +51,17 @@ class Cell:
         self.neighbors = neighbors
 
     @property
-    def image(self):
+    def image(self) -> Surface:
         if getattr(self, "__image", None) is None:
             self.init_image()
         return self.__image
 
-    def __get_neighbor(self):
-        grid = [[0 for _ in range(3)] for _ in range(3)]
-
-        for dx in (-1, 0, 1):
-            for dy in (-1, 0, 1):
-                x = self.x + dx
-                y = self.y + dy
-
-                if (0 <= x < len(self.neighbors)
-                        and 0 <= y < len(self.neighbors[x])):
-                    grid[dy + 1][dx + 1] = self.neighbors[x][y].walls
-
-        return grid
-
-    def init_image(self):
+    def init_image(self) -> Surface:
         def get_corner(
             walls: int,
             dir1: Direction,
             dir2: Direction,
-            neighbor: tuple[int, int, int, int],
-        ):
+        ) -> Surface:
             if dir1.value & walls and dir2.value & walls:
                 return MainData.assets.get_asset(
                     f"corner_{'n' if dir1 == Direction.NORTH else 's'}"
@@ -103,7 +89,7 @@ class Cell:
                     + f"{'e' if dir2 != Direction.EAST else 'w'}.png"
                 )
 
-        def get_direction(walls: int, direction: Direction):
+        def get_direction(walls: int, direction: Direction) -> Surface:
             if direction == Direction.NORTH and walls & direction.value:
                 return MainData.assets.get_asset("double_top.png")
             elif direction == Direction.EAST and walls & direction.value:
@@ -118,12 +104,11 @@ class Cell:
         if self.walls == 15:
             pass  # create 3*3 full block for 42 patern
 
-        n = self.__get_neighbor()
         all_images = (
             (
-                get_corner(self.walls, Direction.NORTH, Direction.WEST, n),
+                get_corner(self.walls, Direction.NORTH, Direction.WEST),
                 get_direction(self.walls, Direction.WEST),
-                get_corner(self.walls, Direction.SOUTH, Direction.WEST, n),
+                get_corner(self.walls, Direction.SOUTH, Direction.WEST),
             ),  # right part
             (
                 get_direction(self.walls, Direction.NORTH),
@@ -133,9 +118,9 @@ class Cell:
                 get_direction(self.walls, Direction.SOUTH),
             ),  # midle
             (
-                get_corner(self.walls, Direction.NORTH, Direction.EAST, n),
+                get_corner(self.walls, Direction.NORTH, Direction.EAST),
                 get_direction(self.walls, Direction.EAST),
-                get_corner(self.walls, Direction.SOUTH, Direction.EAST, n),
+                get_corner(self.walls, Direction.SOUTH, Direction.EAST),
             ),  # left
         )
         self.__image = pygame.surface.Surface(
@@ -165,7 +150,7 @@ class Cell:
         )
         return self.__image
 
-    def __str__(self):
+    def __str__(self) -> str:
         return hex(self.walls)[2:]
 
     __repr__ = __str__

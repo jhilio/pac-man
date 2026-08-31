@@ -8,7 +8,11 @@ class Clyde(Ghost):
     ghost_name = "clyde"
 
     def specific_chase_cell(self) -> Pos2D:
-        if sum(self.pos.abs_diff(MainData.pacmap.pacman.pos)) >= 8:
-            return MainData.pacmap.pacman.pos
+        if (Pos2D(0, 0).pythagore(
+            self.pos.abs_diff(
+                MainData.pacmap.pacman.pos)) >= 8):
+            target: Pos2D = MainData.pacmap.pacman.pos
+
         else:
-            return self.original_pos
+            target = self.original_pos
+        return target
