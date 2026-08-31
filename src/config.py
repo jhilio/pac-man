@@ -8,18 +8,19 @@ import pygame
 
 
 class Level(TypedDict):
-    frightened_duration:int
-    ghost_speed:int
-    ghost_fright_speed:int
-    pacman_speed:int
-    pacman_fright_speed:int
-    duration:int
-    phases: list[list[str | None| int]]
+    frightened_duration: int
+    ghost_speed: int
+    ghost_fright_speed: int
+    pacman_speed: int
+    pacman_fright_speed: int
+    duration: int
+    phases: list[list[str | None | int]]
+
 
 class Config(TypedDict):
     pacgum_proportion: float
     lives: int
-    seed: int    
+    seed: int
     width: int
     height: int
     points_per_pacgum: int
@@ -45,7 +46,7 @@ class AssetsManager:
     def get_asset(
         self,
         name: str,
-        scaled_size: Optional[tuple[int, int]]=None,
+        scaled_size: Optional[tuple[int, int]] = None,
         size_multiplier: float = 1,
         scaling: bool = True,
     ) -> Any | pygame.Surface:

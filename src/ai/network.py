@@ -1,12 +1,18 @@
 from pathlib import Path
-from typing import Self
+from typing import Optional, Self
+
+import numpy
 import torch
-import torch.nn as nn
+from torch import nn
 
 
 class PacmanNetwork(nn.Module):
 
-    def __init__(self, ghost_count=4, model_path=None):
+    def __init__(
+            self,
+            ghost_count: int = 4,
+            model_path: Optional[Path] = None
+    ):
         super().__init__()
         channels = 6 + ghost_count
         self.ghost_count = ghost_count
@@ -74,17 +80,17 @@ class PacmanNetwork(nn.Module):
             ),
         )
         if model_path is not None:
-            self.model_path = Path(model_path)
+            self.model_path: Optional[Path] = Path(model_path)
             self.load()
         else:
             self.model_path = None
 
     def forward(
         self,
-        observation,
-        fright_time,
-        pacman_position,
-    ):
+        observation: numpy.ndarray,
+        fright_time: float,
+        pacman_position: tuple[int, int],
+    ) -> torch.Tensor:
         features = self.cnn(observation)
         # -----------------------------------------
         # Local information
@@ -116,45 +122,47 @@ class PacmanNetwork(nn.Module):
             ],
             dim=1,
         )
-        return self.head(combined)
+        output: torch.Tensor = self.head(combined)
+        return output
 
-    def save(self, path=None):
-        path = Path(path) if path else self.model_path
-        if path is None:
+    def save(self, path: Optional[str] = None) -> None:
+        real_path = Path(path) if path else self.model_path
+        if real_path is None:
             raise ValueError("No save path provided.")
-        path.parent.mkdir(
+            return
+        real_path.parent.mkdir(
             parents=True,
             exist_ok=True,
         )
         torch.save(
             self.state_dict(),
-            path,
+            real_path,
         )
-        print(f"Model saved to {path.resolve()}")
+        print(f"Model saved to {real_path.resolve()}")
 
-    def load(self, path=None):
-        path = Path(path) if path else self.model_path
-        if path is None:
+    def load(self, path: Optional[str] = None) -> None:
+        real_path = Path(path) if path else self.model_path
+        if real_path is None:
             print(
                 "no path provided either in init or load",
                 "using random initialization.",
             )
             return
-        if not path.exists():
+        if not real_path.exists():
             print(
-                f"No model found at {path.resolve()}, "
+                f"No model found at {real_path.resolve()}, "
                 "using random initialization."
             )
             return
-        print(f"Loading model from {path.resolve()}")
+        print(f"Loading model from {real_path.resolve()}")
         state_dict = torch.load(
-            path,
+            real_path,
             weights_only=True,
         )
         self.load_state_dict(state_dict)
         print("Model loaded.")
 
-    def mutate(self, strength=0.01):
+    def mutate(self, strength: float = 0.01) -> "PacmanNetwork":
         mutated = PacmanNetwork(
             ghost_count=self.ghost_count,
         )
@@ -170,7 +178,7 @@ class PacmanNetwork(nn.Module):
 
         return mutated
 
-    def compare(self, other: Self):
+    def compare(self, other: Self) -> None:
         for name, parameter in self.named_parameters():
             other_parameter = dict(other.named_parameters())[name]
 

@@ -1,19 +1,25 @@
 from math import log2
-from src.pacmap import PacMap
-from ..enums import Direction
-from .observation import ObservationBuilder
-import torch
+
 import numpy
+import torch
+
+from ..enums import Direction
+from ..pacmap import PacMap
+from .network import PacmanNetwork
+from .observation import ObservationBuilder
 
 
 class NNDirectionChooser:
 
-    def __init__(self, network):
+    def __init__(self, network: PacmanNetwork):
         self.network = network
 
-    def _get_distribution(self, pacmap: PacMap):
+    def _get_distribution(
+        self,
+        pacmap: PacMap
+    ) -> tuple[numpy.ndarray, torch.Tensor]:
         info = pacmap.get_state_for_nn()
-        observation, score, fright_time_ratio = ObservationBuilder.build(info)
+        observation, _score, fright_time_ratio = ObservationBuilder.build(info)
         tensor = torch.from_numpy(observation).unsqueeze(0)
         fright_tensor = torch.tensor(
             [[fright_time_ratio]],
@@ -33,9 +39,9 @@ class NNDirectionChooser:
             logits[0, opposite] = float("-inf")
         return observation, logits
 
-    def choose(self, pacmap, temperature=1) -> Direction:
+    def choose(self, pacmap: PacMap, temperature: float = 1.0) -> Direction:
         with torch.no_grad():
-            observation, logits = self._get_distribution(pacmap)
+            _observation, logits = self._get_distribution(pacmap)
             probabilities = torch.softmax(
                 logits / temperature,
                 dim=1,
@@ -45,4 +51,4 @@ class NNDirectionChooser:
                 1,
             ).item()
             # action = torch.argmax(logits, dim=1).item()
-        return Direction(1 << action)
+        return Direction(1 << int(action))

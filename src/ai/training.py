@@ -1,9 +1,11 @@
+from typing import Tuple
+
 from src.ai.interface import NNDirectionChooser
 from .network import PacmanNetwork
 from ..pacmap import PacMap
 
 
-def evaluate(pacmap: PacMap, chooser: NNDirectionChooser):
+def evaluate(pacmap: PacMap, chooser: NNDirectionChooser) -> Tuple[int, float]:
     pacmap.restart(True)
     score = 0
     turns = 0
@@ -50,7 +52,7 @@ class EvolutionTrainer:
             for _ in range(self.children_count)
         ]
         total_scores = [0] * len(network_pool)
-        total_scaled_scores = [0] * len(network_pool)
+        total_scaled_scores = [0.0] * len(network_pool)
         for i, network in enumerate(network_pool):
             chooser = NNDirectionChooser(network)
             for j in range(self.games_per_network):
@@ -68,6 +70,7 @@ class EvolutionTrainer:
         )
         with open("models/generations/logs.txt", "a+") as log:
             log.write(
-                f"generation {generation:03d} : {total_scores[best_index] / self.games_per_network}\n"
+                f"generation {generation:03d} : "
+                f"{total_scores[best_index] / self.games_per_network}\n"
             )
         return self.train([start_network[0]] + [best_one], generation - 1)

@@ -1,8 +1,8 @@
 from src.enums import Direction
 from src.vector import Pos2D
 
-from .moving_entity import MovingEntities
 from ..config import MainData
+from .moving_entity import MovingEntities
 
 
 class Pacman(MovingEntities):
@@ -22,6 +22,7 @@ class Pacman(MovingEntities):
             f"pacman_frame_{self.anim_step}.png", size_multiplier=1.3
         )
         return frame
+
     @property
     def image(self):
         frame = MainData.assets.get_asset(

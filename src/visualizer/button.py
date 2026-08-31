@@ -1,13 +1,10 @@
+from collections.abc import Callable
+from typing import Any, Optional, Self
+
 import pygame
-from typing import Callable, Optional, Any
+from pygame.surface import Surface
 
 from ..vector import Pos2D
-
-
-
-
-
-
 
 
 class CyclicList(list):
@@ -74,7 +71,7 @@ class ClickableButton:
         self._hovered_image = hovered_image
         self.is_hovered = False
 
-    def update(self, dt: float, is_hovered:bool=False):
+    def update(self, dt: float, is_hovered: bool = False):
         self.is_hovered = is_hovered
 
     def is_in(self, pos: Pos2D) -> Any:
@@ -104,18 +101,20 @@ class ClickableButton:
             surface = pygame.transform.scale(
                 self._image, tuple(self.to_screen_rect)[2:]
             )
-        else :
+        else:
             surface = pygame.Surface(tuple(self.to_screen_rect)[2:])
         txt = self.text
         if txt:
             lines = self.text.split("\n")
-            surface_lines: list[pygame.surface.Surface] = []
+            surface_lines: list[Surface] = []
             for i, line in enumerate(lines):
-                surface_lines.append(self.font.render(line, True, (255,255,255)))
+                surface_lines.append(
+                    self.font.render(line, True, (255, 255, 255))
+                )
 
             width = max(a.get_width() for a in surface_lines)
             height = (self.font.get_height() + 2) * len(surface_lines)
-            start = Pos2D(surface.get_size()) / 2 -( Pos2D(width, height) /2)
+            start = Pos2D(surface.get_size()) / 2 - (Pos2D(width, height) / 2)
 
             for i, line in enumerate(surface_lines):
                 surface.blit(
@@ -125,8 +124,8 @@ class ClickableButton:
 
 
 class AnimatedButton(ClickableButton):
-    last_hovered = None
-    anim_launched = False
+    last_hovered: Optional["AnimatedButton"] = None
+    anim_launched: bool = False
 
     def __init__(
         self,
@@ -134,17 +133,18 @@ class AnimatedButton(ClickableButton):
         y: float,
         width: float,
         height: float,
-        screen: pygame.Surface,
+        screen: Surface,
         font: pygame.font.Font,
         *args,
         effect: Optional[DelayedCall] = None,
         text: str | DelayedCall = "",
         image: Optional[pygame.Surface] = None,
         hovered_image: Optional[pygame.Surface] = None,
-        on_hover:Optional[DelayedCall] = None,
-        animation_image: Optional[CyclicList[pygame.surface.Surface]] = None,
+        on_hover: Optional[Callable[[Self], None]] = None,
+        animation_image: Optional[CyclicList[Surface]] = None,
         animation_frames_count: int = 5,
-        animate_func: Optional[DelayedCall] = None,
+        animate_func: Optional[Callable[[
+            Self, Surface], Surface]] = None,
         anim_duration=1,
     ):
         super().__init__(
@@ -175,7 +175,7 @@ class AnimatedButton(ClickableButton):
 
     def default_hover(self):
         pass
-        
+
     def on_click(self) -> None:
         if not self.__class__.anim_launched:
             if self.anim_duration:
@@ -183,7 +183,8 @@ class AnimatedButton(ClickableButton):
                 self.__class__.anim_launched = True
             else:
                 self.effect()
-    def update(self, dt: float, is_hovered: bool=False):
+
+    def update(self, dt: float, is_hovered: bool = False):
         super().update(dt, is_hovered)
         if self.anim_stage is not None:
             self.anim_stage -= dt / self.anim_duration
@@ -193,9 +194,9 @@ class AnimatedButton(ClickableButton):
                 if self.effect:
                     self.effect()
 
-    def default_animate(self, base_image: pygame.surface.Surface):
+    def default_animate(self, base_image: Surface):
         return base_image
-        
+
     @property
     def image(self):
         if self.is_hovered:
@@ -204,18 +205,19 @@ class AnimatedButton(ClickableButton):
         animated = self._animate_func(self, base_image)
         return pygame.transform.scale(animated, tuple(self.to_screen_rect)[2:])
 
+
 def pac_button_hover(self: AnimatedButton) -> None:
     self.__class__.last_hovered = self
 
 
-def pac_button_anim(self: AnimatedButton, base_image: pygame.surface.Surface) -> pygame.surface.Surface:
+def pac_button_anim(
+    self: AnimatedButton, base_image: Surface
+) -> Surface:
     if self.animation_image is not None and self.anim_stage is not None:
         anim_frame = self.animation_image[
             int(self.anim_stage * self.animation_frames_count)
         ]
-        x = (
-            base_image.get_width() - anim_frame.get_width()
-        ) * self.anim_stage
+        x = (base_image.get_width() - anim_frame.get_width()) * self.anim_stage
         x = x * 0.9 + 5
         y = base_image.get_height() / 2 - anim_frame.get_height() / 2
         new = base_image.copy()
@@ -239,7 +241,9 @@ def pac_button_anim(self: AnimatedButton, base_image: pygame.surface.Surface) ->
     return base_image
 
 
-def paused_anim(self:AnimatedButton, base_image:  pygame.surface.Surface) -> pygame.surface.Surface:
+def paused_anim(
+    self: AnimatedButton, base_image: Surface
+) -> Surface:
     if self.extra[0].paused:
         return self.animation_image[1]
     return self.animation_image[0]

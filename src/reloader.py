@@ -1,16 +1,16 @@
+import inspect
+from collections.abc import Callable
+from dataclasses import dataclass
+from pathlib import Path
 
-from src.visualizer.visualizer import  *
+from src.visualizer.visualizer import Visualizer
+
 imported = Visualizer.draw_cells
 
-import ast
-import inspect
-from pathlib import Path
-import inspect
-from dataclasses import dataclass
-from typing import Callable
 
-def empty():
+def empty() -> None:
     pass
+
 
 @dataclass
 class FuncRef:
@@ -40,18 +40,17 @@ def save_ref(func: Callable) -> FuncRef:
         indent=indent,
     )
 
-def copy_func(src: FuncRef, dest: FuncRef):
+
+def copy_func(src: FuncRef, dest: FuncRef) -> None:
     src_lines = Path(src.filename).read_text().splitlines(keepends=True)
     dest_lines = Path(dest.filename).read_text().splitlines(keepends=True)
 
-    copied = src_lines[src.start - 1:src.end - 1]
+    copied = src_lines[src.start - 1: src.end - 1]
 
     src_indent = " " * src.indent
     dest_indent = " " * dest.indent
     copied = [
-        dest_indent + line[len(src_indent):]
-        if line.strip()
-        else line
+        dest_indent + line[len(src_indent):] if line.strip() else line
         for line in copied
     ]
     # Keep destination's original name.
@@ -60,27 +59,22 @@ def copy_func(src: FuncRef, dest: FuncRef):
         dest.name,
         1,
     )
-    dest_lines[dest.start - 1:dest.end - 1] = copied
+    dest_lines[dest.start - 1: dest.end - 1] = copied
     Path(dest.filename).write_text("".join(dest_lines))
 
-def my_copy():
+
+def my_copy() -> None:
     pass
 
 
-def replace(globals: dict):
+def replace(globals: dict) -> None:
     if imported is None:
         raise KeyboardInterrupt
     if globals.get("originale_func") is None:
         globals["originale_func"] = save_ref(imported)
     copy = save_ref(my_copy)
     try:
-        val = int(input(
-            "1: copy\n"
-            "2: test\n"
-            "3: push\n"
-            "4: clear_cache\n"
-            "action: "
-        ))
+        val = int(input("1: copy\n2: test\n3: push\n4: clear_cache\naction: "))
     except (ValueError, EOFError):
         raise KeyboardInterrupt
     if val == 1:
@@ -88,10 +82,10 @@ def replace(globals: dict):
     elif val == 2:
         imported.__code__ = my_copy.__code__
     elif val == 3:
-        copy_func(copy, globals["originale_func"])#
+        copy_func(copy, globals["originale_func"])
     elif val == 4:
         globals["originale_func"] = None
         copy_func(save_ref(empty), save_ref(my_copy))
     else:
         raise KeyboardInterrupt
-    print("finished")##
+    print("finished")

@@ -1,14 +1,16 @@
+from random import Random
+
 import mazegenerator
-from random import Random, choices
+
+from .cells import Cell, Fruit
+from .charachters.blinky import Blinky
 from .charachters.clyde import Clyde
 from .charachters.ghost import Ghost
 from .charachters.inky import Inky
 from .charachters.pacman import Pacman
-from .charachters.blinky import Blinky
 from .charachters.pinky import Pinky
-from .enums import Direction
-from .cells import Cell, Fruit
 from .config import MainData
+from .enums import Direction
 
 
 class PacMap:
@@ -21,9 +23,9 @@ class PacMap:
         self.offset = 0
         self.score = 0
         self.has_started = False
-        self.fright_time_left = 0
-        self.total_elapsed_time = 0
-        self.phase_timer = 0
+        self.fright_time_left = 0.0
+        self.total_elapsed_time = 0.0
+        self.phase_timer = 0.0
         self.player_name = ""
         self.random = Random(self.maze._seed)
         self.training_mode = False
@@ -58,15 +60,14 @@ class PacMap:
     def init_charachters(self) -> None:
         self.pacman = Pacman(
             Direction.NORTH,
-            x=(len(self.cells)-1) // 2,
+            x=(len(self.cells) - 1) // 2,
             y=len(self.cells[0]) // 2,
             lives=MainData.config_from_file["lives"],
         )
         self.blinky = Blinky(Direction.SOUTH, len(self.cells) - 1, 0)
         self.pinky = Pinky(Direction.EAST)
-        self.inky = Inky(
-            Direction.WEST, len(self.cells) - 1, len(self.cells[0]) - 1
-        )
+        self.inky = Inky(Direction.WEST, len(
+            self.cells) - 1, len(self.cells[0]) - 1)
         self.clyde = Clyde(Direction.NORTH, 0, len(self.cells[0]) - 1)
         self.ghosts: list[Ghost] = [
             self.blinky,
@@ -78,6 +79,7 @@ class PacMap:
     def init_cells(self) -> None:
         self.cells: list[list[Cell]] = []
 
+        proporion = MainData.config_from_file["pacgum_proportion"]
         for x in range(len(self.maze.maze[0])):
             column = []
             self.cells.append(column)
@@ -92,13 +94,8 @@ class PacMap:
                             self.random.choices(
                                 population=[0, 1],
                                 weights=[
-                                    1
-                                    - MainData.config_from_file[
-                                        "pacgum_proportion"
-                                    ],
-                                    MainData.config_from_file[
-                                        "pacgum_proportion"
-                                    ],
+                                    1 - proporion,
+                                    proporion
                                 ],
                             )[0]
                         ),
@@ -118,13 +115,9 @@ class PacMap:
     def update(self, dt: float) -> None:
         self.has_started = True
         self.total_elapsed_time += dt
-        self.phase_timer += (
-            dt - self.fright_time_left if dt - self.fright_time_left > 0 else 0
-        )
+        self.phase_timer += max(0, dt - self.fright_time_left)
         if self.fright_time_left > 0:
-            self.fright_time_left -= dt
-            if self.fright_time_left < 0:
-                self.fright_time_left = 0
+            self.fright_time_left = max(self.fright_time_left - dt, 0)
         dt *= MainData.tick_rate
         self.offset += dt
         self.pacman.update(dt)
@@ -151,9 +144,8 @@ class PacMap:
     def go_next_level(self) -> None:
         self.level_num += 1
         if MainData.config_from_file["levels"].get(str(self.level_num)):
-            self.level = MainData.config_from_file["levels"][
-                str(self.level_num)
-            ]
+            self.level = MainData.config_from_file["levels"][str(
+                self.level_num)]
             for ghost in self.ghosts:
                 ghost.update_level_data()
             self.pacman.update_level_data()
@@ -200,13 +192,20 @@ class PacMap:
         top_k = {k: v for i, (k, v) in zip(range(k), sorted_scores.items())}
         MainData.high_scores = top_k
 
-    def get_state_for_nn(self):
+    def get_state_for_nn(self) -> tuple[
+        list[list[int]],
+        list[list[int]],
+        tuple[int, int],
+        list[Ghost],
+        int,
+        float,
+    ]:
 
-        fruits_data = []
-        walls_data = []
+        fruits_data: list[list[int]] = []
+        walls_data: list[list[int]] = []
         for x in range(len(self.cells)):
-            current_wall_col = []
-            current_fruit_col = []
+            current_wall_col: list[int] = []
+            current_fruit_col: list[int] = []
 
             walls_data.append(current_wall_col)
             fruits_data.append(current_fruit_col)
@@ -214,12 +213,14 @@ class PacMap:
                 current_wall_col.append(self.cells[x][y].walls)
                 current_fruit_col.append(self.cells[x][y].fruit.val)
 
-        pacman_pos = tuple(self.pacman.pos)
-        fright_time = max(
+        pacman_pos: tuple[int, int] = (
+            round(self.pacman.pos.x),
+            round(self.pacman.pos.y)
+        )
+        fright_time: float = max(
             0.0,
-            min(
-                1.0, self.fright_time_left / self.level["frightened_duration"]
-            ),
+            min(1.0, self.fright_time_left /
+                self.level["frightened_duration"]),
         )
         return (
             walls_data,

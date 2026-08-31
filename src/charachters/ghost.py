@@ -1,23 +1,24 @@
 from random import shuffle
 from typing import Optional
 
+from ..enums import GhostState
 from .moving_entity import (
-    MovingEntities,
     Direction,
     MainData,
+    MovingEntities,
     Pos2D,
     abstractmethod,
 )
-from ..enums import GhostState
 
 
-def get_ghost_state():
+def get_ghost_state() -> GhostState:
     phases: list[tuple[str, Optional[int]]] = MainData.pacmap.level["phases"]
     time_left = MainData.pacmap.phase_timer
     for mode, duration in phases:
         if duration is None or time_left < duration:
             return GhostState(mode.upper())
         time_left -= duration
+    return GhostState.CHASE
 
 
 class Ghost(MovingEntities):

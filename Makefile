@@ -27,11 +27,11 @@ debug:
 	@$(PYTHON) -m pdb -m $(PAC)
 
 lint:
-	@$(PYTHON) -m flake8 . --max-line-length=79 --exclude=.venv,llm_sdk
+	@$(PYTHON) -m flake8 src --max-line-length=79 --exclude=.venv,llm_sdk
 	@$(PYTHON) -m mypy src --explicit-package-bases --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs
 
 lint-strict:
-	@$(PYTHON) -m flake8 . --max-line-length=79 --exclude=.venv,llm_sdk
+	@$(PYTHON) -m flake8 src --max-line-length=79 --exclude=.venv,llm_sdk
 	@$(PYTHON) -m mypy src --explicit-package-bases --strict
 
 clean:

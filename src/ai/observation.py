@@ -1,6 +1,7 @@
 import numpy as np
-from ..enums import Direction
+
 from ..charachters.ghost import Ghost
+from ..enums import Direction
 
 
 class ObservationBuilder:
@@ -8,10 +9,10 @@ class ObservationBuilder:
     @staticmethod
     def build(
         state: tuple[
-            list[int],
-            list[int],
+            list[list[int]],
+            list[list[int]],
             tuple[int, int],
-            tuple[Ghost, ...],
+            list[Ghost],
             int,
             float,
         ],
@@ -48,7 +49,7 @@ class ObservationBuilder:
         observation[5, pacman_x, pacman_y] = 1.0
         for i, ghost in enumerate(ghosts):
             ghost_pos = ghost.pos
-            ghost_x = ghost_pos[0] // 3
-            ghost_y = ghost_pos[1] // 3
+            ghost_x = int(ghost_pos[0] // 3)
+            ghost_y = int(ghost_pos[1] // 3)
             observation[6 + i, ghost_x, ghost_y] = ghost.direction.value
         return observation, score, fright_time_ratio
