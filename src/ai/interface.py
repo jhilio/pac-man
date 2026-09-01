@@ -23,7 +23,7 @@ class NNDirectionChooser:
             pacmap (PacMap): the map is needed to get current state
         Returns:
             tuple[numpy.ndarray, torch.Tensor]:
-                the pacmap observation 
+                the pacmap observation
                 and the result Tensor containing the logits
                     for each direction
         """
@@ -54,7 +54,9 @@ class NNDirectionChooser:
         and the given temperature
         Args:
             pacmap (PacMap): map for which to decide
-            temperature (float, optional): low = randow high = obtuse. Defaults to 1.0.
+            temperature (float, optional):
+                low = randow high = obtuse.
+                Defaults to 1.0.
         Returns:
             Direction: chosen direction
         """

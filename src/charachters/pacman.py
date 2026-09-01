@@ -20,7 +20,7 @@ class Pacman(MovingEntities):
             y (int, optional):
                 starting y will be used as reset pos.
                 Defaults to 0.
-        """ 
+        """
         super().__init__(direction, x, y)
         self.lives = lives
         self.speed = MainData.pacmap.level["pacman_speed"] / 100
@@ -30,10 +30,10 @@ class Pacman(MovingEntities):
 
     @property
     def raw_image(self) -> Surface:
-        """get image scale it without rotate depending on direction 
+        """get image scale it without rotate depending on direction
         Returns:
             Surface: raw image
-        """        
+        """
         frame = MainData.assets.get_asset(
             f"pacman_frame_{self.anim_step}.png", size_multiplier=1.3
         )
@@ -41,10 +41,10 @@ class Pacman(MovingEntities):
 
     @property
     def image(self) -> Surface:
-        """get image scale it and rotate depending on direction 
+        """get image scale it and rotate depending on direction
         Returns:
             Surface: raw image
-        """        
+        """
         frame = MainData.assets.get_asset(
             f"pacman_frame_{self.anim_step}.png", size_multiplier=1.3
         )
@@ -53,7 +53,7 @@ class Pacman(MovingEntities):
 
     def incr_anim(self) -> None:
         """cycle trough anim frame
-        """        
+        """
         self.anim_step = (
             self.anim_step + 1
         ) % 4  # 4 is pacman anim frame lenght
@@ -73,13 +73,13 @@ class Pacman(MovingEntities):
             self.map.cells[cell_x][cell_y].fruit.eated()
 
     def turn_and_pathfind(self) -> Pos2D:
-        """search the next next_pos of pacman depending on 
+        """search the next next_pos of pacman depending on
            eighboring wall
            current direction
            and user asked direction
         Returns:
             Pos2D: next next_pos
-        """        
+        """
         new_pos = self.next_pos
         cell_x, cell_y = new_pos // 3
         cell_x, cell_y = int(cell_x), int(cell_y)
@@ -121,7 +121,7 @@ class Pacman(MovingEntities):
 
     def eat_wall(self) -> None:
         """destroy the wall pacman face (only work in cheat mode)
-        """        
+        """
         if self.cheat_mode:
             facing_cell_x, facing_cell_y = (
                 self.next_pos // 3

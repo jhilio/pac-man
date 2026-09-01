@@ -56,6 +56,7 @@ class Cell:
         x: int,
         y: int,
         fruit: Fruit,
+        corner: bool = True
     ):
         """init one Cell of the maze
 
@@ -71,6 +72,7 @@ class Cell:
             self.fruit.parent = self
         self.x = x
         self.y = y
+        self.corner = corner
 
     @property
     def image(self) -> Surface:
@@ -114,12 +116,14 @@ class Cell:
                                   else 'left'}")
                     + ".png"
                 )
-            else:
+            elif self.corner:
                 return MainData.assets.get_asset(
                     "very_small_corner_"
                     + f"{'n' if dir1 != Direction.NORTH else 's'}"
                     + f"{'e' if dir2 != Direction.EAST else 'w'}.png"
                 )
+            else:
+                return MainData.assets.get_asset("no_dot.png")
 
         def get_direction(walls: int, direction: Direction) -> Surface:
             if direction == Direction.NORTH and walls & direction.value:

@@ -3,20 +3,19 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 
-from pygame import Surface
 
-from src.visualizer.visualizer import (
-    Visualizer,
-    draw_text_multiline,
-    MainData,
-    Pos2D,
-    Surface,
-    pygame
-)
+# from src.visualizer.visualizer import (
+#    Visualizer,
+#    draw_text_multiline,
+#    MainData,
+#    Pos2D,
+#    Surface,
+#    pygame
+# )
 
 # imported = Visualizer.draw_charachters
 
-imported = Visualizer.draw_hud
+imported = None
 
 
 def empty() -> None:
@@ -102,7 +101,7 @@ def replace(globals: dict) -> None:
         raise KeyboardInterrupt
     if globals.get("originale_func") is None:
         globals["originale_func"] = save_ref(imported)
-        globals["originale_copy"]= save_ref(my_copy)
+        globals["originale_copy"] = save_ref(my_copy)
     try:
         val = int(input("1: copy\n2: test\n3: push\n4: clear_cache\naction: "))
     except (ValueError, EOFError):
@@ -116,6 +115,6 @@ def replace(globals: dict) -> None:
     elif val == 4:
         globals["originale_func"] = None
         copy_func(save_ref(empty), save_ref(my_copy))
-        globals["originale_copy"]= None
+        globals["originale_copy"] = None
     else:
         raise KeyboardInterrupt
