@@ -99,6 +99,11 @@ class ClickableButton:
 
     @property
     def image(self) -> pygame.Surface:
+        """format the image given current button state,
+        Handle scaling the image to the correct size for the screen 
+        Returns:
+            Surface: Surface corresponding to button
+        """   
         if self._hovered_image and self.is_hovered:
             surface = pygame.transform.scale(
                 self._hovered_image, tuple(self.to_screen_rect)[2:]
@@ -153,6 +158,43 @@ class AnimatedButton(ClickableButton):
             Self, Surface], Surface]] = None,
         anim_duration: float = 1.0,
     ):
+        """initialise an animated button
+
+        Args:
+            x (float): proportion of the given screen
+            y (float): proportion of the given screen
+            width (float): proportion of the given screen
+            height (float): proportion of the given screen
+            screen (Surface): its size is used to scale button size
+            font (pygame.font.Font): font used to write its text if necessary
+            effect (Optional[DelayedCall], optional):
+                what to call when anim is finished.
+                Defaults to None.
+            text (str | DelayedCall, optional):
+                text to desplay or DelayedCall that produce it.
+                Defaults to "".
+            image (Optional[pygame.Surface], optional):
+                default image to display.
+                Defaults to None.
+            hovered_image (Optional[Surface], optional):
+                default image to display when hovered.
+                use default image if not set
+                Defaults to None.
+            on_hover (Optional[Callable[[Self], None]], optional):
+                funcion to call when hovered.
+                Defaults to None.
+            animation_image (Optional[CyclicList], optional):
+                Cycliclist of animation frame to cycle through.
+                Defaults to None.
+            animation_frames_count (int, optional):
+                how many frame to show in total during animation. Defaults to 5.
+            animate_func (Optional[Callable[[ Self, Surface], Surface]], optional):
+                which function to use to animate it.
+                Defaults to None.
+            anim_duration (float, optional):
+                how much time the animation will last in second.
+                Defaults to 1.0.
+        """        
         super().__init__(
             x,
             y,
@@ -181,14 +223,27 @@ class AnimatedButton(ClickableButton):
 
     @staticmethod
     def default_hover(button: Any) -> None:
+        """only to provide a default, does nothing
+        Args:
+            button (Any): the button
+        """        
         pass
 
     @staticmethod
     def default_animate(
             button: Any, base_image: Surface) -> Surface:
+        """only there to provide a default, dont change the image
+        Args:
+            button (Any): the button
+            base_image (Surface): given source image
+        Returns:
+            Surface: unaltered source image
+        """        
         return base_image
 
     def on_click(self) -> None:
+        """launch button animation then its effect
+        """        
         if not self.__class__.anim_launched:
             if self.anim_duration:
                 self.anim_stage = 1.0
@@ -197,6 +252,13 @@ class AnimatedButton(ClickableButton):
                 self.effect()
 
     def update(self, dt: float, is_hovered: bool = False) -> None:
+        """update internal state with time passed and is_hovered
+        Args:
+            dt (float): time since last frame
+            is_hovered (bool, optional):
+                weither the mouse is hover its bounding box or not.
+                Defaults to False.
+        """        
         super().update(dt, is_hovered)
         if self.anim_stage is not None:
             self.anim_stage -= dt / self.anim_duration
@@ -208,6 +270,11 @@ class AnimatedButton(ClickableButton):
 
     @property
     def image(self) -> Surface:
+        """format the image given current button state,
+        can call _on_hover and will call _aniamte_func
+        Returns:
+            Surface: Surface corresponding to the button state
+        """        
         if self.is_hovered:
             self._on_hover(self)
         base_image = super().image
@@ -216,12 +283,26 @@ class AnimatedButton(ClickableButton):
 
 
 def pac_button_hover(self: AnimatedButton) -> None:
+    """register self as the last havered
+    Args:
+        self (AnimatedButton): the button
+    """    
     self.__class__.last_hovered = self
 
 
 def pac_button_anim(
     self: Any, base_image: Surface
 ) -> Surface:
+    """
+    draw pacman either at the right of last hovered
+    button either eating/sliding
+    through the button that has been clicked 
+    Args:
+        self (Any): the button
+        base_image (Surface): base image to put pacman over
+    Returns:
+        Surface: the result
+    """    
     if self.animation_image is not None and self.anim_stage is not None:
         anim_frame = self.animation_image[
             int(self.anim_stage * self.animation_frames_count)
@@ -253,6 +334,15 @@ def pac_button_anim(
 def paused_anim(
     self: Any, base_image: Surface
 ) -> Surface:
+    """switch betwen the paused and unpaused image
+    Args:
+        self (Any): the button
+        base_image (Surface): unused for this anim
+    Raises:
+        ValueError: if no paused and unpaused image where given
+    Returns:
+        Surface: the image to be drawn
+    """    
     if self.animation_image is None:
         raise ValueError("need animation images for this animation")
     if self.extra[0].paused:
