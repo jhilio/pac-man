@@ -116,11 +116,11 @@ class Visualizer:
             VisualState.PROMPTING_FOR_NAME: game_copy,
         }
         self.background_name_per_menu = {
-            VisualState.CONFIG: "BGmenu.jpg",
+            VisualState.CONFIG: "rightbg.png",
             VisualState.HIGH_SCORE_MENU: "leftbg.png",
             VisualState.MAIN_MENU: "BGmenu.jpg",
-            VisualState.IN_GAME: "gameback.jpg",
-            VisualState.PROMPTING_FOR_NAME: "gameback.jpg",
+            VisualState.IN_GAME: "gameback.png",
+            VisualState.PROMPTING_FOR_NAME: "gameback.png",
         }
         self.prec_state: Optional[VisualState] = None
         self.nn = nn

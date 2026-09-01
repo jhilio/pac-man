@@ -118,7 +118,8 @@ def preload_assets(verbose: bool = False):
         "assets/menu/unpaused.png",
         "assets/menu/paused.png",
         "assets/menu/leftbg.png",
-        "assets/menu/gameback.jpg",
+        "assets/menu/rightbg.png",
+        "assets/menu/gameback.png",
         "assets/menu/button.png",
         "assets/menu/control.png",
     ]
