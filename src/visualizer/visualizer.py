@@ -6,12 +6,12 @@ from random import Random
 from pygame.surface import Surface
 
 from ..ai.interface import NNDirectionChooser
-from ..cells import Cell, Fruit
+from ..cells import Cell
 from ..charachters.ghost import get_ghost_state
 from ..charachters.moving_entity import MovingEntities
 from ..config import MainData
 from ..enums import AnimTypes, Direction, VisualState
-from ..pacmap import PacMap
+from ..pacmap import PacMap, init_cells_from_2d
 from ..vector import ColorRGB, Pos2D
 from ..visualizer.button import (
     AnimatedButton,
@@ -127,41 +127,26 @@ class Visualizer:
         self.anim_duration = 1.0
         self.anim_type = AnimTypes.LEFT_TO_RIGHT
         self.act_anim = 0.0
-        y = len(self.pacmap.cells[0])
-        custom_cell: list[list[Cell]] = []
-        fruit = Fruit(0)
-        custom_cell.append(
+        self.custom_cell: list[list[Cell]] = init_cells_from_2d(
             [
-                Cell(9, 0, y, fruit),
-                Cell(12, 0, y + 1, fruit),
-            ]
+                [9] + [1] * (len(self.pacmap.cells) - 2) + [3],
+                [12] + [4] * (len(self.pacmap.cells) - 2) + [6],
+            ], 0, corner=False
         )
-        custom_cell.extend(
+        self.high_maze: list[list[Cell]] = init_cells_from_2d(
             [
-                [
-                    Cell(1, x, y, fruit),
-                    Cell(4, x, y + 1, fruit),
-                ]
-                for x in range(1, MainData.config_from_file["width"] - 1)
-            ]
+                [9, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3],
+                [8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2],
+                [8, 0, 0, 0, 9, 1, 3, 0, 0, 0, 0, 0, 2],
+                [8, 1, 1, 1, 0, 0, 2, 0, 0, 0, 0, 0, 2],
+                [8, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 2],
+                [8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2],
+                [8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2],
+                [12, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 6],
+            ],
+            0,
+            corner=False
         )
-        custom_cell.append(
-            [
-                Cell(
-                    3,
-                    MainData.config_from_file["width"] - 1,
-                    y,
-                    fruit,
-                ),
-                Cell(
-                    6,
-                    MainData.config_from_file["width"] - 1,
-                    y + 1,
-                    fruit,
-                ),
-            ]
-        )
-        self.custom_cell = custom_cell
 
     @property
     def active_buttons(self) -> list[AnimatedButton | ClickableButton]:
@@ -324,6 +309,31 @@ class Visualizer:
             self.draw_charachters(target, offset)
             self.draw_hud(target, offset)
             self.draw_timer(target, offset - Pos2D(MainData.cell_size, 0))
+        elif state == VisualState.HIGH_SCORE_MENU:
+            shortest_side = min(target.get_size())
+            longest_maze = (
+                max(len(self.high_maze), len(self.high_maze[0]))
+                + (self.CELL_MARGIN * 2)
+            ) * 3
+            if shortest_side // longest_maze != MainData.cell_size:
+                MainData.cell_size = shortest_side // longest_maze // 2
+                for col in self.pacmap.cells + self.custom_cell:
+                    for cell in col:
+                        cell.init_image()
+            game_size = Pos2D(
+                MainData.cell_size * len(self.high_maze),
+                MainData.cell_size * len(self.high_maze[0]),
+            ) * 3
+            game_offset = Pos2D(target.get_size()) / 2 - game_size
+            offset = (
+                Pos2D(
+                    MainData.cell_size * self.CELL_MARGIN * 3,
+                    MainData.cell_size * self.CELL_MARGIN * 3,
+                )
+                // 1
+            ) + game_offset
+
+            self.draw_cells(target, offset, self.high_maze)
         elif state == VisualState.CONFIG:
             draw_text_multiline(
                 target,

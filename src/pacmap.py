@@ -1,4 +1,5 @@
 from random import Random
+from typing import Optional
 
 import mazegenerator
 
@@ -11,6 +12,51 @@ from .charachters.pacman import Pacman
 from .charachters.pinky import Pinky
 from .config import MainData
 from .enums import Direction
+
+
+def init_cells_from_2d(
+    maze: list[list[int]],
+    proportion: float,
+    seeded: Optional[Random] = None,
+    corner: bool = True
+) -> list[list[Cell]]:
+    """create cells from list of list of walls
+
+    Args:
+        maze (list[list[int]]): list of maze walls
+        proportion (float): proportion of fruit when using a seed
+        seeded (Optional[Random], optional):
+            seed to use randomnesse. Defaults to None.
+        corner (bool, optional):
+            weither the cell should create corner in their image.
+            Defaults to True.
+
+    Returns:
+        list[list[Cell]]: the cells created
+    """
+    grid = []
+    for x in range(len(maze[0])):
+        column: list[Cell] = []
+        grid.append(column)
+        for y in range(len(maze)):
+            column.append(
+                Cell(
+                    maze[y][x],
+                    x,
+                    y,
+                    fruit=Fruit(
+                        seeded.choices(
+                            population=[0, 1],
+                            weights=[
+                                1 - proportion,
+                                proportion
+                            ],
+                        )[0] if seeded else 0
+                    ),
+                    corner=corner
+                )
+            )
+    return grid
 
 
 class PacMap:
@@ -100,28 +146,12 @@ class PacMap:
     def init_cells(self) -> None:
         """initialise all cell based on self.maze.maze values
         """
-        self.cells: list[list[Cell]] = []
-        proporion = MainData.config_from_file["pacgum_proportion"]
-        for x in range(len(self.maze.maze[0])):
-            column: list[Cell] = []
-            self.cells.append(column)
-            for y in range(len(self.maze.maze)):
-                column.append(
-                    Cell(
-                        self.maze.maze[y][x],
-                        x,
-                        y,
-                        fruit=Fruit(
-                            self.random.choices(
-                                population=[0, 1],
-                                weights=[
-                                    1 - proporion,
-                                    proporion
-                                ],
-                            )[0]
-                        ),
-                    )
-                )
+        proportion = MainData.config_from_file["pacgum_proportion"]
+        self.cells: list[list[Cell]] = init_cells_from_2d(
+            self.maze.maze,
+            proportion,
+            self.random
+        )
         self.cells[0][0].fruit = Fruit(2, self.cells[0][0])
         self.cells[0][-1].fruit = Fruit(2, self.cells[0][-1])
         self.cells[-1][0].fruit = Fruit(2, self.cells[-1][0])

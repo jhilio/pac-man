@@ -171,7 +171,7 @@ class PacmanNetwork(nn.Module):
 
         Returns:
             PacmanNetwork: the new variation
-        """        
+        """
         mutated = PacmanNetwork(
             ghost_count=self.ghost_count,
         )
@@ -191,7 +191,7 @@ class PacmanNetwork(nn.Module):
         """print the differences between self and another network
         Args:
             other (Self): the network to compare to
-        """        
+        """
         for name, parameter in self.named_parameters():
             other_parameter = dict(other.named_parameters())[name]
 
