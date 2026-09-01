@@ -17,19 +17,39 @@ class CyclicList(list):
         ...
 
     def __getitem__(self, k: SupportsIndex | slice) -> Any | list[Any]:
+        """get item simply using k % len(self)
+        to cycle trought it when iterating over a bigger range than self
+        Args:
+            k (SupportsIndex | slice): index or slice
+        Returns:
+            Any | list[Any]: item or slice of item
+        """
         if isinstance(k, int):
             k %= len(self)
         return super().__getitem__(k)
 
 
-class PercentRect:
+class PropRect:
     def __init__(self, x: float, y: float, width: float, height: float):
+        """init the PropRect
+        Args:
+            x (float): left most pos
+            y (float): top most pos
+            width (float): width of the rect
+            height (float): height of the rect
+        """
         self.x = x
         self.y = y
         self.width = width
         self.height = height
 
     def to_rect(self, screen: Surface) -> pygame.Rect:
+        """transform to pygame.rect proportional tho given screen
+        Args:
+            screen (Surface): the surface to base proportion on
+        Returns:
+            pygame.Rect: scaled rectangle
+        """
         screen_width, screen_height = screen.get_size()
         return pygame.Rect(
             int(self.x * screen_width),
@@ -41,11 +61,21 @@ class PercentRect:
 
 class DelayedCall:
     def __init__(self, func: Callable, *args: Any, **kwargs: Any):
+        """store callable and args to be evaluated later
+        Args:
+            func (Callable): func to call
+        """
         self.func = func
         self.args = tuple(args)
         self.kwargs = dict(kwargs) if kwargs else {}
 
     def __call__(self) -> Any:
+        """launch the storred call
+        Raises:
+            ValueError: if the givent func is not callable
+        Returns:
+            Any: the result of the function call
+        """
         if not callable(self.func):
             raise ValueError("DelayedCall with a non callable func")
         return self.func(*self.args, **self.kwargs)
@@ -65,7 +95,36 @@ class ClickableButton:
         image: Optional[Surface] = None,
         hovered_image: Optional[Surface] = None,
     ):
-        self.percent_rect = PercentRect(x, y, width, height)
+        """initialise an animated button
+
+        Args:
+            x (float):
+                proportion of the given screen
+            y (float):
+                proportion of the given screen
+            width (float):
+                proportion of the given screen
+            height (float):
+                proportion of the given screen
+            screen (Surface):
+                its size is used to scale button size
+            font (pygame.font.Font):
+                font used to write its text if necessary
+            effect (Optional[DelayedCall], optional):
+                what to call when anim is finished.
+                Defaults to None.
+            text (str | DelayedCall, optional):
+                text to desplay or DelayedCall that produce it.
+                Defaults to "".
+            image (Optional[pygame.Surface], optional):
+                default image to display.
+                Defaults to None.
+            hovered_image (Optional[Surface], optional):
+                default image to display when hovered.
+                use default image if not set
+                Defaults to None.
+        """
+        self.percent_rect = PropRect(x, y, width, height)
         self.font = font
         self.effect = effect
         self.screen = screen
@@ -75,17 +134,39 @@ class ClickableButton:
         self.is_hovered = False
 
     def update(self, dt: float, is_hovered: bool = False) -> None:
+        """update internal state with time passed and is_hovered
+        Args:
+            dt (float): time since last frame
+            is_hovered (bool, optional):
+                weither the mouse is hover its bounding box or not.
+                Defaults to False.
+        """
         self.is_hovered = is_hovered
 
     def is_in(self, pos: Pos2D) -> bool:
+        """test if the given is in the button bounding box
+        Args:
+            pos (Pos2D): pos to test
+        Returns:
+            bool: weither the pos is inside the button
+        """
         return self.to_screen_rect.collidepoint(*pos)
 
     def on_click(self) -> None:
+        """launch self.effect
+        """
         if self.effect:
             self.effect()
 
     @property
     def text(self) -> str:
+        """return either the given text
+        or the result of the text callable
+        Raises:
+            TypeError: if the given callable dont return text
+        Returns:
+            str: the text or result of call
+        """
         if isinstance(self._text, str):
             return self._text
         res = self._text()
@@ -95,15 +176,19 @@ class ClickableButton:
 
     @property
     def to_screen_rect(self) -> pygame.Rect:
+        """give a rect corresponding to the button size
+        Returns:
+            pygame.Rect: the rectangle
+        """
         return self.percent_rect.to_rect(self.screen)
 
     @property
     def image(self) -> pygame.Surface:
         """format the image given current button state,
-        Handle scaling the image to the correct size for the screen 
+        Handle scaling the image to the correct size for the screen
         Returns:
             Surface: Surface corresponding to button
-        """   
+        """
         if self._hovered_image and self.is_hovered:
             surface = pygame.transform.scale(
                 self._hovered_image, tuple(self.to_screen_rect)[2:]
@@ -161,12 +246,18 @@ class AnimatedButton(ClickableButton):
         """initialise an animated button
 
         Args:
-            x (float): proportion of the given screen
-            y (float): proportion of the given screen
-            width (float): proportion of the given screen
-            height (float): proportion of the given screen
-            screen (Surface): its size is used to scale button size
-            font (pygame.font.Font): font used to write its text if necessary
+            x (float):
+                proportion of the given screen
+            y (float):
+                proportion of the given screen
+            width (float):
+                proportion of the given screen
+            height (float):
+                proportion of the given screen
+            screen (Surface):
+                its size is used to scale button size
+            font (pygame.font.Font):
+                font used to write its text if necessary
             effect (Optional[DelayedCall], optional):
                 what to call when anim is finished.
                 Defaults to None.
@@ -187,14 +278,16 @@ class AnimatedButton(ClickableButton):
                 Cycliclist of animation frame to cycle through.
                 Defaults to None.
             animation_frames_count (int, optional):
-                how many frame to show in total during animation. Defaults to 5.
-            animate_func (Optional[Callable[[ Self, Surface], Surface]], optional):
+                how many frame to show in total during animation.
+                Defaults to 5.
+            animate_func
+                (Optional[Callable[[ Self, Surface], Surface]], optional):
                 which function to use to animate it.
                 Defaults to None.
             anim_duration (float, optional):
                 how much time the animation will last in second.
                 Defaults to 1.0.
-        """        
+        """
         super().__init__(
             x,
             y,
@@ -226,7 +319,7 @@ class AnimatedButton(ClickableButton):
         """only to provide a default, does nothing
         Args:
             button (Any): the button
-        """        
+        """
         pass
 
     @staticmethod
@@ -238,12 +331,12 @@ class AnimatedButton(ClickableButton):
             base_image (Surface): given source image
         Returns:
             Surface: unaltered source image
-        """        
+        """
         return base_image
 
     def on_click(self) -> None:
         """launch button animation then its effect
-        """        
+        """
         if not self.__class__.anim_launched:
             if self.anim_duration:
                 self.anim_stage = 1.0
@@ -258,7 +351,7 @@ class AnimatedButton(ClickableButton):
             is_hovered (bool, optional):
                 weither the mouse is hover its bounding box or not.
                 Defaults to False.
-        """        
+        """
         super().update(dt, is_hovered)
         if self.anim_stage is not None:
             self.anim_stage -= dt / self.anim_duration
@@ -274,7 +367,7 @@ class AnimatedButton(ClickableButton):
         can call _on_hover and will call _aniamte_func
         Returns:
             Surface: Surface corresponding to the button state
-        """        
+        """
         if self.is_hovered:
             self._on_hover(self)
         base_image = super().image
@@ -286,7 +379,7 @@ def pac_button_hover(self: AnimatedButton) -> None:
     """register self as the last havered
     Args:
         self (AnimatedButton): the button
-    """    
+    """
     self.__class__.last_hovered = self
 
 
@@ -296,13 +389,13 @@ def pac_button_anim(
     """
     draw pacman either at the right of last hovered
     button either eating/sliding
-    through the button that has been clicked 
+    through the button that has been clicked
     Args:
         self (Any): the button
         base_image (Surface): base image to put pacman over
     Returns:
         Surface: the result
-    """    
+    """
     if self.animation_image is not None and self.anim_stage is not None:
         anim_frame = self.animation_image[
             int(self.anim_stage * self.animation_frames_count)
@@ -342,7 +435,7 @@ def paused_anim(
         ValueError: if no paused and unpaused image where given
     Returns:
         Surface: the image to be drawn
-    """    
+    """
     if self.animation_image is None:
         raise ValueError("need animation images for this animation")
     if self.extra[0].paused:

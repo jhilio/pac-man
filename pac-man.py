@@ -216,6 +216,8 @@ def main():
             if sys.argv[1] == "":
                 load_config()
                 print("no config provided, using default values")
+            elif sys.argv[1] == "verbose":
+                load_config(sys.argv[2])
             else:
                 load_config(sys.argv[1])
         else:
@@ -246,12 +248,8 @@ def main():
         size=size, seed=MainData.config_from_file["seed"]
     )
     pacmap = PacMap(maze)
-    # trainer = EvolutionTrainer(pacmap, 3, 5, 0.01)
-    # nn = trainer.train([nn], 10)
-    # nn.save("models/last_result.pt")
-    # pacmap.restart()
     chooser = NNDirectionChooser(nn)
-    vis = Visualizer(pacmap, (1000, 1000), nn=chooser)
+    vis = Visualizer(pacmap, (1000, 1000), nn=chooser, verbose=verbose)
     try:
         vis.launch_loop()
     except KeyboardInterrupt:
