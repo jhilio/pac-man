@@ -1,33 +1,36 @@
 
-import pygame
+from pygame.surface import Surface
+from pygame.font import Font
 
 type ColorValue = tuple[int, int, int] | tuple[int, int, int, int]
 
 
 def draw_text_multiline(
-    target: pygame.surface.Surface,
+    target: Surface,
     text: str | list[str],
     x: int,
     y: int,
-    font: pygame.font.Font,
+    font: Font,
     line_spacing: int = 2,
     block_spacing: int = 2,
     color: ColorValue = (255, 255, 255),
 ) -> None:
-    """Draw text on the screen, allowing for multiline text.
-
+    """draw text to given surface
     Args:
-        text (str): The text to draw.
-        x (int): The x position to \
-            start drawing the text.
-        y (int): The y position to \
-            start drawing the text.
-        line_spacing (int, optional): \
-            The spacing between lines. Defaults to 2.
-        color (tuple[int, int, int], optional): \
-            The color of the text. Defaults to (255, 255, 255).
-        font (Optional[pygame.font.Font], optional): \
-            The font to use for the text. Defaults to None.
+        target (Surface): on what to draw the text
+        text (str | list[str]): the text to draw
+        x (int): The x position to start drawing the text. \
+        y (int): The y position to start drawing the text.\
+        font (Font): the font to use
+        line_spacing (int, optional):
+            how much space between lines.
+            Defaults to 2.
+        block_spacing (int, optional):
+            how much space between block of text (if using list of str).
+            Defaults to 2.
+        color (ColorValue, optional):
+            color of text.
+            Defaults to (255, 255, 255). (white)
     """
     if isinstance(text, list):
         for i, block in enumerate(text):

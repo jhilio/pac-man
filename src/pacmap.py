@@ -15,6 +15,11 @@ from .enums import Direction
 
 class PacMap:
     def __init__(self, maze: mazegenerator.MazeGenerator):
+        """initialise a pacmap from a maze generator
+        Args:
+            maze (mazegenerator.MazeGenerator):
+                maze generator that will be used
+        """
         MainData.set_pacmap(self)
         self.is_finished = False
         self.level_num = 1
@@ -34,6 +39,13 @@ class PacMap:
         self.init_charachters()
 
     def regenerate(self, maze_restart: bool = True) -> None:
+        """regenerate the maze and reinitialise pos of pacman and each ghost
+
+        Args:
+            maze_restart (bool, optional):
+                weither to regenerate the maze.
+                Defaults to True.
+        """
         self.has_started = False
         self.is_finished = False
         self.fright_time_left = 0
@@ -49,6 +61,13 @@ class PacMap:
         self.pacman.direction = Direction.NORTH
 
     def restart(self, guard_map: bool = False) -> None:
+        """complete restart of the game, going back to level 1
+        and original lifes for pacman
+        Args:
+            guard_map (bool, optional):
+                weither reuse the same seed or not.
+                Defaults to False.
+        """
         self.pacman.lives = MainData.config_from_file["lives"]
         self.level_num = 1
         if guard_map:
@@ -58,6 +77,8 @@ class PacMap:
         self.regenerate(maze_restart=True)
 
     def init_charachters(self) -> None:
+        """create each ghost and pacman
+        """
         self.pacman = Pacman(
             Direction.NORTH,
             x=(len(self.cells) - 1) // 2,
@@ -77,8 +98,9 @@ class PacMap:
         ]
 
     def init_cells(self) -> None:
+        """initialise all cell based on self.maze.maze values
+        """
         self.cells: list[list[Cell]] = []
-
         proporion = MainData.config_from_file["pacgum_proportion"]
         for x in range(len(self.maze.maze[0])):
             column: list[Cell] = []
@@ -89,7 +111,6 @@ class PacMap:
                         self.maze.maze[y][x],
                         x,
                         y,
-                        self.cells,
                         fruit=Fruit(
                             self.random.choices(
                                 population=[0, 1],
@@ -107,12 +128,22 @@ class PacMap:
         self.cells[-1][-1].fruit = Fruit(2, self.cells[-1][-1])
 
     def __str__(self) -> str:
+        """format the maze to the hex representation of the cells
+
+        Returns:
+            str: the maze as hex
+        """
         return "\n".join(
             " ".join(str(self.cells[x][y]) for x in range(len(self.cells[0])))
             for y in range(len(self.cells))
         )
 
     def update(self, dt: float) -> None:
+        """update map timing and propagate
+        update to each moving entities (pacman and ghost)
+        Args:
+            dt (float): time since last frame
+        """
         self.has_started = True
         self.total_elapsed_time += dt
         self.phase_timer += max(0, dt - self.fright_time_left)
@@ -129,19 +160,25 @@ class PacMap:
         self.check_colision()
 
     def check_colision(self) -> None:
+        """check for colision between pacman pos and each ghost
+        """
         for ghost in self.ghosts:
             if ghost.pos == self.pacman.pos and ghost.is_alive:
                 self.colision_effect(ghost)
 
     def step(self) -> None:
-        a = sum(cell.fruit.val for row in self.cells for cell in row)
-        if not a:
+        """test for level end and level timeout periodicaly
+        """
+        if sum(cell.fruit.val for row in self.cells for cell in row) == 0:
             self.go_next_level()
         if self.total_elapsed_time > self.level["duration"]:
             self.pacman_died()
             self.total_elapsed_time = 0
 
     def go_next_level(self) -> None:
+        """step to next level and regenerate the map
+        set self.is_finished to true if no next level exist
+        """
         self.level_num += 1
         if MainData.config_from_file["levels"].get(str(self.level_num)):
             self.level = MainData.config_from_file["levels"][str(
@@ -155,6 +192,10 @@ class PacMap:
             self.is_finished = True
 
     def colision_effect(self, ghost: Ghost) -> None:
+        """either pacman eat the ghost or the ghost kill pacman
+        Args:
+            ghost (Ghost): the ghost causing collision
+        """
         if self.fright_time_left and ghost.is_alive:
             ghost.is_alive = False
             self.score += MainData.config_from_file["points_per_ghost"]
@@ -162,6 +203,9 @@ class PacMap:
             self.pacman_died()
 
     def pacman_died(self) -> None:
+        """reset ghost and if pacman is not in cheat mode,
+        reset pacman and make him lose a life
+        """
         for ghost in self.ghosts:
             ghost.reset_pos()
             ghost.is_alive = True
@@ -173,6 +217,10 @@ class PacMap:
                 self.is_finished = True
 
     def update_high_score(self) -> None:
+        """update MainData.high_score by potentialy adding
+        self.name: self.score if it reach the top 10
+        if self.name == "" return early
+        """
         if not self.player_name:
             return
         k = 10
@@ -201,6 +249,18 @@ class PacMap:
         int,
         float,
     ]:
+        """format the state of the map to be used by a nn
+
+        Returns:
+            tuple[
+                list[list[int]] : list of fruit
+                list[list[int]] : list of wall
+                tuple[int, int] : pos of pacman
+                list[Ghost] : list of ghost
+                int: score of the map
+                float: 0-1 of curetnt frightened duration left
+                ]:
+        """
         fruits_data: list[list[int]] = []
         walls_data: list[list[int]] = []
         for x in range(len(self.cells)):

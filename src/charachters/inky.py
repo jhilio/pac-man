@@ -8,6 +8,10 @@ class Inky(Ghost):
     ghost_name = "inky"
 
     def specific_chase_cell(self) -> Pos2D:
+        """
+        inky try trace a vector from 2 tile in front of pacman to blinky
+        then turn it 180 degres
+        """
         pacmap = MainData.pacmap
         pacman = pacmap.pacman
         ahead_pacman = (Pos2D(pacman.direction.delta()) * 2) + pacman.pos

@@ -7,5 +7,7 @@ class Blinky(Ghost):
     ghost_name = "blinky"
 
     def specific_chase_cell(self) -> Pos2D:
+        """blinky always try to reach pacman directly
+        """
         target: Pos2D = MainData.pacmap.pacman.pos
         return target

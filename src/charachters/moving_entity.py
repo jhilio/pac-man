@@ -7,6 +7,17 @@ from ..vector import Pos2D
 
 class MovingEntities(ABC):
     def __init__(self, direction: Direction, x: int = 0, y: int = 0):
+        """create a MovingEntities
+      
+        Args:
+            direction (Direction): start direction the Entity is Facing
+            x (int, optional):
+                starting x will be used as reset pos.
+                Defaults to 0.
+            y (int, optional):
+                starting y will be used as reset pos.
+                Defaults to 0.
+        """
         self.pos = Pos2D(x * 3, y * 3) + (1, 1)
         self.original_pos = self.pos
         self.next_pos = self.pos
@@ -19,10 +30,16 @@ class MovingEntities(ABC):
         self.is_alive = True
 
     def reset_pos(self) -> None:
+        """reset pos to the one given at creation
+        """        
         self.pos = self.original_pos
         self.next_pos = self.original_pos
 
     def update(self, dt: float) -> None:
+        """advance through time depending on speed
+        Args:
+            dt (float): time since last frame
+        """        
         if MainData.pacmap.fright_time_left:
             self.offset += dt * self.fright_speed
         else:

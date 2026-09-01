@@ -129,7 +129,6 @@ class PacmanNetwork(nn.Module):
         real_path = Path(path) if path else self.model_path
         if real_path is None:
             raise ValueError("No save path provided.")
-            return
         real_path.parent.mkdir(
             parents=True,
             exist_ok=True,
@@ -163,6 +162,16 @@ class PacmanNetwork(nn.Module):
         print("Model loaded.")
 
     def mutate(self, strength: float = 0.01) -> "PacmanNetwork":
+        """create a new variation of curent model
+
+        Args:
+            strength (float, optional):
+                strenght of the mutation.
+                Defaults to 0.01.
+
+        Returns:
+            PacmanNetwork: the new variation
+        """        
         mutated = PacmanNetwork(
             ghost_count=self.ghost_count,
         )
@@ -179,6 +188,10 @@ class PacmanNetwork(nn.Module):
         return mutated
 
     def compare(self, other: Self) -> None:
+        """print the differences between self and another network
+        Args:
+            other (Self): the network to compare to
+        """        
         for name, parameter in self.named_parameters():
             other_parameter = dict(other.named_parameters())[name]
 

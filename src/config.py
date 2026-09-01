@@ -125,7 +125,17 @@ class AssetsManager:
 
     def load(
         self, name: str, path: str, color_key: Optional[pygame.Color] = None
-    ) -> Any | Surface:
+    ) -> Surface:
+        """load an asset into the asset manager
+        Args:
+            name (str): name of the asset
+            path (str): full path to the asset
+            color_key (Optional[pygame.Color], optional):
+                optional colorkey to set to the asset.
+                Defaults to None.
+        Returns:
+            Surface: the loaded asset
+        """
         image = pygame.image.load(path)
         if color_key is not None:
             image.set_colorkey(color_key)
@@ -138,7 +148,25 @@ class AssetsManager:
         scaled_size: Optional[tuple[int, int]] = None,
         size_multiplier: float = 1,
         scaling: bool = True,
-    ) -> Any | Surface:
+    ) -> Surface:
+        """search trough the cache if the asset is present with this size,
+        if not scale it,
+        add it to cache, then return it
+        Args:
+            name (str): name of the asset
+            scaled_size (Optional[tuple[int, int]], optional):
+              size asked. Defaults to None.
+            size_multiplier (float, optional):
+                multiplier over scaled_size.
+                Defaults to 1.
+            scaling (bool, optional):
+                completely desactivate scaling.
+                Defaults to True.
+        Raises:
+            ValueError: if the asset asked isnt loaded
+        Returns:
+            Surface: the loaded then scaled asset
+        """
         if scaled_size is None:
             x = y = MainData.cell_size * size_multiplier
         else:
@@ -168,6 +196,11 @@ T = TypeVar("T")
 
 
 class ClassProperty(Generic[T]):
+    """used to create a property so that typechecker
+    can see that MainData.pacmap is either a PacMap
+    Args:
+        Generic (_type_): which type will be returned
+    """
     def __init__(self, getter: Callable[[Any], T]):
         self.getter = getter
 
@@ -186,10 +219,20 @@ class MainData:
 
     @ClassProperty
     def pacmap(cls) -> PacMap:
+        """get the current pacmap
+        Raises:
+            RuntimeError: if no pacmap has been set
+        Returns:
+            PacMap: the current pacmap
+        """
         if cls._pacmap is None:
             raise RuntimeError("MainData.pacmap has not been initialized")
         return cls._pacmap
 
     @classmethod
     def set_pacmap(cls, pacmap: PacMap) -> None:
+        """small setter for self.pacmap
+        Args:
+            pacmap (PacMap): new PacMap
+        """
         cls._pacmap = pacmap

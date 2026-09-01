@@ -65,7 +65,7 @@ def load_config(path: Optional[str] = None):
             raise ConfigError("config is not a dict")
     else:
         loaded = {}
-    merge_config(deepcopy(MainData.config_from_file), loaded)
+    merge_config(MainData.config_from_file, loaded)
 
 
 def preload_assets(verbose: bool = False):

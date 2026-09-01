@@ -225,6 +225,16 @@ class Vector(Sequence[float | int]):
             )
 
     def lerp(self, next: Any, delta: float) -> Self:
+        """use linear interpolation between
+        self and next using delta as proportion
+        Args:
+            next (Any): next value
+            delta (float): proportion from self -> next
+        Raises:
+            ValueError: if the value is not compatible
+        Returns:
+            Self: a new vector of same size, with each dimension lerp with next
+        """
         if self.__iscompatible(next):
             diff: Self = ((next - self) * delta)
             return self + diff
@@ -245,10 +255,6 @@ class Vector(Sequence[float | int]):
         raise TypeError(f"cant floordiv {self} to {other}")
 
 
-class Point(Vector):
-    CLASS_LEN = 1
-
-
 class Pos2D(Vector):
     CLASS_LEN = 2
 
@@ -256,24 +262,3 @@ class Pos2D(Vector):
 class ColorRGB(Vector):
     CLASS_LEN = 3
     DIM_ORDER = "RGB"
-
-
-class Rectangle(Vector):
-    CLASS_LEN = 4
-    DIM_ORDER = "xywh"
-
-
-# a = Pos3d(1, 2, 3)
-# b = Pos3d(5, 2, 3)
-
-# c = Pos4d(1, 2, 3, 4)
-# d = ColorRGBA(5, 2, 3, 6)
-
-# print(a)
-# print(b)
-# print(a + b)
-
-# print(c)
-# print(d)
-# print(c + d)
-# print(a // b)

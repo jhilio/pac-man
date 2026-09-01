@@ -9,15 +9,31 @@ from .enums import Direction
 
 class Fruit:
     def __init__(self, val: int = 0, parent: Optional["Cell"] = None):
+        """init fruit with optional val and parend cell
+
+        Args:
+            val (int, optional): val of fruit.
+                Defaults to 0.
+            parent (Optional[Cell], optional):
+                cell that cotain this fruit.
+                Defaults to None.
+        """
         self.val = val
         self.parent = parent
 
     @property
     def image(self) -> Surface:
+        """return its coresponding image
+        Returns:
+            Surface: the image of the fruit
+        """
         names = ("no_dot.png", "small_dot.png", "big_dot.png")
         return MainData.assets.get_asset(names[self.val])
 
     def eated(self) -> None:
+        """update score and fright_time_left when eated
+        then set self.val to 0 to avoid being eaten multiple time
+        """
         pacmap = MainData.pacmap
         if self.val == 1:
             pacmap.score += MainData.config_from_file["points_per_pacgum"]
@@ -39,24 +55,40 @@ class Cell:
         walls: int,
         x: int,
         y: int,
-        neighbors: list[list["Cell"]],
         fruit: Fruit,
     ):
+        """init one Cell of the maze
+
+        Args:
+            walls (int): int from 0 to 15 represanting each wall
+            x (int): x position of the cell
+            y (int): y position of the cell
+            fruit (Fruit): fruit to add to the cell
+        """
         self.walls = walls
         self.fruit = fruit if walls != 15 else Fruit(0)
         if self.fruit:
             self.fruit.parent = self
         self.x = x
         self.y = y
-        self.neighbors = neighbors
 
     @property
     def image(self) -> Surface:
+        """create the cell image if necesary, then return the image
+
+        Returns:
+            Surface: image represanting the cell + its fruit
+        """
         if getattr(self, "__image", None) is None:
             self.init_image()
         return self.__image
 
     def init_image(self) -> Surface:
+        """create 9 sub image and fuse them to represent each wall + fruit
+
+        Returns:
+            Surface: the fused 9 image
+        """
         def get_corner(
             walls: int,
             dir1: Direction,
@@ -100,9 +132,6 @@ class Cell:
                 return MainData.assets.get_asset("double_left.png")
             else:
                 return MainData.assets.get_asset("no_dot.png")
-
-        if self.walls == 15:
-            pass  # create 3*3 full block for 42 patern
 
         all_images = (
             (

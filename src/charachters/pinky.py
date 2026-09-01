@@ -8,6 +8,7 @@ class Pinky(Ghost):
     ghost_name = "pinky"
 
     def specific_chase_cell(self) -> Pos2D:
+        """pinky try to go 4 cell in front of pacman"""
         pacman = MainData.pacmap.pacman
         target = (Pos2D(pacman.direction.delta()) * 4) + pacman.pos
         if pacman.direction == Direction.NORTH:

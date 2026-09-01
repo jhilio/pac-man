@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from typing import Optional, cast
-
 import pygame
+from random import Random
 from pygame.surface import Surface
 
 from ..ai.interface import NNDirectionChooser
@@ -25,7 +25,33 @@ from ..visualizer.button import (
 from .utils import draw_text_multiline
 
 
+def random_list_bool(
+    proportion: float,
+    size: int = 100,
+    seed: int = 42
+) -> list[bool]:
+    """return a list with a proportion
+    of true/false that is shuffled with seed
+    Args:
+        proportion (float): what proportion of true
+        size (int, optional: size of the list. Defaults to 100.
+        seed (int, optional): the seed used to shufle. Defaults to 42.
+    Returns:
+        list[bool]: the shufled list
+    """
+    res = [i / proportion < size for i in range(size)]
+    Random(seed).shuffle(res)
+    return res
+
+
 def zoom(image: Surface, size: Pos2D) -> Surface:
+    """get a subsurface of the given size at center of image
+    Args:
+        image (Surface): source image
+        size (Pos2D): size of the subsurface
+    Returns:
+        Surface: the zoomed subsurface
+    """
     center = Pos2D(image.get_size()) / 2
     return image.subsurface(center - (size / 2), size)
 
@@ -106,15 +132,15 @@ class Visualizer:
         fruit = Fruit(0)
         custom_cell.append(
             [
-                Cell(9, 0, y, custom_cell, fruit),
-                Cell(12, 0, y + 1, custom_cell, fruit),
+                Cell(9, 0, y, fruit),
+                Cell(12, 0, y + 1, fruit),
             ]
         )
         custom_cell.extend(
             [
                 [
-                    Cell(1, x, y, custom_cell, fruit),
-                    Cell(4, x, y + 1, custom_cell, fruit),
+                    Cell(1, x, y, fruit),
+                    Cell(4, x, y + 1, fruit),
                 ]
                 for x in range(1, MainData.config_from_file["width"] - 1)
             ]
@@ -125,14 +151,12 @@ class Visualizer:
                     3,
                     MainData.config_from_file["width"] - 1,
                     y,
-                    custom_cell,
                     fruit,
                 ),
                 Cell(
                     6,
                     MainData.config_from_file["width"] - 1,
                     y + 1,
-                    custom_cell,
                     fruit,
                 ),
             ]
@@ -415,6 +439,7 @@ class Visualizer:
             self.pacmap.pacman,
             *self.pacmap.ghosts,
         ]
+
         self.Counter += 1
         for charachter in charachters:
             if self.Counter % 5 == 0:
@@ -520,7 +545,7 @@ class Visualizer:
         )
         draw_text_multiline(
             target,
-            [char for char in f"{self.pacmap.level_num:03}"],
+            [char for char in f"{self.pacmap.level_num:02}"],
             *cell_to_screen(center + (-1, 1)),
             font,
             block_spacing=MainData.cell_size * 3,
@@ -667,25 +692,29 @@ class Visualizer:
                         "frightened_duration"
                     ]
             case pygame.K_UP:
-                last = (AnimatedButton.last_hovered,)
+                last = AnimatedButton.last_hovered
                 if (
                     self.visualiser_state == VisualState.MAIN_MENU
                     and isinstance(last, AnimatedButton)
                 ):
                     buttons = self.active_buttons
-                    AnimatedButton.last_hovered = buttons[
+                    chosen = buttons[
                         (buttons.index(last) - 1) % len(buttons)
                     ]
+                    if isinstance(chosen, AnimatedButton):
+                        AnimatedButton.last_hovered = chosen
             case pygame.K_DOWN:
-                last = (AnimatedButton.last_hovered,)
+                last = AnimatedButton.last_hovered
                 if (
                     self.visualiser_state == VisualState.MAIN_MENU
                     and isinstance(last, AnimatedButton)
                 ):
                     buttons = self.active_buttons
-                    AnimatedButton.last_hovered = buttons[
+                    chosen = buttons[
                         (buttons.index(last) + 1) % len(buttons)
                     ]
+                    if isinstance(chosen, AnimatedButton):
+                        AnimatedButton.last_hovered = chosen
             case _:
                 if self.verbose:
                     print(event)
@@ -810,6 +839,14 @@ class Visualizer:
                 center_part,
                 screen_size / 2 - (Pos2D(center_part.get_size()) / 2),
             )
+        elif self.anim_type == AnimTypes.PIXEL_REPLACEMENT:
+            final_buf.blit(prec, (0, 0))
+            size = 50
+            for i, boo in enumerate(random_list_bool(1-self.act_anim, 2500)):
+                if boo:
+                    pos = Pos2D(i % size, i // size) * screen_size / size
+                    rect = (*pos, screen_size.x / size, screen_size.y / size)
+                    final_buf.blit(act, rect, rect)
         return final_buf
 
     def init_button(self) -> None:
@@ -877,7 +914,7 @@ class Visualizer:
                     self.change_state,
                     VisualState.IN_GAME,
                     anim_duration=1,
-                    anim_type=AnimTypes.ZOOM_IN,
+                    anim_type=AnimTypes.PIXEL_REPLACEMENT,
                 ),
                 text=DelayedCall(
                     lambda pacmap: (

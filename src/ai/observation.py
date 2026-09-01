@@ -18,6 +18,22 @@ class ObservationBuilder:
         ],
         ghost_count: int = 4,
     ) -> tuple[np.ndarray, int, float]:
+        """format given wall, fruit, and charachters data in a numpy ndarray
+        Args:
+            state: tuple[
+                list[list[int]] : list of fruit
+                list[list[int]] : list of wall
+                tuple[int, int] : pos of pacman
+                list[Ghost] : list of ghost
+                int: score of the map
+                float: 0-1 of curetnt frightened duration left
+                ]:
+            ghost_count (int, optional):
+                used  to calculate ndarray size.
+                Defaults to 4.
+        Returns:
+            tuple[np.ndarray, int, float]: the formated data
+        """
         (
             walls_data,
             fruits_data,

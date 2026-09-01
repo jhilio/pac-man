@@ -17,8 +17,10 @@ class AnimTypes(Enum):
     DOWN_TO_UP = "DOWN_TO_UP"
     ZOOM_IN = "ZOOM_IN"
     ZOOM_OUT = "ZOOM_OUT"
+    PIXEL_REPLACEMENT = "PIXEL_REPLACEMENT"
 
     def oppo(self) -> "AnimTypes":
+        """get the opposite AnimTypes"""
         return {
             AnimTypes.RIGHT_TO_LEFT: AnimTypes.LEFT_TO_RIGHT,
             AnimTypes.LEFT_TO_RIGHT: AnimTypes.RIGHT_TO_LEFT,
@@ -26,6 +28,7 @@ class AnimTypes(Enum):
             AnimTypes.UP_TO_DOWN: AnimTypes.DOWN_TO_UP,
             AnimTypes.ZOOM_IN: AnimTypes.ZOOM_OUT,
             AnimTypes.ZOOM_OUT: AnimTypes.ZOOM_IN,
+            AnimTypes.PIXEL_REPLACEMENT: AnimTypes.PIXEL_REPLACEMENT
         }[self]
 
 
@@ -61,6 +64,7 @@ class Direction(Enum):
         }[self]
 
     def rotate(self, sprite: pygame.Surface) -> pygame.Surface:
+        """rotate a sprite, consider west as default"""
         angles = {
             Direction.NORTH: -90.0,
             Direction.EAST: 180.0,
@@ -70,6 +74,8 @@ class Direction(Enum):
         return pygame.transform.rotate(sprite, angles[self])
 
     def pac_order(self) -> int:
+        """arbitrary number dependinc on the original
+        pacman tie break for ghost movement"""
         order = {
             Direction.NORTH: 1,
             Direction.EAST: 4,
