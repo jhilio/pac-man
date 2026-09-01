@@ -226,9 +226,15 @@ def main():
 
         load_high_scores(verbose=verbose)
         preload_assets(verbose=verbose)
-        nn = PacmanNetwork(model_path=str(
-            resource_path("models/last_result.pt")))
-    except (OSError, FileNotFoundError, IsADirectoryError, PermissionError) as error:
+        nn = PacmanNetwork(
+            model_path=str(resource_path("models/last_result.pt"))
+        )
+    except (
+        OSError,
+        FileNotFoundError,
+        IsADirectoryError,
+        PermissionError,
+    ) as error:
         print(f"error occured while loading config : {error}, exiting..,")
         return
     clamp_config()

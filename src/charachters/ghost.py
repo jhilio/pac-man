@@ -37,9 +37,8 @@ class Ghost(MovingEntities):
         super().__init__(direction, x, y)
         self.mode = GhostState.SCATTER
         self.choose_target_cell()
-        self.speed = int(MainData.pacmap.level["ghost_speed"] // 100)
-        self.fright_speed = int(
-            MainData.pacmap.level["ghost_fright_speed"] // 100)
+        self.speed = MainData.pacmap.level["ghost_speed"] / 100
+        self.fright_speed = MainData.pacmap.level["ghost_fright_speed"] / 100
 
     def __init_subclass__(cls, **kwargs: dict) -> None:
         super().__init_subclass__(**kwargs)
@@ -116,8 +115,8 @@ class Ghost(MovingEntities):
         self.anim_step = 0 if self.anim_step else 1
 
     def update_level_data(self) -> None:
-        self.speed = MainData.pacmap.level["ghost_speed"] // 100
-        self.fright_speed = MainData.pacmap.level["ghost_fright_speed"] // 100
+        self.speed = MainData.pacmap.level["ghost_speed"] / 100
+        self.fright_speed = MainData.pacmap.level["ghost_fright_speed"] / 100
 
     def choose_target_cell(self) -> None:
         if self.mode in [GhostState.DEAD, GhostState.SCATTER]:

@@ -14,8 +14,8 @@ class MovingEntities(ABC):
         self.next_direction = direction
         self.offset = 0.0
         self.anim_step = 0
-        self.speed = 1
-        self.fright_speed = 1
+        self.speed = 1.0
+        self.fright_speed = 1.0
         self.is_alive = True
 
     def reset_pos(self) -> None:

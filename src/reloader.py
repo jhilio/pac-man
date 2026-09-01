@@ -3,9 +3,18 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 
-from src.visualizer.visualizer import Visualizer
+# from src.visualizer.visualizer import (
+#    Visualizer,
+#    VisualState,
+#    Surface,
+#    MainData,
+#    draw_text_multiline,
+#    Pos2D,
+#    pygame
+# )
 
-imported = Visualizer.draw_cells
+imported = None
+# imported = Visualizer.draw_to_menu
 
 
 def empty() -> None:

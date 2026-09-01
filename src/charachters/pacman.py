@@ -13,9 +13,8 @@ class Pacman(MovingEntities):
     ):
         super().__init__(direction, x, y)
         self.lives = lives
-        self.speed = int(MainData.pacmap.level["pacman_speed"] // 100)
-        self.fright_speed = int(
-            MainData.pacmap.level["pacman_fright_speed"] // 100)
+        self.speed = MainData.pacmap.level["pacman_speed"] / 100
+        self.fright_speed = MainData.pacmap.level["pacman_fright_speed"] / 100
         self.cheat_mode = False
         self.map = MainData.pacmap
 
@@ -40,9 +39,8 @@ class Pacman(MovingEntities):
         ) % 4  # 4 is pacman anim frame lenght
 
     def update_level_data(self) -> None:
-        self.speed = int(MainData.pacmap.level["pacman_speed"] // 100)
-        self.fright_speed = int(
-            MainData.pacmap.level["pacman_fright_speed"] // 100)
+        self.speed = MainData.pacmap.level["pacman_speed"] / 100
+        self.fright_speed = MainData.pacmap.level["pacman_fright_speed"] / 100
 
     def step(self) -> None:
         self.move(self.turn_and_pathfind())
@@ -52,8 +50,8 @@ class Pacman(MovingEntities):
 
     def turn_and_pathfind(self) -> Pos2D:
         new_pos = self.next_pos
-        cell_x, cell_y = (new_pos) // 3
-        cell_x, cell_y = int(new_pos.x), int(new_pos.y)
+        cell_x, cell_y = new_pos // 3
+        cell_x, cell_y = int(cell_x), int(cell_y)
         cell_walls = self.map.cells[cell_x][cell_y].walls
 
         if self.next_direction != self.direction and (new_pos % (3, 3)) == (
