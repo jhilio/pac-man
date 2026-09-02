@@ -133,19 +133,28 @@ class Visualizer:
                 [12] + [4] * (len(self.pacmap.cells) - 2) + [6],
             ], 0, corner=False
         )
+        self.set_high_score_maze()
+       
+
+    def set_high_score_maze(self):
         self.high_maze: list[list[Cell]] = init_cells_from_2d(
             [
-                [9, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3],
-                [8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2],
-                [8, 0, 0, 0, 9, 1, 3, 0, 0, 0, 0, 0, 2],
-                [8, 1, 1, 1, 0, 0, 2, 0, 0, 0, 0, 0, 2],
-                [8, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 2],
-                [8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2],
-                [8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2],
-                [12, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 6],
-            ],
-            0,
-            corner=False
+                [9, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3],
+                [8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2],
+                [8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2],
+                [8, 0, 0, 0, 0, 0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0, 0, 2],
+                [12,4, 4, 4, 4, 6, 13,5, 5, 5, 5, 5, 5, 5, 5, 7, 8, 0, 0, 0, 0, 2],
+                [13,5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 7, 12, 4, 4, 4, 4, 6],
+                [9, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 9, 1, 1, 1, 1, 3],
+                [8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 8, 0, 0, 0, 0, 2],
+                [8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 8, 0, 0, 0, 0, 2],
+                [8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 8, 0, 0, 0, 0, 2],
+                [8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 8, 0, 0, 0, 0, 2],
+                [8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 8, 0, 0, 0, 0, 2],
+                [8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 8, 0, 0, 0, 0, 2],
+                [8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 8, 0, 0, 0, 0, 2],
+                [12,4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 6, 12,4, 4, 4, 4, 6],
+            ],0, corner=False
         )
 
     @property
@@ -316,7 +325,7 @@ class Visualizer:
                 + (self.CELL_MARGIN * 2)
             ) * 3
             if shortest_side // longest_maze != MainData.cell_size:
-                MainData.cell_size = shortest_side // longest_maze // 2
+                MainData.cell_size = int(shortest_side // longest_maze *0.75)
                 for col in self.pacmap.cells + self.custom_cell:
                     for cell in col:
                         cell.init_image()
@@ -324,7 +333,7 @@ class Visualizer:
                 MainData.cell_size * len(self.high_maze),
                 MainData.cell_size * len(self.high_maze[0]),
             ) * 3
-            game_offset = Pos2D(target.get_size()) / 2 - game_size
+            game_offset = Pos2D(target.get_size()) / 2 - game_size / 2
             offset = (
                 Pos2D(
                     MainData.cell_size * self.CELL_MARGIN * 3,
@@ -332,8 +341,8 @@ class Visualizer:
                 )
                 // 1
             ) + game_offset
-
             self.draw_cells(target, offset, self.high_maze)
+            self.draw_high_scores(target, offset)
         elif state == VisualState.CONFIG:
             draw_text_multiline(
                 target,
@@ -596,6 +605,28 @@ class Visualizer:
                 block_spacing=MainData.cell_size * 3,
             )
 
+    def draw_high_scores(self, target:Surface, offset: Pos2D) -> None:
+        font = self.get_font(MainData.cell_size*3)
+        big_font = self.get_font(int(MainData.cell_size*4.5))
+        list_top = list(MainData.high_scores.items())
+        for i, (name, score) in enumerate(list_top[3:10], 6):
+            pos = offset + (Pos2D(0.25, i+0.25 )*MainData.cell_size *3 )
+            draw_text_multiline(target, [char for char in f"{i-2:02}:{name}"], int(pos.x), int(pos.y), font, block_spacing=MainData.cell_size*3)
+            pos_score = pos + (Pos2D(16, 0) * MainData.cell_size * 3)
+            draw_text_multiline(target, [char for char in format(score, "06")], int(pos_score.x), int(pos_score.y), font, block_spacing=MainData.cell_size*3, color=pygame.color.THECOLORS["yellow"])
+
+        for x, y, index, width in [(0, 3, 1, 6), (6, 2, 0, 10), (16, 4, 2, 6)]:
+            name =list_top[index][0]
+            if len(name) > width:
+                chunks = [name[i:i+5] for i in range(0, len(name), 5)]
+            else:
+                chunks = [name]
+            for y_boost, line in enumerate(chunks):
+                pos = offset + (Pos2D(x, 0.25 + y + ((y_boost - len(chunks)) * 1.5)) * MainData.cell_size *3)
+                draw_text_multiline(target, [char for char in line.center(width)], int(pos.x), int(pos.y), big_font, block_spacing=MainData.cell_size*3)
+            pos_score = pos + (Pos2D(0, 1) * MainData.cell_size * 4.5)
+            draw_text_multiline(target, [char for char in format(list_top[index][1], f"0{width}")], int(pos_score.x), int(pos_score.y), big_font, block_spacing=MainData.cell_size*3, color=pygame.color.THECOLORS["yellow"])
+
     def draw_cheat_info(
         self,
         target: Surface,
@@ -694,6 +725,8 @@ class Visualizer:
             case pygame.K_r:
                 if self.pacmap.pacman.cheat_mode:
                     self.pacmap.restart()
+                elif self.visualiser_state == VisualState.HIGH_SCORE_MENU:
+                    self.set_high_score_maze()
             case pygame.K_SPACE:
                 self.pacmap.pacman.eat_wall()
             case pygame.K_t:
@@ -1034,7 +1067,7 @@ class Visualizer:
             AnimatedButton.last_hovered = main_menu[0]
         high_score_menu: list[ClickableButton | AnimatedButton] = [
             back_button,
-            high_score,
+            # high_score,
         ]
         self.buttons_per_menu: dict[
             VisualState, list[ClickableButton | AnimatedButton]

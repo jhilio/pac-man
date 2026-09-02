@@ -22,9 +22,11 @@ os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
 
 def reload_handler(signum, frame):
     print("\033[2D\033[K", end="", flush=True)
-    importlib.reload(src.reloader)
-    src.reloader.replace(globals())
-
+    try:
+        importlib.reload(src.reloader)
+        src.reloader.replace(globals())
+    except Exception as error:
+        print(f"couldnt reload the reloader :{error}")
 
 signal.signal(signal.SIGINT, reload_handler)
 

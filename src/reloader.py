@@ -3,19 +3,22 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 
+from pygame.color import THECOLORS
 
-# from src.visualizer.visualizer import (
-#    Visualizer,
-#    draw_text_multiline,
-#    MainData,
-#    Pos2D,
-#    Surface,
-#    pygame
-# )
 
-# imported = Visualizer.draw_charachters
+from src.visualizer.visualizer import (
+    Visualizer,
+    MainData,
+    Surface,
+    draw_text_multiline,
+    init_cells_from_2d,
+    Pos2D,
+    pygame
+ )
 
-imported = None
+imported = Visualizer.draw_high_scores
+
+# imported = None
 
 
 def empty() -> None:
@@ -83,8 +86,27 @@ def copy_func(src: FuncRef, dest: FuncRef) -> None:
     Path(dest.filename).write_text("".join(dest_lines))
 
 
-def my_copy() -> None:
-    pass
+def my_copy(self, target:Surface, offset: Pos2D) -> None:
+    font = self.get_font(MainData.cell_size*3)
+    big_font = self.get_font(int(MainData.cell_size*4.5))
+    list_top = list(MainData.high_scores.items())
+    for i, (name, score) in enumerate(list_top[3:10], 6):
+        pos = offset + (Pos2D(0.25, i+0.25 )*MainData.cell_size *3 )
+        draw_text_multiline(target, [char for char in f"{i-2:02}:{name}"], int(pos.x), int(pos.y), font, block_spacing=MainData.cell_size*3)
+        pos_score = pos + (Pos2D(16, 0) * MainData.cell_size * 3)
+        draw_text_multiline(target, [char for char in format(score, "06")], int(pos_score.x), int(pos_score.y), font, block_spacing=MainData.cell_size*3, color=pygame.color.THECOLORS["yellow"])
+
+    for x, y, index, width in [(0, 3, 1, 6), (6, 2, 0, 10), (16, 4, 2, 6)]:
+        name =list_top[index][0]
+        if len(name) > width:
+            chunks = [name[i:i+5] for i in range(0, len(name), 5)]
+        else:
+            chunks = [name]
+        for y_boost, line in enumerate(chunks):
+            pos = offset + (Pos2D(x, y + ((y_boost - len(chunks)) * 1.5)) * MainData.cell_size *3)
+            draw_text_multiline(target, [char for char in line.center(width)], int(pos.x), int(pos.y), big_font, block_spacing=MainData.cell_size*3)
+        pos_score = pos + (Pos2D(0, 1) * MainData.cell_size * 4.5)
+        draw_text_multiline(target, [char for char in format(list_top[index][1], f"0{width}")], int(pos_score.x), int(pos_score.y), big_font, block_spacing=MainData.cell_size*3, color=pygame.color.THECOLORS["yellow"])
 
 
 def replace(globals: dict) -> None:
