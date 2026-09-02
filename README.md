@@ -1,7 +1,7 @@
 *This project has been created as part of the 42 curriculum by aspenle jtardieu*
 
-![Build](https://img.shields.io/badge/build-passing-brightgreen)
-![License](https://img.shields.io/badge/license-MIT-white)
+![Build](https://img.shields.io/badge/build-PyGame-pink)
+![License](https://img.shields.io/badge/license-42-white)
 
 # Pac-Man
 
@@ -56,6 +56,9 @@ make run
 | `make clean` | 🧹 Remove tempory files |
 | `make fclean` | 🗑️ Remove everything (including .venv) |
 
+## 🕹️ How to Used
+
+ <img src="assets/readmefile/controlreadme.png" width="">
 
 ### json
 
@@ -67,10 +70,10 @@ you can run without config.json files to use default value
   </tr>
   <tr>
     <td>
-      <img src="assets/readmefile/json.png"width=80%>
+      <img src="assets/readmefile/json.png"width=750>
     </td>
     <td>
-      <img src="https://media1.tenor.com/m/lbObw07b8FIAAAAC/pacman-pac.gif" width=50%>
+      <img src="https://media1.tenor.com/m/lbObw07b8FIAAAAC/pacman-pac.gif" width=400>
     </td>
   </tr>
 </table>
