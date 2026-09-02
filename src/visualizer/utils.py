@@ -33,17 +33,24 @@ def draw_text_multiline(
             Defaults to (255, 255, 255). (white)
     """
     if isinstance(text, list):
-        for i, block in enumerate(text):
+        y_count = 0
+        i = 0
+        for block in text:
             draw_text_multiline(
                 target,
                 block,
                 x + (i * block_spacing),
-                y,
+                y + (y_count * line_spacing),
                 font,
                 line_spacing,
                 block_spacing,
                 color,
             )
+            if "\n" in block:
+                y_count += block.count("\n")
+                i = 0
+            else:
+                i += 1 
         return
     lines = text.split("\n")
     for i, line in enumerate(lines):
