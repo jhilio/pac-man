@@ -50,7 +50,7 @@ def draw_text_multiline(
                 y_count += block.count("\n")
                 i = 0
             else:
-                i += 1 
+                i += 1
         return
     lines = text.split("\n")
     for i, line in enumerate(lines):

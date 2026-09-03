@@ -6,6 +6,17 @@ from ..pacmap import PacMap
 
 
 def evaluate(pacmap: PacMap, chooser: NNDirectionChooser) -> Tuple[int, float]:
+    """simulate an entire game and return a tuple containing
+    (score, score * len(cell_visited) = turns)
+    the second one is to avoid loop
+
+    Args:
+        pacmap (PacMap): map to stat from
+        chooser (NNDirectionChooser): the nn being evaluated
+
+    Returns:
+        Tuple[int, float]: (score, scaled score)
+    """
     pacmap.restart(True)
     score = 0
     turns = 0
@@ -45,6 +56,18 @@ class EvolutionTrainer:
     def train(
         self, start_network: list[PacmanNetwork], generation: int
     ) -> PacmanNetwork:
+        """
+        mutate the last variation and
+        evaluate them after self.gagames_per_network games,
+        the best one and the original is preserved for next generation
+
+        Args:
+            start_network (list[PacmanNetwork]): starting point
+            generation (int): how many generation of training to do
+
+        Returns:
+            PacmanNetwork: the winner of last mutation round
+        """
         if generation <= 0:
             return start_network[-1]
         network_pool = start_network + [

@@ -18,6 +18,7 @@ class AnimTypes(Enum):
     ZOOM_IN = "ZOOM_IN"
     ZOOM_OUT = "ZOOM_OUT"
     PIXEL_REPLACEMENT = "PIXEL_REPLACEMENT"
+    REV_PIXEL_REPLACEMENT = "REV_PIXEL_REPLACEMENT"
 
     def oppo(self) -> "AnimTypes":
         """get the opposite AnimTypes"""
@@ -28,7 +29,8 @@ class AnimTypes(Enum):
             AnimTypes.UP_TO_DOWN: AnimTypes.DOWN_TO_UP,
             AnimTypes.ZOOM_IN: AnimTypes.ZOOM_OUT,
             AnimTypes.ZOOM_OUT: AnimTypes.ZOOM_IN,
-            AnimTypes.PIXEL_REPLACEMENT: AnimTypes.PIXEL_REPLACEMENT
+            AnimTypes.PIXEL_REPLACEMENT: AnimTypes.REV_PIXEL_REPLACEMENT,
+            AnimTypes.REV_PIXEL_REPLACEMENT: AnimTypes.PIXEL_REPLACEMENT
         }[self]
 
 

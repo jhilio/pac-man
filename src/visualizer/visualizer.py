@@ -90,7 +90,11 @@ class Visualizer:
         self.pacmap = pacmap
         self.base_font_size = 13
         self.font_cache: dict[int, pygame.font.Font] = {}
+        pygame.display.set_icon(
+            MainData.assets.get_asset("pacman_frame_1.png")
+        )
         self.screen = pygame.display.set_mode(size, pygame.RESIZABLE)
+        pygame.display.set_caption("Pac-Man")
         self.code_sequence: list[int] = []
         self.verbose = verbose
         game_size = (
@@ -134,24 +138,37 @@ class Visualizer:
             ], 0, corner=False
         )
         self.set_high_score_maze()
-       
 
-    def set_high_score_maze(self):
+    def set_high_score_maze(self) -> None:
         self.high_maze: list[list[Cell]] = init_cells_from_2d(
             [
-                [9, 1, 1, 1, 1, 3, 9, 1, 1, 1, 1, 1, 1, 1, 1, 3, 9, 1, 1, 1, 1, 3],
-                [8, 0, 0, 0, 0, 2, 8, 0, 0, 0, 0, 0, 0, 0, 0, 2, 8, 0, 0, 0, 0, 2],
-                [8, 0, 0, 0, 0, 2, 12,4, 4, 4, 4, 4, 4, 4, 4, 6, 8, 0, 0, 0, 0, 2],
-                [12,4, 4, 4, 4, 6, 13,15,15,15,15,15,15,15,15,7, 8, 0, 0, 0, 0, 2],
-                [13,15,15,15,15,15,15,15,15,15,15,15,15,15,15,7, 12,4, 4, 4, 4, 6],
-                [13,5, 5, 5, 7, 13,5, 5, 5, 5, 5, 5, 5, 5, 5, 3, 9, 1, 1, 1, 1, 3],
-                [13,5, 5, 5, 7, 13,5, 5, 5, 5, 5, 5, 5, 5, 5, 7, 8, 0, 0, 0, 0, 2],
-                [13,5, 5, 5, 7, 13,5, 5, 5, 5, 5, 5, 5, 5, 5, 7, 8, 0, 0, 0, 0, 2],
-                [13,5, 5, 5, 7, 13,5, 5, 5, 5, 5, 5, 5, 5, 5, 7, 8, 0, 0, 0, 0, 2],
-                [13,5, 5, 5, 7, 13,5, 5, 5, 5, 5, 5, 5, 5, 5, 7, 8, 0, 0, 0, 0, 2],
-                [13,5, 5, 5, 7, 13,5, 5, 5, 5, 5, 5, 5, 5, 5, 7, 8, 0, 0, 0, 0, 2],
-                [13,5, 5, 5, 7, 13,5, 5, 5, 5, 5, 5, 5, 5, 5, 7, 12,4, 4, 4, 4, 6],
-            ],0, corner=False
+                [9, 1, 1, 1, 1, 3, 9, 1, 1, 1,
+                    1, 1, 1, 1, 1, 3, 9, 1, 1, 1, 1, 3],
+                [8, 0, 0, 0, 0, 2, 8, 0, 0, 0,
+                    0, 0, 0, 0, 0, 2, 8, 0, 0, 0, 0, 2],
+                [8, 0, 0, 0, 0, 2, 12, 4, 4, 4,
+                    4, 4, 4, 4, 4, 6, 8, 0, 0, 0, 0, 2],
+                [12, 4, 4, 4, 4, 6, 15, 15, 15,
+                    15, 15, 15, 15, 15, 15, 15, 8, 0, 0, 0, 0, 2],
+                [15, 15, 15, 15, 15, 15, 15, 15,
+                    15, 15, 15, 15, 15, 15, 15, 15, 12, 4, 4, 4, 4, 6],
+                [13, 5, 5, 7, 13, 5, 5, 5, 5, 5,
+                    5, 5, 5, 5, 5, 7, 9, 1, 1, 1, 1, 3],
+                [13, 5, 5, 7, 13, 5, 5, 5, 5, 5,
+                    5, 5, 5, 5, 5, 7, 8, 0, 0, 0, 0, 2],
+                [13, 5, 5, 7, 13, 5, 5, 5, 5, 5,
+                    5, 5, 5, 5, 5, 7, 8, 0, 0, 0, 0, 2],
+                [13, 5, 5, 7, 13, 5, 5, 5, 5, 5,
+                    5, 5, 5, 5, 5, 7, 8, 0, 0, 0, 0, 2],
+                [13, 5, 5, 7, 13, 5, 5, 5, 5, 5,
+                    5, 5, 5, 5, 5, 7, 8, 0, 0, 0, 0, 2],
+                [13, 5, 5, 7, 13, 5, 5, 5, 5, 5,
+                    5, 5, 5, 5, 5, 7, 8, 0, 0, 0, 0, 2],
+                [13, 5, 5, 7, 13, 5, 5, 5, 5, 5,
+                    5, 5, 5, 5, 5, 7, 12, 4, 4, 4, 4, 6],
+            ],
+            0,
+            corner=False
         )
 
     @property
@@ -323,7 +340,7 @@ class Visualizer:
             ) * 3
             if shortest_side // longest_maze != MainData.cell_size:
                 MainData.cell_size = int(shortest_side // longest_maze * 0.85)
-                for col in self.pacmap.cells + self.custom_cell:
+                for col in self.high_maze:
                     for cell in col:
                         cell.init_image()
             game_size = Pos2D(
@@ -331,25 +348,8 @@ class Visualizer:
                 MainData.cell_size * len(self.high_maze[0]),
             ) * 3
             offset = Pos2D(target.get_size()) / 2 - game_size / 2
-            #offset = (
-            #    Pos2D(
-            #        MainData.cell_size * self.CELL_MARGIN * 3,
-            #        MainData.cell_size * self.CELL_MARGIN * 3,
-            #    )
-            #    // 1
-            #) + game_offset
             self.draw_cells(target, offset, self.high_maze)
             self.draw_high_scores(target, offset)
-        elif state == VisualState.CONFIG:
-            draw_text_multiline(
-                target,
-                "shortcut:\narrow keys: movement\nr-> reload map\n"
-                + "n: togle neural network\nbackspace/delete: go back"
-                + "\nhome: return to main menu\n\nEnjoy !!",
-                500,
-                600,
-                font=self.get_font(35),
-            )
         mouse_pos = Pos2D(pygame.mouse.get_pos())
         for button in self.buttons_per_menu[state]:
             button.update(dt, button.is_in(mouse_pos))
@@ -383,7 +383,7 @@ class Visualizer:
                     self.finish_entering_name()
             elif (
                 event.type == pygame.TEXTINPUT
-                and len(self.typed_name) <= 10
+                and len(self.typed_name) < 10
                 and (event.text.isalnum() or event.text.isspace())
             ):
                 self.typed_name += event.text
@@ -602,33 +602,81 @@ class Visualizer:
                 block_spacing=MainData.cell_size * 3,
             )
 
-    def draw_high_scores(self, target:Surface, offset: Pos2D) -> None:
-        font = self.get_font(MainData.cell_size*3)
-        m_font = self.get_font(int(MainData.cell_size*3.75))
-        big_font = self.get_font(int(MainData.cell_size*4.5))
+    def draw_high_scores(self, target: Surface, offset: Pos2D) -> None:
+        """draw MainData.high_score to the target surface at the given offset
+
+        Args:
+            target (Surface): surface to draw in
+            offset (Pos2D): offset to add to every draw
+        """
+        font = self.get_font(MainData.cell_size * 3)
+        m_font = self.get_font(int(MainData.cell_size * 3.75))
+        big_font = self.get_font(int(MainData.cell_size * 4.5))
         list_top = list(MainData.high_scores.items())
+        for i in range(10 - len(list_top)):
+            list_top.append(("", 0))
         for i, (name, score) in enumerate(list_top[3:10], 5):
-            pos = offset + (Pos2D(0.25, i)*MainData.cell_size *3 )
-            draw_text_multiline(target, [char for char in f"{i-2:02}:{name}"], int(pos.x), int(pos.y), font, block_spacing=MainData.cell_size*3)
+            pos = offset + (Pos2D(0.25, i) * MainData.cell_size * 3)
+            draw_text_multiline(
+                target,
+                [char for char in f"{i-1:02}: {name}"],
+                int(pos.x), int(pos.y),
+                font,
+                block_spacing=MainData.cell_size * 3
+            )
             pos_score = pos + (Pos2D(16, 0) * MainData.cell_size * 3)
-            draw_text_multiline(target, [char for char in format(score, "06")], int(pos_score.x), int(pos_score.y), font, block_spacing=MainData.cell_size*3, color=pygame.color.THECOLORS["yellow"])
-            
-        for x, y, index, font in [(0, 2, 1, m_font), (16, 3, 2, font)]:
-            name =list_top[index][0]
+            draw_text_multiline(
+                target,
+                [char for char in format(score, "06")],
+                int(pos_score.x), int(pos_score.y),
+                font,
+                block_spacing=MainData.cell_size * 3,
+                color=pygame.color.THECOLORS["yellow"]
+            )
+
+        for x, y, index, font in [(0, 1.75, 1, m_font), (16, 3, 2, font)]:
+            name = list_top[index][0]
             if len(name) > 6:
                 name = name[:-5] + "-\n" + name[-5:]
-            #name += f"\n{list_top[index][1]:06}"
             y -= name.count("\n")
-            pos = offset + (Pos2D(x +0.25, y) * MainData.cell_size *3)
-            draw_text_multiline(target, [char for char in name], int(pos.x), int(pos.y), font, block_spacing=MainData.cell_size*3, line_spacing=(MainData.cell_size *3))
-            score_pos = pos + (Pos2D(0, 1+name.count("\n")) * MainData.cell_size *3)
-            draw_text_multiline(target, [char for char in f"{list_top[index][1]:06}"], int(score_pos.x), int(score_pos.y), font, block_spacing=MainData.cell_size*3, line_spacing=(MainData.cell_size *3), color=pygame.color.THECOLORS["yellow"])
-        pos = offset + (Pos2D(6, 0.25) * MainData.cell_size *3)
-        
-        draw_text_multiline(target, [char for char in list_top[0][0]], int(pos.x), int(pos.y), big_font,block_spacing=MainData.cell_size*3)
-        score_pos = pos + (Pos2D(0, 1.25) * MainData.cell_size *3)
-        draw_text_multiline(target, [char for char in f"{list_top[0][1]:010}"], int(score_pos.x), int(score_pos.y), big_font,block_spacing=MainData.cell_size*3, color=pygame.color.THECOLORS["yellow"])
-    
+            pos = offset + (Pos2D(x + 0.25, y) * MainData.cell_size * 3)
+            draw_text_multiline(
+                target,
+                [char for char in name],
+                int(pos.x), int(pos.y),
+                font,
+                block_spacing=MainData.cell_size * 3,
+                line_spacing=(MainData.cell_size * 3)
+            )
+            score_pos = pos + (
+                Pos2D(0, 1 + name.count("\n")) * MainData.cell_size * 3
+            )
+            draw_text_multiline(
+                target,
+                [char for char in f"{list_top[index][1]:06}"],
+                int(score_pos.x), int(score_pos.y),
+                font,
+                block_spacing=MainData.cell_size * 3,
+                line_spacing=(MainData.cell_size * 3),
+                color=pygame.color.THECOLORS["yellow"])
+        pos = offset + (Pos2D(6, 0.25) * MainData.cell_size * 3)
+        draw_text_multiline(
+            target,
+            [char for char in list_top[0][0]],
+            int(pos.x), int(pos.y),
+            big_font,
+            block_spacing=MainData.cell_size * 3
+        )
+        score_pos = pos + (Pos2D(0, 1.25) * MainData.cell_size * 3)
+        draw_text_multiline(
+            target,
+            [char for char in f"{list_top[0][1]:010}"],
+            int(score_pos.x), int(score_pos.y),
+            big_font,
+            block_spacing=MainData.cell_size*3,
+            color=pygame.color.THECOLORS["yellow"]
+        )
+
     def draw_cheat_info(
         self,
         target: Surface,
@@ -709,8 +757,6 @@ class Visualizer:
                     self.pacmap.go_next_level()
                     if self.pacmap.is_finished:
                         self.start_entering_name()
-            case pygame.K_HOME:
-                self.visualiser_state = VisualState.MAIN_MENU
             case pygame.K_RETURN:
                 if (
                     AnimatedButton.last_hovered is not None
@@ -731,11 +777,6 @@ class Visualizer:
                     self.set_high_score_maze()
             case pygame.K_SPACE:
                 self.pacmap.pacman.eat_wall()
-            case pygame.K_t:
-                if self.pacmap.pacman.cheat_mode:
-                    self.pacmap.fright_time_left = self.pacmap.level[
-                        "frightened_duration"
-                    ]
             case pygame.K_UP:
                 last = AnimatedButton.last_hovered
                 if (
@@ -884,11 +925,19 @@ class Visualizer:
                 center_part,
                 screen_size / 2 - (Pos2D(center_part.get_size()) / 2),
             )
-        elif self.anim_type == AnimTypes.PIXEL_REPLACEMENT:
+        elif self.anim_type in [
+                AnimTypes.PIXEL_REPLACEMENT,
+                AnimTypes.REV_PIXEL_REPLACEMENT
+                ]:
             final_buf.blit(prec, (0, 0))
             size = 50
-            for i, boo in enumerate(random_list_bool(1-self.act_anim, 2500)):
-                if boo:
+            rev = self.anim_type == AnimTypes.REV_PIXEL_REPLACEMENT
+            for i, boo in enumerate(
+                    random_list_bool(
+                        self.act_anim if rev else (1 - self.act_anim),
+                        2500)
+                    ):
+                if boo != rev:
                     pos = Pos2D(i % size, i // size) * screen_size / size
                     rect = (*pos, screen_size.x / size, screen_size.y / size)
                     final_buf.blit(act, rect, rect)
@@ -1034,20 +1083,6 @@ class Visualizer:
                 animation_frames_count=10,
             ),
         ]
-        high_score = AnimatedButton(
-            0.2,
-            0.2,
-            0.5,
-            0.5,
-            self.screen,
-            self.get_font(25),
-            image=MainData.assets.get_asset("control.png", scaling=False),
-            text=DelayedCall(
-                lambda data=MainData: "\n".join(
-                    f'"{k}": {v}' for k, v in data.high_scores.items()
-                )
-            ),
-        )
         prompting_for_name = [
             ClickableButton(
                 0.35,
@@ -1069,7 +1104,6 @@ class Visualizer:
             AnimatedButton.last_hovered = main_menu[0]
         high_score_menu: list[ClickableButton | AnimatedButton] = [
             back_button,
-            # high_score,
         ]
         self.buttons_per_menu: dict[
             VisualState, list[ClickableButton | AnimatedButton]

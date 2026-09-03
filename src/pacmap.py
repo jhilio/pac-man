@@ -251,7 +251,7 @@ class PacMap:
         self.name: self.score if it reach the top 10
         if self.name == "" return early
         """
-        if not self.player_name:
+        if not self.player_name or self.pacman.cheat_mode:
             return
         k = 10
         MainData.high_scores[self.player_name] = max(
@@ -270,6 +270,7 @@ class PacMap:
         }
         top_k = {k: v for i, (k, v) in zip(range(k), sorted_scores.items())}
         MainData.high_scores = top_k
+        self.player_name = ""
 
     def get_state_for_nn(self) -> tuple[
         list[list[int]],

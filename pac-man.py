@@ -1,6 +1,7 @@
 import importlib
 import json
 import os
+os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
 import signal
 import sys
 from copy import deepcopy
@@ -8,7 +9,6 @@ from pathlib import Path
 from typing import Optional
 
 import mazegenerator
-
 import src.reloader
 from src.ai.interface import NNDirectionChooser
 from src.ai.network import PacmanNetwork
@@ -17,7 +17,6 @@ from src.enums import Direction
 from src.pacmap import PacMap
 from src.visualizer.visualizer import Visualizer
 
-os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
 
 
 def reload_handler(signum, frame):
@@ -26,6 +25,8 @@ def reload_handler(signum, frame):
         importlib.reload(src.reloader)
         src.reloader.replace(globals())
     except Exception as error:
+        if isinstance(error, RuntimeError):
+            raise KeyboardInterrupt
         print(f"couldnt reload the reloader :{error}")
 
 signal.signal(signal.SIGINT, reload_handler)
@@ -239,8 +240,9 @@ def main():
         FileNotFoundError,
         IsADirectoryError,
         PermissionError,
+        ConfigError
     ) as error:
-        print(f"error occured while loading config : {error}, exiting..,")
+        print(f"error occured while loading config : {error}\nexiting..,")
         return
     clamp_config()
     size = (
@@ -255,8 +257,6 @@ def main():
     vis = Visualizer(pacmap, (1000, 1000), nn=chooser, verbose=verbose)
     try:
         vis.launch_loop()
-    except KeyboardInterrupt:
-        pass
     finally:
         with open(str(resource_path("high_scores.json")), "w") as file:
             json.dump(MainData.high_scores, file, indent=2)
@@ -266,4 +266,6 @@ if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        pass
+        print("stop after keyboard interupt")
+    except Exception as error:
+        print(f"error occured {error}")
