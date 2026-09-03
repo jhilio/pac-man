@@ -57,9 +57,12 @@ make run
 | `make fclean` | 🗑️ Remove everything (including .venv) |
 
 ## 🕹️ How to Used
-
+<tr>
+<td align="center">
+    hello
  <img src="assets/readmefile/controlreadme.png" width="">
-
+</td>
+</tr>
 ### json
 
 you can run without config.json files to use default value
