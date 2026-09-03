@@ -7,14 +7,12 @@ from pygame.surface import Surface
 from ..vector import Pos2D
 
 
-class CyclicList(list):
+class CyclicList(list):  # type: ignore[type-arg]
     @overload
-    def __getitem__(self, k: SupportsIndex) -> Any:
-        ...
+    def __getitem__(self, k: SupportsIndex) -> Any: ...
 
     @overload
-    def __getitem__(self, k: slice) -> list[Any]:
-        ...
+    def __getitem__(self, k: slice) -> list[Any]: ...
 
     def __getitem__(self, k: SupportsIndex | slice) -> Any | list[Any]:
         """get item simply using k % len(self)
@@ -60,7 +58,12 @@ class PropRect:
 
 
 class DelayedCall:
-    def __init__(self, func: Callable, *args: Any, **kwargs: Any):
+    def __init__(
+        self,
+        func: Callable,  # type: ignore[type-arg]
+        *args: Any,
+        **kwargs: Any,
+    ):
         """store callable and args to be evaluated later
         Args:
             func (Callable): func to call
@@ -153,8 +156,7 @@ class ClickableButton:
         return self.to_screen_rect.collidepoint(*pos)
 
     def on_click(self) -> None:
-        """launch self.effect
-        """
+        """launch self.effect"""
         if self.effect:
             self.effect()
 
@@ -239,8 +241,7 @@ class AnimatedButton(ClickableButton):
         on_hover: Optional[Callable[[Self], None]] = None,
         animation_image: Optional[CyclicList] = None,
         animation_frames_count: int = 5,
-        animate_func: Optional[Callable[[
-            Self, Surface], Surface]] = None,
+        animate_func: Optional[Callable[[Self, Surface], Surface]] = None,
         anim_duration: float = 1.0,
     ):
         """initialise an animated button
@@ -304,9 +305,7 @@ class AnimatedButton(ClickableButton):
             on_hover if on_hover is not None else self.default_hover
         )
         self._animate_func: Callable[[Any, Surface], Surface] = (
-            animate_func
-            if animate_func is not None
-            else self.default_animate
+            animate_func if animate_func is not None else self.default_animate
         )
         self.anim_duration = anim_duration
         self.animation_image = animation_image
@@ -323,8 +322,7 @@ class AnimatedButton(ClickableButton):
         pass
 
     @staticmethod
-    def default_animate(
-            button: Any, base_image: Surface) -> Surface:
+    def default_animate(button: Any, base_image: Surface) -> Surface:
         """only there to provide a default, dont change the image
         Args:
             button (Any): the button
@@ -335,8 +333,7 @@ class AnimatedButton(ClickableButton):
         return base_image
 
     def on_click(self) -> None:
-        """launch button animation then its effect
-        """
+        """launch button animation then its effect"""
         if not self.__class__.anim_launched:
             if self.anim_duration:
                 self.anim_stage = 1.0
@@ -383,9 +380,7 @@ def pac_button_hover(self: AnimatedButton) -> None:
     self.__class__.last_hovered = self
 
 
-def pac_button_anim(
-    self: Any, base_image: Surface
-) -> Surface:
+def pac_button_anim(self: Any, base_image: Surface) -> Surface:
     """
     draw pacman either at the right of last hovered
     button either eating/sliding
@@ -424,9 +419,7 @@ def pac_button_anim(
     return base_image
 
 
-def paused_anim(
-    self: Any, base_image: Surface
-) -> Surface:
+def paused_anim(self: Any, base_image: Surface) -> Surface:
     """switch betwen the paused and unpaused image
     Args:
         self (Any): the button
@@ -445,9 +438,7 @@ def paused_anim(
     return ret
 
 
-def cheat_toggle_anim(
-    self: Any, base_image: Surface
-) -> Surface:
+def cheat_toggle_anim(self: Any, base_image: Surface) -> Surface:
     """switch betwen the cheat and uncheat control image
     Args:
         self (Any): the button

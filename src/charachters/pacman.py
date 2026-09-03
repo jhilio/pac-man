@@ -1,10 +1,8 @@
 from pygame.surface import Surface
-
 from src.enums import Direction
 from src.vector import Pos2D
-
-from ..config import MainData
 from .moving_entity import MovingEntities
+from ..config import MainData
 
 
 class Pacman(MovingEntities):
@@ -52,21 +50,18 @@ class Pacman(MovingEntities):
         return rotated
 
     def incr_anim(self) -> None:
-        """cycle trough anim frame
-        """
+        """cycle trough anim frame"""
         self.anim_step = (
             self.anim_step + 1
         ) % 4  # 4 is pacman anim frame lenght
 
     def update_level_data(self) -> None:
-        """update the speed of pacman depending on current level data
-        """
+        """update the speed of pacman depending on current level data"""
         self.speed = MainData.pacmap.level["pacman_speed"] / 100
         self.fright_speed = MainData.pacmap.level["pacman_fright_speed"] / 100
 
     def step(self) -> None:
-        """finish the curent movement anim and start the next
-        """
+        """finish the curent movement anim and start the next"""
         self.move(self.turn_and_pathfind())
         cell_x, cell_y = int(self.cell_pos.x), int(self.cell_pos.y)
         if self.map.cells[cell_x][cell_y].fruit is not None:
@@ -120,14 +115,14 @@ class Pacman(MovingEntities):
         return new_pos
 
     def eat_wall(self) -> None:
-        """destroy the wall pacman face (only work in cheat mode)
-        """
+        """destroy the wall pacman face (only work in cheat mode)"""
         if self.cheat_mode:
             facing_cell_x, facing_cell_y = (
                 self.next_pos // 3
             ) + self.direction.delta()
-            facing_cell_x, facing_cell_y = int(
-                facing_cell_x), int(facing_cell_y)
+            facing_cell_x, facing_cell_y = int(facing_cell_x), int(
+                facing_cell_y
+            )
             if not (
                 0 <= facing_cell_x < len(self.map.cells)
                 and 0 <= facing_cell_y < len(self.map.cells[0])

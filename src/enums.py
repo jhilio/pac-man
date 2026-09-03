@@ -30,7 +30,7 @@ class AnimTypes(Enum):
             AnimTypes.ZOOM_IN: AnimTypes.ZOOM_OUT,
             AnimTypes.ZOOM_OUT: AnimTypes.ZOOM_IN,
             AnimTypes.PIXEL_REPLACEMENT: AnimTypes.REV_PIXEL_REPLACEMENT,
-            AnimTypes.REV_PIXEL_REPLACEMENT: AnimTypes.PIXEL_REPLACEMENT
+            AnimTypes.REV_PIXEL_REPLACEMENT: AnimTypes.PIXEL_REPLACEMENT,
         }[self]
 
 
@@ -56,7 +56,7 @@ class Direction(Enum):
             Direction.WEST: Direction.EAST,
         }[self]
 
-    def delta(self) -> tuple:
+    def delta(self) -> tuple[int, int]:
         """get the delta for direction changing"""
         return {
             Direction.NORTH: (0, -1),

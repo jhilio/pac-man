@@ -1,15 +1,12 @@
 from random import shuffle
+from abc import abstractmethod
 
 from pygame.surface import Surface
-
-from ..enums import GhostState
-from .moving_entity import (
-    Direction,
-    MainData,
-    MovingEntities,
-    Pos2D,
-    abstractmethod,
-)
+from typing import Any
+from .moving_entity import MovingEntities
+from ..enums import GhostState, Direction
+from ..config import MainData
+from ..vector import Pos2D
 
 
 def get_ghost_state() -> GhostState:
@@ -59,7 +56,7 @@ class Ghost(MovingEntities):
         self.speed = MainData.pacmap.level["ghost_speed"] / 100
         self.fright_speed = MainData.pacmap.level["ghost_fright_speed"] / 100
 
-    def __init_subclass__(cls, **kwargs: dict) -> None:
+    def __init_subclass__(cls, **kwargs: dict[str, Any]) -> None:
         """verify the subclass has initialised ghost_name and ghost_color
 
         Raises:

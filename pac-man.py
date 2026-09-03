@@ -1,35 +1,18 @@
-import importlib
 import json
 import os
+
 os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
-import signal
 import sys
-from copy import deepcopy
 from pathlib import Path
 from typing import Optional
 
 import mazegenerator
-import src.reloader
 from src.ai.interface import NNDirectionChooser
 from src.ai.network import PacmanNetwork
 from src.config import MainData
 from src.enums import Direction
 from src.pacmap import PacMap
 from src.visualizer.visualizer import Visualizer
-
-
-
-def reload_handler(signum, frame):
-    print("\033[2D\033[K", end="", flush=True)
-    try:
-        importlib.reload(src.reloader)
-        src.reloader.replace(globals())
-    except Exception as error:
-        if isinstance(error, RuntimeError):
-            raise KeyboardInterrupt
-        print(f"couldnt reload the reloader :{error}")
-
-signal.signal(signal.SIGINT, reload_handler)
 
 
 class ConfigError(Exception):
@@ -242,7 +225,7 @@ def main():
         FileNotFoundError,
         IsADirectoryError,
         PermissionError,
-        ConfigError
+        ConfigError,
     ) as error:
         print(f"error occured while loading config : {error}\nexiting..,")
         return

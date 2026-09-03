@@ -1,6 +1,7 @@
 from ..enums import Direction
 from ..vector import Pos2D
-from .ghost import Ghost, MainData
+from ..config import MainData
+from .ghost import Ghost
 
 
 class Pinky(Ghost):

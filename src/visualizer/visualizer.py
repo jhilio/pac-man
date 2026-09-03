@@ -7,7 +7,6 @@ from pygame.surface import Surface
 
 from ..ai.interface import NNDirectionChooser
 from ..cells import Cell
-from ..charachters.ghost import get_ghost_state
 from ..charachters.moving_entity import MovingEntities
 from ..config import MainData
 from ..enums import AnimTypes, Direction, VisualState
@@ -27,9 +26,7 @@ from .utils import draw_text_multiline
 
 
 def random_list_bool(
-    proportion: float,
-    size: int = 100,
-    seed: int = 42
+    proportion: float, size: int = 100, seed: int = 42
 ) -> list[bool]:
     """return a list with a proportion
     of true/false that is shuffled with seed
@@ -136,40 +133,306 @@ class Visualizer:
             [
                 [9] + [1] * (len(self.pacmap.cells) - 2) + [3],
                 [12] + [4] * (len(self.pacmap.cells) - 2) + [6],
-            ], 0, corner=False
+            ],
+            0,
+            corner=False,
         )
         self.set_high_score_maze()
 
     def set_high_score_maze(self) -> None:
         self.high_maze: list[list[Cell]] = init_cells_from_2d(
             [
-                [9, 1, 1, 1, 1, 3, 9, 1, 1, 1,
-                    1, 1, 1, 1, 1, 3, 9, 1, 1, 1, 1, 3],
-                [8, 0, 0, 0, 0, 2, 8, 0, 0, 0,
-                    0, 0, 0, 0, 0, 2, 8, 0, 0, 0, 0, 2],
-                [8, 0, 0, 0, 0, 2, 12, 4, 4, 4,
-                    4, 4, 4, 4, 4, 6, 8, 0, 0, 0, 0, 2],
-                [12, 4, 4, 4, 4, 6, 15, 15, 15,
-                    15, 15, 15, 15, 15, 15, 15, 8, 0, 0, 0, 0, 2],
-                [15, 15, 15, 15, 15, 15, 15, 15,
-                    15, 15, 15, 15, 15, 15, 15, 15, 12, 4, 4, 4, 4, 6],
-                [13, 5, 5, 7, 13, 5, 5, 5, 5, 5,
-                    5, 5, 5, 5, 5, 7, 9, 1, 1, 1, 1, 3],
-                [13, 5, 5, 7, 13, 5, 5, 5, 5, 5,
-                    5, 5, 5, 5, 5, 7, 8, 0, 0, 0, 0, 2],
-                [13, 5, 5, 7, 13, 5, 5, 5, 5, 5,
-                    5, 5, 5, 5, 5, 7, 8, 0, 0, 0, 0, 2],
-                [13, 5, 5, 7, 13, 5, 5, 5, 5, 5,
-                    5, 5, 5, 5, 5, 7, 8, 0, 0, 0, 0, 2],
-                [13, 5, 5, 7, 13, 5, 5, 5, 5, 5,
-                    5, 5, 5, 5, 5, 7, 8, 0, 0, 0, 0, 2],
-                [13, 5, 5, 7, 13, 5, 5, 5, 5, 5,
-                    5, 5, 5, 5, 5, 7, 8, 0, 0, 0, 0, 2],
-                [13, 5, 5, 7, 13, 5, 5, 5, 5, 5,
-                    5, 5, 5, 5, 5, 7, 12, 4, 4, 4, 4, 6],
+                [
+                    9,
+                    1,
+                    1,
+                    1,
+                    1,
+                    3,
+                    9,
+                    1,
+                    1,
+                    1,
+                    1,
+                    1,
+                    1,
+                    1,
+                    1,
+                    3,
+                    9,
+                    1,
+                    1,
+                    1,
+                    1,
+                    3,
+                ],
+                [
+                    8,
+                    0,
+                    0,
+                    0,
+                    0,
+                    2,
+                    8,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    2,
+                    8,
+                    0,
+                    0,
+                    0,
+                    0,
+                    2,
+                ],
+                [
+                    8,
+                    0,
+                    0,
+                    0,
+                    0,
+                    2,
+                    12,
+                    4,
+                    4,
+                    4,
+                    4,
+                    4,
+                    4,
+                    4,
+                    4,
+                    6,
+                    8,
+                    0,
+                    0,
+                    0,
+                    0,
+                    2,
+                ],
+                [
+                    12,
+                    4,
+                    4,
+                    4,
+                    4,
+                    6,
+                    15,
+                    15,
+                    15,
+                    15,
+                    15,
+                    15,
+                    15,
+                    15,
+                    15,
+                    15,
+                    8,
+                    0,
+                    0,
+                    0,
+                    0,
+                    2,
+                ],
+                [
+                    15,
+                    15,
+                    15,
+                    15,
+                    15,
+                    15,
+                    15,
+                    15,
+                    15,
+                    15,
+                    15,
+                    15,
+                    15,
+                    15,
+                    15,
+                    15,
+                    12,
+                    4,
+                    4,
+                    4,
+                    4,
+                    6,
+                ],
+                [
+                    13,
+                    5,
+                    5,
+                    7,
+                    13,
+                    5,
+                    5,
+                    5,
+                    5,
+                    5,
+                    5,
+                    5,
+                    5,
+                    5,
+                    5,
+                    7,
+                    9,
+                    1,
+                    1,
+                    1,
+                    1,
+                    3,
+                ],
+                [
+                    13,
+                    5,
+                    5,
+                    7,
+                    13,
+                    5,
+                    5,
+                    5,
+                    5,
+                    5,
+                    5,
+                    5,
+                    5,
+                    5,
+                    5,
+                    7,
+                    8,
+                    0,
+                    0,
+                    0,
+                    0,
+                    2,
+                ],
+                [
+                    13,
+                    5,
+                    5,
+                    7,
+                    13,
+                    5,
+                    5,
+                    5,
+                    5,
+                    5,
+                    5,
+                    5,
+                    5,
+                    5,
+                    5,
+                    7,
+                    8,
+                    0,
+                    0,
+                    0,
+                    0,
+                    2,
+                ],
+                [
+                    13,
+                    5,
+                    5,
+                    7,
+                    13,
+                    5,
+                    5,
+                    5,
+                    5,
+                    5,
+                    5,
+                    5,
+                    5,
+                    5,
+                    5,
+                    7,
+                    8,
+                    0,
+                    0,
+                    0,
+                    0,
+                    2,
+                ],
+                [
+                    13,
+                    5,
+                    5,
+                    7,
+                    13,
+                    5,
+                    5,
+                    5,
+                    5,
+                    5,
+                    5,
+                    5,
+                    5,
+                    5,
+                    5,
+                    7,
+                    8,
+                    0,
+                    0,
+                    0,
+                    0,
+                    2,
+                ],
+                [
+                    13,
+                    5,
+                    5,
+                    7,
+                    13,
+                    5,
+                    5,
+                    5,
+                    5,
+                    5,
+                    5,
+                    5,
+                    5,
+                    5,
+                    5,
+                    7,
+                    8,
+                    0,
+                    0,
+                    0,
+                    0,
+                    2,
+                ],
+                [
+                    13,
+                    5,
+                    5,
+                    7,
+                    13,
+                    5,
+                    5,
+                    5,
+                    5,
+                    5,
+                    5,
+                    5,
+                    5,
+                    5,
+                    5,
+                    7,
+                    12,
+                    4,
+                    4,
+                    4,
+                    4,
+                    6,
+                ],
             ],
             0,
-            corner=False
+            corner=False,
         )
 
     @property
@@ -329,7 +592,6 @@ class Visualizer:
             )
             if self.pacmap.pacman.cheat_mode:
                 self.draw_targets(target, offset)
-                self.draw_cheat_info(target, dt, offset)
             self.draw_charachters(target, offset)
             self.draw_hud(target, offset)
             self.draw_timer(target, offset - Pos2D(MainData.cell_size, 0))
@@ -344,10 +606,13 @@ class Visualizer:
                 for col in self.high_maze:
                     for cell in col:
                         cell.init_image()
-            game_size = Pos2D(
-                MainData.cell_size * len(self.high_maze),
-                MainData.cell_size * len(self.high_maze[0]),
-            ) * 3
+            game_size = (
+                Pos2D(
+                    MainData.cell_size * len(self.high_maze),
+                    MainData.cell_size * len(self.high_maze[0]),
+                )
+                * 3
+            )
             offset = Pos2D(target.get_size()) / 2 - game_size / 2
             self.draw_cells(target, offset, self.high_maze)
             self.draw_high_scores(target, offset)
@@ -621,18 +886,20 @@ class Visualizer:
             draw_text_multiline(
                 target,
                 [char for char in f"{i-1:02}: {name}"],
-                int(pos.x), int(pos.y),
+                int(pos.x),
+                int(pos.y),
                 font,
-                block_spacing=MainData.cell_size * 3
+                block_spacing=MainData.cell_size * 3,
             )
             pos_score = pos + (Pos2D(16, 0) * MainData.cell_size * 3)
             draw_text_multiline(
                 target,
                 [char for char in format(score, "06")],
-                int(pos_score.x), int(pos_score.y),
+                int(pos_score.x),
+                int(pos_score.y),
                 font,
                 block_spacing=MainData.cell_size * 3,
-                color=pygame.color.THECOLORS["yellow"]
+                color=pygame.color.THECOLORS["yellow"],
             )
 
         for x, y, index, font in [(0, 1.75, 1, m_font), (16, 3, 2, font)]:
@@ -644,10 +911,11 @@ class Visualizer:
             draw_text_multiline(
                 target,
                 [char for char in name],
-                int(pos.x), int(pos.y),
+                int(pos.x),
+                int(pos.y),
                 font,
                 block_spacing=MainData.cell_size * 3,
-                line_spacing=(MainData.cell_size * 3)
+                line_spacing=(MainData.cell_size * 3),
             )
             score_pos = pos + (
                 Pos2D(0, 1 + name.count("\n")) * MainData.cell_size * 3
@@ -655,65 +923,32 @@ class Visualizer:
             draw_text_multiline(
                 target,
                 [char for char in f"{list_top[index][1]:06}"],
-                int(score_pos.x), int(score_pos.y),
+                int(score_pos.x),
+                int(score_pos.y),
                 font,
                 block_spacing=MainData.cell_size * 3,
                 line_spacing=(MainData.cell_size * 3),
-                color=pygame.color.THECOLORS["yellow"])
+                color=pygame.color.THECOLORS["yellow"],
+            )
         pos = offset + (Pos2D(6, 0.25) * MainData.cell_size * 3)
         draw_text_multiline(
             target,
             [char for char in list_top[0][0]],
-            int(pos.x), int(pos.y),
+            int(pos.x),
+            int(pos.y),
             big_font,
-            block_spacing=MainData.cell_size * 3
+            block_spacing=MainData.cell_size * 3,
         )
         score_pos = pos + (Pos2D(0, 1.25) * MainData.cell_size * 3)
         draw_text_multiline(
             target,
             [char for char in f"{list_top[0][1]:010}"],
-            int(score_pos.x), int(score_pos.y),
+            int(score_pos.x),
+            int(score_pos.y),
             big_font,
-            block_spacing=MainData.cell_size*3,
-            color=pygame.color.THECOLORS["yellow"]
+            block_spacing=MainData.cell_size * 3,
+            color=pygame.color.THECOLORS["yellow"],
         )
-
-    def draw_cheat_info(
-        self,
-        target: Surface,
-        dt: float,
-        offset: Pos2D
-    ) -> None:
-        """draw technical info about the state of the game to the given surface
-
-        Args:
-             target (Surface): surface to write to
-             dt (float): time since last frame
-             offset (Pos2D): offset to add to each pos writen to
-        """
-        t = self.pacmap.level["duration"] - self.pacmap.total_elapsed_time
-        text = f"""
-        {
-            (
-                "fright left : "
-                + format(self.pacmap.fright_time_left, ".1f")
-                + "s"
-            )
-            if self.pacmap.fright_time_left
-            else ""
-        }
-        Time left : {t:.0f}S
-        Phase state : {get_ghost_state().name} {self.pacmap.phase_timer}S
-        Score: {self.pacmap.score}
-        Current Level: {self.pacmap.level_num}
-        lives : {self.pacmap.pacman.lives}
-        cell_size : {MainData.cell_size}
-        fps : {1 / dt:.1f}
-        anim: {self.act_anim / self.anim_duration}
-        """
-        pos = Pos2D(600, 100) + offset
-        draw_text_multiline(
-            target, text, int(pos.x), int(pos.y), font=self.get_font(25))
 
     def get_font(self, size: Optional[int] = None) -> pygame.font.Font:
         """Get a font for rendering text.
@@ -785,9 +1020,7 @@ class Visualizer:
                     and isinstance(last, AnimatedButton)
                 ):
                     buttons = self.active_buttons
-                    chosen = buttons[
-                        (buttons.index(last) - 1) % len(buttons)
-                    ]
+                    chosen = buttons[(buttons.index(last) - 1) % len(buttons)]
                     if isinstance(chosen, AnimatedButton):
                         AnimatedButton.last_hovered = chosen
             case pygame.K_DOWN:
@@ -797,9 +1030,7 @@ class Visualizer:
                     and isinstance(last, AnimatedButton)
                 ):
                     buttons = self.active_buttons
-                    chosen = buttons[
-                        (buttons.index(last) + 1) % len(buttons)
-                    ]
+                    chosen = buttons[(buttons.index(last) + 1) % len(buttons)]
                     if isinstance(chosen, AnimatedButton):
                         AnimatedButton.last_hovered = chosen
             case _:
@@ -927,17 +1158,17 @@ class Visualizer:
                 screen_size / 2 - (Pos2D(center_part.get_size()) / 2),
             )
         elif self.anim_type in [
-                AnimTypes.PIXEL_REPLACEMENT,
-                AnimTypes.REV_PIXEL_REPLACEMENT
-                ]:
+            AnimTypes.PIXEL_REPLACEMENT,
+            AnimTypes.REV_PIXEL_REPLACEMENT,
+        ]:
             final_buf.blit(prec, (0, 0))
             size = 50
             rev = self.anim_type == AnimTypes.REV_PIXEL_REPLACEMENT
             for i, boo in enumerate(
-                    random_list_bool(
-                        self.act_anim if rev else (1 - self.act_anim),
-                        2500)
-                    ):
+                random_list_bool(
+                    self.act_anim if rev else (1 - self.act_anim), 2500
+                )
+            ):
                 if boo != rev:
                     pos = Pos2D(i % size, i // size) * screen_size / size
                     rect = (*pos, screen_size.x / size, screen_size.y / size)

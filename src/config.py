@@ -1,5 +1,4 @@
 from __future__ import annotations
-
 from typing import TYPE_CHECKING, Callable, Generic, TypedDict, TypeVar
 
 from pygame.surface import Surface
@@ -99,9 +98,7 @@ class Config(TypedDict):
     levels: dict[str, Level]
 
 
-levels_dict = {
-    str(i): level for i, level in enumerate(levels, 1)
-}
+levels_dict = {str(i): level for i, level in enumerate(levels, 1)}
 
 DEFAULT_CONFIG = Config(
     pacgum_proportion=0.5,
@@ -121,7 +118,8 @@ class AssetsManager:
         self._originals: dict[str, Surface] = {}
         self.scaled: dict[
             tuple[int | float, int | float],
-            dict[tuple[str, float, float, float, float], Surface]] = {}
+            dict[tuple[str, float, float, float, float], Surface],
+        ] = {}
 
     def load(
         self, name: str, path: str, color_key: Optional[pygame.Color] = None
@@ -201,6 +199,7 @@ class ClassProperty(Generic[T]):
     Args:
         Generic (_type_): which type will be returned
     """
+
     def __init__(self, getter: Callable[[Any], T]):
         self.getter = getter
 

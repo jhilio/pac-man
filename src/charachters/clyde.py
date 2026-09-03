@@ -1,6 +1,6 @@
-from src.vector import Pos2D
-
-from .ghost import Ghost, MainData
+from .ghost import Ghost
+from ..vector import Pos2D
+from ..config import MainData
 
 
 class Clyde(Ghost):
@@ -12,9 +12,12 @@ class Clyde(Ghost):
         clyde try to reach pacman directly until they are 8 or less cell apart
         if they are close clyde try to go to his corner
         """
-        if (Pos2D(0, 0).pythagore(
-            self.pos.abs_diff(
-                MainData.pacmap.pacman.pos)) >= 8):
+        if (
+            Pos2D(0, 0).pythagore(
+                self.pos.abs_diff(MainData.pacmap.pacman.pos)
+            )
+            >= 8
+        ):
             target: Pos2D = MainData.pacmap.pacman.pos
 
         else:

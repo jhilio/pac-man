@@ -29,8 +29,7 @@ class MovingEntities(ABC):
         self.is_alive = True
 
     def reset_pos(self) -> None:
-        """reset pos to the one given at creation
-        """
+        """reset pos to the one given at creation"""
         self.pos = self.original_pos
         self.next_pos = self.original_pos
 
