@@ -2,5 +2,10 @@
 {
 	"width":1,
 	"height":1,
-	"lives": 1
+	"lives": 1,
+	"levels": {
+		"1": {
+			"pacman_speed":"abc"
+		}
+	}
 }

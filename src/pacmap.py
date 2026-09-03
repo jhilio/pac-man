@@ -270,6 +270,7 @@ class PacMap:
         }
         top_k = {k: v for i, (k, v) in zip(range(k), sorted_scores.items())}
         MainData.high_scores = top_k
+        self.player_name = ""
 
     def get_state_for_nn(self) -> tuple[
         list[list[int]],

@@ -137,6 +137,13 @@ class Cell:
             else:
                 return MainData.assets.get_asset("no_dot.png")
 
+        if self.walls == 15:
+            self.__image = pygame.surface.Surface(
+                (MainData.cell_size * 3, MainData.cell_size * 3),
+            )
+            self.__image.fill((33, 33, 255))
+            return self.__image
+
         all_images = (
             (
                 get_corner(self.walls, Direction.NORTH, Direction.WEST),
