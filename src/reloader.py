@@ -88,6 +88,7 @@ def copy_func(src: FuncRef, dest: FuncRef) -> None:
 
 def my_copy(self, target:Surface, offset: Pos2D) -> None:
     font = self.get_font(MainData.cell_size*3)
+    m_font = self.get_font(int(MainData.cell_size*3.75))
     big_font = self.get_font(int(MainData.cell_size*4.5))
     list_top = list(MainData.high_scores.items())
     for i, (name, score) in enumerate(list_top[3:10], 6):
@@ -95,19 +96,22 @@ def my_copy(self, target:Surface, offset: Pos2D) -> None:
         draw_text_multiline(target, [char for char in f"{i-2:02}:{name}"], int(pos.x), int(pos.y), font, block_spacing=MainData.cell_size*3)
         pos_score = pos + (Pos2D(16, 0) * MainData.cell_size * 3)
         draw_text_multiline(target, [char for char in format(score, "06")], int(pos_score.x), int(pos_score.y), font, block_spacing=MainData.cell_size*3, color=pygame.color.THECOLORS["yellow"])
-
-    for x, y, index, width in [(0, 3, 1, 6), (6, 2, 0, 10), (16, 4, 2, 6)]:
+        
+    for x, y, index, font in [(0, 3, 1, m_font), (16, 4, 2, font)]:
         name =list_top[index][0]
-        if len(name) > width:
-            chunks = [name[i:i+5] for i in range(0, len(name), 5)]
-        else:
-            chunks = [name]
-        for y_boost, line in enumerate(chunks):
-            pos = offset + (Pos2D(x, y + ((y_boost - len(chunks)) * 1.5)) * MainData.cell_size *3)
-            draw_text_multiline(target, [char for char in line.center(width)], int(pos.x), int(pos.y), big_font, block_spacing=MainData.cell_size*3)
-        pos_score = pos + (Pos2D(0, 1) * MainData.cell_size * 4.5)
-        draw_text_multiline(target, [char for char in format(list_top[index][1], f"0{width}")], int(pos_score.x), int(pos_score.y), big_font, block_spacing=MainData.cell_size*3, color=pygame.color.THECOLORS["yellow"])
-
+        if len(name) > 6:
+            name = name[:5] + "-\n" + name[5:]
+        #name += f"\n{list_top[index][1]:06}"
+        y -= name.count("\n")
+        pos = offset + (Pos2D(x +0.25, y) * MainData.cell_size *3)
+        draw_text_multiline(target, [char for char in name], int(pos.x), int(pos.y), font, block_spacing=MainData.cell_size*3, line_spacing=(MainData.cell_size *3))
+        score_pos = pos + (Pos2D(0, 1+name.count("\n")) * MainData.cell_size *3)
+        draw_text_multiline(target, [char for char in f"{list_top[index][1]:06}"], int(score_pos.x), int(score_pos.y), font, block_spacing=MainData.cell_size*3, line_spacing=(MainData.cell_size *3), color=pygame.color.THECOLORS["yellow"])
+    pos = offset + (Pos2D(6, 1) * MainData.cell_size *3)
+    
+    draw_text_multiline(target, [char for char in list_top[0][0]], int(pos.x), int(pos.y), big_font,block_spacing=MainData.cell_size*3)
+    score_pos = pos + (Pos2D(0, 1) * MainData.cell_size *3)
+    draw_text_multiline(target, [char for char in f"{list_top[0][1]:010}"], int(score_pos.x), int(score_pos.y), big_font,block_spacing=MainData.cell_size*3)
 
 def replace(globals: dict) -> None:
     """
@@ -133,7 +137,7 @@ def replace(globals: dict) -> None:
     elif val == 2:
         imported.__code__ = my_copy.__code__
     elif val == 3:
-        copy_func(globals["originale_copy"], globals["originale_func"])
+        copy_func(save_ref(my_copy), globals["originale_func"])
     elif val == 4:
         globals["originale_func"] = None
         copy_func(save_ref(empty), save_ref(my_copy))
