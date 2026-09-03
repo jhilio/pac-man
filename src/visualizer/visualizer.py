@@ -90,6 +90,9 @@ class Visualizer:
         self.pacmap = pacmap
         self.base_font_size = 13
         self.font_cache: dict[int, pygame.font.Font] = {}
+        pygame.display.set_icon(
+            MainData.assets.get_asset("pacman_frame_1.png")
+        )
         self.screen = pygame.display.set_mode(size, pygame.RESIZABLE)
         pygame.display.set_caption("Pac-Man")
         self.code_sequence: list[int] = []
@@ -148,7 +151,7 @@ class Visualizer:
                 [12, 4, 4, 4, 4, 6, 15, 15, 15,
                     15, 15, 15, 15, 15, 15, 15, 8, 0, 0, 0, 0, 2],
                 [15, 15, 15, 15, 15, 15, 15, 15,
-                    5, 15, 15, 15, 15, 15, 15, 15, 12, 4, 4, 4, 4, 6],
+                    15, 15, 15, 15, 15, 15, 15, 15, 12, 4, 4, 4, 4, 6],
                 [13, 5, 5, 7, 13, 5, 5, 5, 5, 5,
                     5, 5, 5, 5, 5, 7, 9, 1, 1, 1, 1, 3],
                 [13, 5, 5, 7, 13, 5, 5, 5, 5, 5,
@@ -337,7 +340,7 @@ class Visualizer:
             ) * 3
             if shortest_side // longest_maze != MainData.cell_size:
                 MainData.cell_size = int(shortest_side // longest_maze * 0.85)
-                for col in self.pacmap.cells + self.custom_cell:
+                for col in self.high_maze:
                     for cell in col:
                         cell.init_image()
             game_size = Pos2D(
@@ -347,16 +350,6 @@ class Visualizer:
             offset = Pos2D(target.get_size()) / 2 - game_size / 2
             self.draw_cells(target, offset, self.high_maze)
             self.draw_high_scores(target, offset)
-        elif state == VisualState.CONFIG:
-            draw_text_multiline(
-                target,
-                "shortcut:\narrow keys: movement\nr-> reload map\n"
-                + "n: togle neural network\nbackspace/delete: go back"
-                + "\nhome: return to main menu\n\nEnjoy !!",
-                500,
-                600,
-                font=self.get_font(35),
-            )
         mouse_pos = Pos2D(pygame.mouse.get_pos())
         for button in self.buttons_per_menu[state]:
             button.update(dt, button.is_in(mouse_pos))
@@ -390,7 +383,7 @@ class Visualizer:
                     self.finish_entering_name()
             elif (
                 event.type == pygame.TEXTINPUT
-                and len(self.typed_name) <= 10
+                and len(self.typed_name) < 10
                 and (event.text.isalnum() or event.text.isspace())
             ):
                 self.typed_name += event.text
@@ -764,8 +757,6 @@ class Visualizer:
                     self.pacmap.go_next_level()
                     if self.pacmap.is_finished:
                         self.start_entering_name()
-            case pygame.K_HOME:
-                self.visualiser_state = VisualState.MAIN_MENU
             case pygame.K_RETURN:
                 if (
                     AnimatedButton.last_hovered is not None
@@ -786,11 +777,6 @@ class Visualizer:
                     self.set_high_score_maze()
             case pygame.K_SPACE:
                 self.pacmap.pacman.eat_wall()
-            case pygame.K_t:
-                if self.pacmap.pacman.cheat_mode:
-                    self.pacmap.fright_time_left = self.pacmap.level[
-                        "frightened_duration"
-                    ]
             case pygame.K_UP:
                 last = AnimatedButton.last_hovered
                 if (
@@ -939,11 +925,19 @@ class Visualizer:
                 center_part,
                 screen_size / 2 - (Pos2D(center_part.get_size()) / 2),
             )
-        elif self.anim_type == AnimTypes.PIXEL_REPLACEMENT:
+        elif self.anim_type in [
+                AnimTypes.PIXEL_REPLACEMENT,
+                AnimTypes.REV_PIXEL_REPLACEMENT
+                ]:
             final_buf.blit(prec, (0, 0))
             size = 50
-            for i, boo in enumerate(random_list_bool(1-self.act_anim, 2500)):
-                if boo:
+            rev = self.anim_type == AnimTypes.REV_PIXEL_REPLACEMENT
+            for i, boo in enumerate(
+                    random_list_bool(
+                        self.act_anim if rev else (1 - self.act_anim),
+                        2500)
+                    ):
+                if boo != rev:
                     pos = Pos2D(i % size, i // size) * screen_size / size
                     rect = (*pos, screen_size.x / size, screen_size.y / size)
                     final_buf.blit(act, rect, rect)

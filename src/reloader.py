@@ -4,12 +4,6 @@ from dataclasses import dataclass
 from pathlib import Path
 
 
-# from src.visualizer.visualizer import (
-#    Visualizer,
-# )
-
-# imported = Visualizer.draw_high_scores
-
 imported = None
 
 

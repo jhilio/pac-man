@@ -13,6 +13,16 @@ class PacmanNetwork(nn.Module):
             ghost_count: int = 4,
             model_path: Optional[Path] = None
     ):
+        """initialise the neural network
+
+        Args:
+            ghost_count (int, optional):
+                used to know hom many channel there are.
+                Defaults to 4.
+            model_path (Optional[Path], optional):
+                path that can be used to save or load the network weight.
+                Defaults to None.
+        """
         super().__init__()
         channels = 6 + ghost_count
         self.ghost_count = ghost_count
@@ -91,6 +101,19 @@ class PacmanNetwork(nn.Module):
         fright_time: float,
         pacman_position: tuple[int, int],
     ) -> torch.Tensor:
+        """pass an observation through all step of
+        the neural network and give out the output logits
+
+        Args:
+            observation (numpy.ndarray): state of the pacmap
+            fright_time (float):
+                fraction of time left after eating a super pac gum
+            pacman_position (tuple[int, int]): pos of pacman
+
+        Returns:
+            torch.Tensor:
+                logits corresponding to each direction pacman should go
+        """
         features = self.cnn(observation)
         # -----------------------------------------
         # Local information
@@ -126,6 +149,15 @@ class PacmanNetwork(nn.Module):
         return output
 
     def save(self, path: Optional[str] = None) -> None:
+        """save the nn weight to path or path inscribed
+        at initialization
+
+        Args:
+            path (Optional[str], optional):
+            Path to the desired save,
+            default to path given at initialisation if None
+            Defaults to None.
+        """
         real_path = Path(path) if path else self.model_path
         if real_path is None:
             raise ValueError("No save path provided.")
@@ -140,6 +172,15 @@ class PacmanNetwork(nn.Module):
         print(f"Model saved to {real_path.resolve()}")
 
     def load(self, path: Optional[str] = None) -> None:
+        """load the specified path or path inscribed
+        at initialization as the weight of the nn
+
+        Args:
+            path (Optional[str], optional):
+            Path to the weight,
+            default to path given at initialisation if None
+            Defaults to None.
+        """
         real_path = Path(path) if path else self.model_path
         if real_path is None:
             print(

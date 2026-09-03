@@ -2,7 +2,6 @@ import importlib
 import json
 import os
 os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
-os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
 import signal
 import sys
 from copy import deepcopy
@@ -258,8 +257,6 @@ def main():
     vis = Visualizer(pacmap, (1000, 1000), nn=chooser, verbose=verbose)
     try:
         vis.launch_loop()
-    except KeyboardInterrupt:
-        pass
     finally:
         with open(str(resource_path("high_scores.json")), "w") as file:
             json.dump(MainData.high_scores, file, indent=2)
@@ -269,4 +266,6 @@ if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        pass
+        print("stop after keyboard interupt")
+    except Exception as error:
+        print(f"error occured {error}")
