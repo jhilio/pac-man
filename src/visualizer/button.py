@@ -443,3 +443,24 @@ def paused_anim(
     else:
         ret = self.animation_image[0]
     return ret
+
+
+def cheat_toggle_anim(
+    self: Any, base_image: Surface
+) -> Surface:
+    """switch betwen the cheat and uncheat control image
+    Args:
+        self (Any): the button
+        base_image (Surface): unused for this anim
+    Raises:
+        ValueError: if no base or cheat where given
+    Returns:
+        Surface: the image to be drawn
+    """
+    if self.animation_image is None:
+        raise ValueError("need animation images for this animation")
+    if self.extra[0].cheat_mode:
+        ret: Surface = self.animation_image[1]
+    else:
+        ret = self.animation_image[0]
+    return ret

@@ -18,6 +18,7 @@ from ..visualizer.button import (
     ClickableButton,
     CyclicList,
     DelayedCall,
+    cheat_toggle_anim,
     pac_button_anim,
     pac_button_hover,
     paused_anim,
@@ -1100,18 +1101,38 @@ class Visualizer:
                 image=MainData.assets.get_asset("button.png", scaling=False),
             )
         ]
+
+        option_button = AnimatedButton(
+            0.20,
+            0.2,
+            0.4,
+            0.6,
+            self.screen,
+            self.get_font(25),
+            self.pacmap.pacman,
+            animation_image=CyclicList(
+                [
+                    MainData.assets.get_asset(
+                        "control_base.png", scaling=False
+                    ),
+                    MainData.assets.get_asset(
+                        "control_cheat.png", scaling=False
+                    ),
+                ]
+            ),
+            anim_duration=0,
+            animate_func=cheat_toggle_anim,
+        )
+
         if isinstance(main_menu[0], AnimatedButton):
             AnimatedButton.last_hovered = main_menu[0]
-        high_score_menu: list[ClickableButton | AnimatedButton] = [
-            back_button,
-        ]
         self.buttons_per_menu: dict[
             VisualState, list[ClickableButton | AnimatedButton]
         ] = {
             VisualState.IN_GAME: in_game,
-            VisualState.HIGH_SCORE_MENU: high_score_menu,
+            VisualState.HIGH_SCORE_MENU: [back_button],
             VisualState.MAIN_MENU: main_menu,
-            VisualState.CONFIG: [back_button],
+            VisualState.CONFIG: [option_button, back_button],
             VisualState.PROMPTING_FOR_NAME: prompting_for_name,
         }
 
