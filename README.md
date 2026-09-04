@@ -59,7 +59,6 @@ make run
 ## 🕹️ How to Used
 <tr>
 <td align="center">
-    hello
  <img src="assets/readmefile/controlreadme.png" width="">
 </td>
 </tr>
@@ -124,6 +123,10 @@ you can run without config.json files to use default value
 
 
 
+## time manager
+
+<img src="assets/readmefile/timemanger.png" width=80%>
+
 ## test
 
 
@@ -163,3 +166,4 @@ Contenu caché ici, affiché seulement au clic.
 ![Build](https://img.shields.io/badge/build-passing-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-white)
 
+![alt text](image.png)
