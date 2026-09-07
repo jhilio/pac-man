@@ -137,17 +137,16 @@ you can run without config.json files to use default value
 
 The maze is dynamically generated when the game launches. The configuration notably provides width, height and a seed, which makes it possible to reproduce exactly the same maze when the same seed is used.
 
-![alt text](assets/readmefile/diagram.png)
+<img src="assets/readmefile/diagram.png" width=60%>
 
 ### 🔄 what is the principle
 
-The principle can be summarized in four steps:
-Configuration — the game retrieves dimensions and seed.
-Generation — MazeGenerator builds the maze.
-Conversion — the generated structure is used to create the PacMap Cells.
-Gameplay — characters use these cells to know where they can move.
-
-![alt text](assets/readmefile/diagram_utilisation.png)
+The principle can be summarized in four steps:  
+Configuration — the game retrieves dimensions and seed.  
+Generation — MazeGenerator builds the maze.  
+Conversion — the generated structure is used to create the PacMap Cells.  
+Gameplay — characters use these cells to know where they can move.  
+<img src="assets/readmefile/diagram_utilisation.png" width=60%>
 
 
 # test
