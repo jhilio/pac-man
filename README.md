@@ -132,9 +132,25 @@ you can run without config.json files to use default value
 
 ![alt text](assets/readmefile/diagramedeclasse.png)
 
-## test
+### 🧩 Maze Generation
 
 
+The maze is dynamically generated when the game launches. The configuration notably provides width, height and a seed, which makes it possible to reproduce exactly the same maze when the same seed is used.
+
+![alt text](assets/readmefile/diagram.png)
+
+### 🔄 what is the principle
+
+The principle can be summarized in four steps:
+Configuration — the game retrieves dimensions and seed.
+Generation — MazeGenerator builds the maze.
+Conversion — the generated structure is used to create the PacMap Cells.
+Gameplay — characters use these cells to know where they can move.
+
+![alt text](assets/readmefile/diagram_utilisation.png)
+
+
+# test
 
 
 ![Aperçu du jeu](assets/pacman/pacman_frame_1.png)
