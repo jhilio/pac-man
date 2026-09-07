@@ -62,7 +62,8 @@ make run
  <img src="assets/readmefile/controlreadme.png" width="">
 </td>
 </tr>
-### json
+
+## json
 
 you can run without config.json files to use default value
 
@@ -127,7 +128,12 @@ you can run without config.json files to use default value
 
 <img src="assets/readmefile/timemanger.png" width=80%>
 
+## How its works
+
+![alt text](assets/readmefile/diagramedeclasse.png)
+
 ## test
+
 
 
 
