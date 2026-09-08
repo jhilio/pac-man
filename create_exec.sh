@@ -12,7 +12,6 @@ echo "==> Building Linux version..."
 
 uv run pyinstaller \
   --onedir \
-  --strip \
   --upx-dir /usr/bin \
   --add-data "assets:assets" \
   --add-data "models:models" \

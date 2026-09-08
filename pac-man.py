@@ -198,7 +198,8 @@ def clamp_config():
 
         if not any(phase == ["chase", None] for phase in level["phases"]):
             print(
-                f"couldnt find eternal chase at end of phases, defaulting to permanent chase"
+                f"couldnt find eternal chase at end of phases,"
+                + " defaulting to permanent chase"
             )
             level["phases"] = [["chase", None]]
 
