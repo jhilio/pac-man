@@ -252,7 +252,7 @@ class Vector(Sequence[float | int]):
             return self.__class__(
                 tuple(abs(a_b[0] - a_b[1]) for a_b in zip(self, other))
             )
-        raise TypeError(f"cant floordiv {self} to {other}")
+        raise TypeError(f"cant get abs_diff of  {self} to {other}")
 
 
 class Pos2D(Vector):

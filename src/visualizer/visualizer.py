@@ -989,9 +989,9 @@ class Visualizer:
                     self.pacmap.pacman.cheat_mode
                     and not self.pacmap.is_finished
                 ):
-                    self.pacmap.go_next_level()
-                    if self.pacmap.is_finished:
-                        self.start_entering_name()
+                    for col in self.pacmap.cells:
+                        for cell in col:
+                            cell.fruit.eated() 
             case pygame.K_RETURN:
                 if (
                     AnimatedButton.last_hovered is not None
