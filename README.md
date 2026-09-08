@@ -65,7 +65,7 @@ make run
 
 ## json
 
-you can run without config.json files to use default value
+### How to make your config
 
 <table>
   <tr>
@@ -114,6 +114,13 @@ you can run without config.json files to use default value
 
 </details>
 
+### Hot To Made Your score
+```json
+{
+    "Name user" : "score",
+    "Max10char" : 999999
+}
+```
 
 ## 📚 Resources
 
@@ -130,14 +137,45 @@ you can run without config.json files to use default value
 
 ## How its works
 
+
 ![alt text](assets/readmefile/diagramedeclasse.png)
 
 ### 🧩 Maze Generation
 
 
 The maze is dynamically generated when the game launches. The configuration notably provides width, height and a seed, which makes it possible to reproduce exactly the same maze when the same seed is used.
+```mermaid
+graph TD;
+Main-->Config;
+Main-->Visualizer;
+Main-->Load-Asset
+Config-->Main-Data;
+Config-->Maze-Generator;
+Maze-Generator-->Pac-Map
+Asset-Manager-->Main-Data
+Main-Data-->Pac-Map
+Pac-Map-->Visualizer
+Main-->Load-Neural-Network
+Load-Asset-->Asset-Manager
+Main-Data-->Visualizer
+Load-Neural-Network-->Visualizer
+subgraph 1[Neural-Network]
+    Load-Neural-Network
+end
+subgraph 2[Map]
+    Pac-Map
+    Maze-Generator
+end
+subgraph 3[Resources]
+    Config
+    Load-Asset
+    Main-Data
+    Asset-Manager
+end
 
-<img src="assets/readmefile/diagram.png" width=60%>
+
+
+```
 
 ### 🔄 what is the principle
 
@@ -146,45 +184,5 @@ Configuration — the game retrieves dimensions and seed.
 Generation — MazeGenerator builds the maze.  
 Conversion — the generated structure is used to create the PacMap Cells.  
 Gameplay — characters use these cells to know where they can move.  
-<img src="assets/readmefile/diagram_utilisation.png" width=60%>
 
-
-# test
-
-
-![Aperçu du jeu](assets/pacman/pacman_frame_1.png)
-[Texte du lien](https://exemple.com)
-
-
-> [!NOTE]
-> Info générale
-
-> [!WARNING]
-> Attention à ceci
-
-> [!TIP]
-> Astuce utile
-
-<details>
-<summary>Texte toujours visible (le titre cliquable)</summary>
-
-Contenu caché ici, affiché seulement au clic.
-
-</details>
-
-
-<details>
-<summary>Voir la config JSON</summary>
-
-```json
-{
-  "lives": 3
-}
-```
-
-</details>*This project has been created as part of the 42 curriculum by aspenle jtardieu*
-
-![Build](https://img.shields.io/badge/build-passing-brightgreen)
-![License](https://img.shields.io/badge/license-MIT-white)
-
-![alt text](image.png)
+<img src="assets/readmefile/diagram_utilisation.png" width=80%>
