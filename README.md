@@ -121,6 +121,7 @@ make run
     "Max10char" : 999999
 }
 ```
+> we use the json to store the high score long terme because it is simple to use and was already used for the config
 
 ## 📚 Resources
 
@@ -144,6 +145,7 @@ make run
 
 
 The maze is dynamically generated when the game launches. The configuration notably provides width, height and a seed, which makes it possible to reproduce exactly the same maze when the same seed is used.
+
 ```mermaid
 graph TD;
 Main-->Config;
