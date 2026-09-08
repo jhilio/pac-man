@@ -1,11 +1,12 @@
-
 {
-	"width":1,
-	"height":1,
-	"lives": 1,
+	"width":16,
+	"height":20,
+	"lives": 10,
+    "prout" :30,
 	"levels": {
-		"1": {
-			"pacman_speed":"abc"
+        "1": {
+            "ghost_speed": 200,
+			"pacman_speed":300
 		}
 	}
 }

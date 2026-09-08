@@ -136,7 +136,8 @@ def load_high_scores(verbose: bool = False):
             loaded = json.load(file)
     except Exception as e:
         print(
-            f"couldnt open high_scores.json : {e}\n Defaulting to empty high scores"
+            f"couldnt open high_scores.json : {e}\n"
+            + "Defaulting to empty high scores"
         )
         loaded = {}
     if verbose:
@@ -148,6 +149,10 @@ def load_high_scores(verbose: bool = False):
             raise ConfigError("high score should be a dict of {str: int}")
         if k == "":
             raise ConfigError("high score name should not be empty")
+        if len(k) > 10:
+            raise ConfigError(
+                f"high score name should have 10 character max : {k}"
+            )
         if v < 0:
             raise ConfigError("high score value should not be negative")
     MainData.high_scores = loaded
