@@ -1,13 +1,11 @@
 from collections.abc import Callable
 from typing import Any, Optional, Self, SupportsIndex, overload
-
 import pygame
 from pygame.surface import Surface
-
 from ..vector import Pos2D
 
 
-class CyclicList(list):  # type: ignore[type-arg]
+class CyclicList(list[Any]):
     @overload
     def __getitem__(self, k: SupportsIndex) -> Any: ...
 
@@ -60,7 +58,7 @@ class PropRect:
 class DelayedCall:
     def __init__(
         self,
-        func: Callable,  # type: ignore[type-arg]
+        func: Callable[..., Any],
         *args: Any,
         **kwargs: Any,
     ):

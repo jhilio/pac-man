@@ -4,7 +4,6 @@ from typing import Optional, cast
 import pygame
 from random import Random
 from pygame.surface import Surface
-
 from ..ai.interface import NNDirectionChooser
 from ..cells import Cell
 from ..charachters.moving_entity import MovingEntities
