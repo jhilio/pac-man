@@ -1,6 +1,6 @@
 {
 #size of maze
-	"width":15,
+	"width":20,
 	"height":15,
 #pacman lives
 	"lives": 3,

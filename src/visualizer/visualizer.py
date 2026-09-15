@@ -768,7 +768,7 @@ class Visualizer:
             .lerp(ColorRGB(255, 220, 0), min(ratio * 2, 1))
             .lerp(ColorRGB(255, 20, 20), max(ratio * 2 - 1, 0))
         )
-        y_start = ratio * (target.get_height() - (offset.y * 2))
+        y_start = ratio * (len(self.pacmap.cells[0]) * MainData.cell_size * 3)
         y_start = round(y_start)
         target.fill(
             cast(tuple[int, int, int], tuple(round(color, 0))),
@@ -776,7 +776,7 @@ class Visualizer:
                 0 + offset.x,
                 y_start + offset.y,
                 MainData.cell_size,
-                target.get_height() - (offset.y * 2) - y_start,
+                (len(self.pacmap.cells[0]) * MainData.cell_size * 3) - y_start,
             ),
         )
 
@@ -884,7 +884,7 @@ class Visualizer:
             pos = offset + (Pos2D(0.25, i) * MainData.cell_size * 3)
             draw_text_multiline(
                 target,
-                [char for char in f"{i-1:02}: {name}"],
+                [char for char in f"{i - 1:02}: {name}"],
                 int(pos.x),
                 int(pos.y),
                 font,
