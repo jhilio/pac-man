@@ -2,7 +2,7 @@ PYTHON		= uv run python3
 UV			= uv
 VENV		= .venv
 PAC			= pac-man.py
-TMP_DIRS	= __pycache__ .mypy_cache .ruff_cache
+TMP_DIRS	= __pycache__ .mypy_cache .ruff_cache build dist pac-man-linux.spec
 
 CONFIG ?= ""
 
@@ -39,7 +39,7 @@ clean:
 	@rm -rf $(TMP_DIRS)
 	@find . -name "*.pyc" -delete
 	@find . -name "*.pyo" -delete
-	@find . -type d -name "__pycache__" -prune -exec rm -rf {}
+	@find . -type d -name "__pycache__" -prune -exec rm -rf {} \;
 	@echo ">>> Clean OK !"
 
 fclean: clean

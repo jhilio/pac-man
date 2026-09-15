@@ -164,9 +164,9 @@ def clamp_config():
         "lives": (1, 10),
         "width": (15, 25),
         "height": (15, 25),
-        "points_per_pacgum": (1, 1000),
-        "points_per_super_pacgum": (1, 1000),
-        "points_per_ghost": (1, 1000),
+        "points_per_pacgum": (1, 50),
+        "points_per_super_pacgum": (1, 200),
+        "points_per_ghost": (1, 200),
     }
     for key, (minimum, maximum) in clamp_dict.items():
         clamped = min(max(config[key], minimum), maximum)

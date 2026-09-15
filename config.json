@@ -1,12 +1,10 @@
 {
-	"width":16,
-	"height":20,
-	"lives": 10,
-    "prout" :30,
+#size of maze
+	"width":15,
+	"height":15,
+#pacman lives
+	"lives": 3,
+#levels data 
 	"levels": {
-        "1": {
-            "ghost_speed": 200,
-			"pacman_speed":300
-		}
 	}
 }

@@ -254,7 +254,8 @@ class PacMap:
         if not self.player_name:
             return
         if self.pacman.cheat_mode:
-            print(f"{self.player_name} cant be added to high score while in cheat mode")
+            print(f"{self.player_name} "
+                  "cant be added to high score while in cheat mode")
             return
         k = 10
         MainData.high_scores[self.player_name] = max(

@@ -1,7 +1,6 @@
 *This project has been created as part of the 42 curriculum by aspenle jtardieu*
 
-![Build](https://img.shields.io/badge/build-PyGame-pink)
-![License](https://img.shields.io/badge/license-42-white)
+![Build with pygame](https://img.shields.io/badge/build-PyGame-pink)
 
 # Pac-Man
 
@@ -67,10 +66,11 @@ make run
 
 ### How to make your config
 
+#### you can run without config.json files to use default value
+
+
+
 <table>
-  <tr>
-    <td colspan="2" align="center"> <h4>you can run without config.json files to use default value</h4></td>
-  </tr>
   <tr>
     <td>
       <img src="assets/readmefile/json.png"width=750>
@@ -114,7 +114,7 @@ make run
 
 </details>
 
-### Hot To Made Your score
+### Hot To Make Your score
 ```json
 {
     "Name user" : "score",

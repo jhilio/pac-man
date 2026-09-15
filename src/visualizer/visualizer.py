@@ -644,7 +644,7 @@ class Visualizer:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_BACKSPACE and self.typed_name:
                     self.typed_name = self.typed_name[:-1]
-                elif event.key == pygame.K_RETURN and self.typed_name:
+                elif event.key == pygame.K_RETURN and self.typed_name.strip():
                     self.finish_entering_name()
             elif (
                 event.type == pygame.TEXTINPUT
@@ -991,7 +991,7 @@ class Visualizer:
                 ):
                     for col in self.pacmap.cells:
                         for cell in col:
-                            cell.fruit.eated() 
+                            cell.fruit.eated()
             case pygame.K_RETURN:
                 if (
                     AnimatedButton.last_hovered is not None
@@ -1000,16 +1000,9 @@ class Visualizer:
                     AnimatedButton.last_hovered.on_click()
             case pygame.K_ESCAPE:
                 self.back_button.on_click()
-            case pygame.K_k:
-                if self.pacmap.pacman.lives > 0:
-                    self.pacmap.pacman_died()
-                    if self.pacmap.pacman.lives == 0:
-                        self.start_entering_name()
             case pygame.K_r:
                 if self.pacmap.pacman.cheat_mode:
                     self.pacmap.restart()
-                elif self.visualiser_state == VisualState.HIGH_SCORE_MENU:
-                    self.set_high_score_maze()
             case pygame.K_SPACE:
                 self.pacmap.pacman.eat_wall()
             case pygame.K_UP:
@@ -1048,14 +1041,7 @@ class Visualizer:
             pygame.K_b,
             pygame.K_a,
         ]
-        if event.key in [
-            pygame.K_UP,
-            pygame.K_RIGHT,
-            pygame.K_DOWN,
-            pygame.K_LEFT,
-            pygame.K_b,
-            pygame.K_a,
-        ]:
+        if event.key in konami_code:
             self.code_sequence.append(event.key)
             if self.code_sequence == [pygame.K_UP, pygame.K_UP, pygame.K_UP]:
                 self.code_sequence.pop()
@@ -1374,7 +1360,7 @@ class Visualizer:
     def finish_entering_name(self) -> None:
         """register the player name and update high score"""
         pygame.key.stop_text_input()
-        self.pacmap.player_name = self.typed_name
+        self.pacmap.player_name = self.typed_name.strip()
         self.pacmap.update_high_score()
         self.paused = True
         self.pacmap.restart()
